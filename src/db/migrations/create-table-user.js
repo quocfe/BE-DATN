@@ -25,20 +25,17 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING
       },
-      phone_number: {
+      code: {
         allowNull: true,
         type: Sequelize.STRING
       },
-      role_id: {
-        allowNull: false,
-        type: Sequelize.STRING,
-        defaultValue: 'bcb8d4a3-1a97-474d-bd1e-1d775e75fp0a',
-        references: {
-          model: 'Roles',
-          key: 'role_id'
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
+      is_auth: {
+        allowNull: true,
+        type: Sequelize.BOOLEAN
+      },
+      expires: {
+        allowNull: true,
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

@@ -4,16 +4,14 @@ import { LoginInput, RegisterInput } from '../types/auth.type'
 import { setCookie } from '../utils/cookie'
 import authService from '../services/authService'
 import { sendResponseSuccess } from '../utils/response'
+import emailService from '../services/emailService'
 
 class authController {
   // Đăng nhập
   async login(req: Request, res: Response) {
     const loginData: LoginInput = req.body
-
     const data = await authService.login(loginData)
-
     setCookie(res, 'refresh_token', data.refresh_token as string)
-
     sendResponseSuccess(res, _.omit(data, 'refresh_token'))
   }
 
@@ -26,6 +24,15 @@ class authController {
     sendResponseSuccess(res, data)
   }
 
+  // Đăng xuất
+  async logout(req: Request, res: Response) {
+    res.clearCookie('refresh_token')
+
+    return res.status(200).json({
+      message: 'Đăng xuất thành công'
+    })
+  }
+
   // Refresh Access Token
   async refreshAccessToken(req: Request, res: Response) {
     const refresh_token: string = req.cookies.refresh_token
@@ -35,6 +42,23 @@ class authController {
     setCookie(res, 'refresh_token', data.new_refresh_token as string)
 
     sendResponseSuccess(res, _.omit(data, 'new_refresh_token'))
+  }
+
+  // Xác thực email
+  async verifyEmail(req: Request, res: Response) {
+    const { email, code } = req.params
+
+    const data = await emailService.verifyEmail(email, code)
+
+    sendResponseSuccess(res, data)
+  }
+
+  async newAuthCodeEmail(req: Request, res: Response) {
+    const { email } = req.params
+
+    const data = await emailService.newAuthCodeEmail(email)
+
+    sendResponseSuccess(res, data)
   }
 }
 

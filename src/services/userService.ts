@@ -6,8 +6,7 @@ class userService {
   // Lấy thông tin người dùng
   async getProfile(user_id: string) {
     const user = await models.User.findByPk(user_id, {
-      attributes: { exclude: ['password'] },
-      include: [{ model: models.Role, as: 'role_data', attributes: ['role_name', 'description'] }]
+      attributes: { exclude: ['password', 'code', 'is_auth', 'expires'] }
     })
 
     return {

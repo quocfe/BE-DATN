@@ -8,21 +8,13 @@ module.exports = {
       [
         {
           user_id: 'lp322c73-f703-4b16-847d-f61bae053p9i',
-          first_name: 'Dev',
-          last_name: 'Member',
-          email: 'member@gmail.com',
-          phone_number: '0358195311',
-          password: hashSync('123456', genSaltSync(10)),
-          role_id: 'bcb8d4a3-1a97-474d-bd1e-1d775e75fjpe'
-        },
-        {
-          user_id: 'afa22c73-f703-4b16-847d-f61bae0534b2',
-          first_name: 'Dev',
-          last_name: 'Admin',
-          email: 'admin@gmail.com',
-          phone_number: '0362589022',
-          password: hashSync('123456', genSaltSync(10)),
-          role_id: 'bcb8d4a3-1a97-474d-bd1e-1d775e75fp0a'
+          first_name: 'Luffy',
+          last_name: 'Monkey D',
+          email: 'luffy@gmail.com',
+          password: hashSync('Luffy@2024', genSaltSync(10)),
+          code: '',
+          is_auth: true,
+          expires: ''
         }
       ],
       {}
