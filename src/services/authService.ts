@@ -78,13 +78,18 @@ class authService {
       throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Email này đã tồn tại!')
     }
 
-    const dataSendMail = await emailService.sendEmail(emailTitles.emailAuthentication, data.email, code)
+    try {
+      const dataSendMail = await emailService.sendEmail(emailTitles.emailAuthentication, data.email, code)
 
-    return {
-      message: emailTitles.emailAuthentication,
-      data: {
-        accepted: dataSendMail.accepted
+      return {
+        message: emailTitles.emailAuthentication,
+        data: {
+          to: dataSendMail.accepted
+        }
       }
+    } catch (error) {
+      await models.User.destroy({ where: { email: data.email } })
+      throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Lỗi không thể gửi được email!')
     }
   }
 

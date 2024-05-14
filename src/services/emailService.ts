@@ -3,7 +3,6 @@ import nodemailer from 'nodemailer'
 import models from '../db/models'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { StatusCodes } from 'http-status-codes'
-import moment from 'moment'
 import UI_SendMail from '../html/mail'
 import { generateCodeNumbers, generateExpiration, isExpiredAfter, isExpiredBefore } from '../utils/utils'
 import emailTitles from '../constants/email'
@@ -41,7 +40,6 @@ class emailService {
 
   // Xác thực email
   async verifyEmail(email: string, code: string) {
-    const now = moment()
     const user = await models.User.findOne({ where: { email } })
 
     if (!user) {
@@ -73,7 +71,6 @@ class emailService {
 
   // Tạo mã xác thực email mới
   async newAuthCodeEmail(email: string) {
-    const now = moment()
     const user = await models.User.findOne({ where: { email } })
     const newCode = generateCodeNumbers(6).toString()
     const newExpires = generateExpiration(2, 'minutes')
@@ -82,21 +79,27 @@ class emailService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Email không tồn tại!')
     }
 
-    if (isExpiredAfter(user.expires)) {
+    if (user.code !== '' && isExpiredAfter(user.expires)) {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Mã xác thực hiện tại vẫn còn hiệu lực!')
+    } else if (user.code === '') {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Email này hiện không cần yêu cầu mã mới!')
     }
 
-    const dataSendMail = await this.sendEmail(emailTitles.emailAuthentication, email, newCode)
+    try {
+      const dataSendMail = await this.sendEmail(emailTitles.emailAuthentication, email, newCode)
 
-    user.code = newCode
-    user.expires = newExpires
-    user.save()
+      user.code = newCode
+      user.expires = newExpires
+      user.save()
 
-    return {
-      message: 'Đã gửi mã xác nhận mới !',
-      data: {
-        accepted: dataSendMail.accepted
+      return {
+        message: 'Đã gửi mã xác nhận mới !',
+        data: {
+          to: dataSendMail.accepted
+        }
       }
+    } catch (error) {
+      throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Lỗi không thể gửi được email!')
     }
   }
 }
