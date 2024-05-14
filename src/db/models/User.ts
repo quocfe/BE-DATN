@@ -8,13 +8,15 @@ export interface UserAttributes {
   last_name: string
   email: string
   password: string
-  phone_number: string
-  role_id: string
+  code: string
+  is_auth: boolean
+  expires: string
   createdAt: Date
   updatedAt: Date
 }
 
-interface UserCreationAttribute extends Optional<UserAttributes, 'user_id' | 'role_id' | 'createdAt' | 'updatedAt'> {}
+interface UserCreationAttribute
+  extends Optional<UserAttributes, 'user_id' | 'code' | 'is_auth' | 'expires' | 'createdAt' | 'updatedAt'> {}
 
 class User extends Model<UserAttributes, UserCreationAttribute> implements UserAttributes {
   declare user_id: string
@@ -22,8 +24,9 @@ class User extends Model<UserAttributes, UserCreationAttribute> implements UserA
   declare last_name: string
   declare email: string
   declare password: string
-  declare phone_number: string
-  declare role_id: string
+  declare code: string
+  declare is_auth: boolean
+  declare expires: string
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -52,14 +55,19 @@ User.init(
       allowNull: true,
       type: DataTypes.STRING
     },
-    phone_number: {
+    code: {
       allowNull: true,
       type: DataTypes.STRING
     },
-    role_id: {
+    is_auth: {
+      allowNull: true,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    expires: {
       allowNull: true,
       type: DataTypes.STRING,
-      defaultValue: 'bcb8d4a3-1a97-474d-bd1e-1d775e75fp0a'
+      defaultValue: ''
     },
     createdAt: {
       allowNull: true,

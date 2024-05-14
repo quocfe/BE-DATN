@@ -8,6 +8,9 @@ import { StatusCodes } from 'http-status-codes'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { UserOutput } from '../types/user.type'
 import models from '../db/models'
+import emailService from './emailService'
+import emailTitles from '../constants/email'
+import { generateExpiration, generateCodeNumbers } from '../utils/utils'
 
 class authService {
   constructor(
@@ -21,12 +24,7 @@ class authService {
     const { email, password } = data
 
     const existsUser = await models.User.findOne({
-      where: { email },
-      include: {
-        model: models.Role,
-        as: 'role_data',
-        attributes: ['role_name', 'description']
-      }
+      where: { email }
     })
 
     if (!existsUser) {
@@ -43,7 +41,14 @@ class authService {
       })
     }
 
-    const user = _.omit({ ...existsUser.toJSON() }, 'password') as UserOutput
+    const user = _.omit({ ...existsUser.toJSON() }, 'password', 'code', 'is_auth', 'expires') as UserOutput
+
+    if (existsUser.is_auth === false) {
+      throw new CustomErrorHandler(StatusCodes.FORBIDDEN, {
+        message: 'Xác thực email của bạn!',
+        error: 'CONFIRM_EMAIL'
+      })
+    }
 
     const access_token = generateToken(user, this.secretKey, this.expiresAccessToken)
     const refresh_token = generateToken(user, this.secretKey, this.expiresRefreshToken)
@@ -61,24 +66,24 @@ class authService {
   // Đăng ký
   async register(data: RegisterInput) {
     data.password = hashValue(data.password)
+    const code = generateCodeNumbers(6).toString()
+    const expires = generateExpiration(2, 'minutes')
 
-    const [newUser, created] = await models.User.findOrCreate({
+    const [_, created] = await models.User.findOrCreate({
       where: { email: data.email },
-      defaults: data
+      defaults: { ...data, code, expires }
     })
 
     if (!created) {
       throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Email này đã tồn tại!')
     }
 
-    const user = _.omit(newUser.dataValues, 'password') as UserOutput
-    const access_token = generateToken(user, this.secretKey, this.expiresAccessToken)
+    const dataSendMail = await emailService.sendEmail(emailTitles.emailAuthentication, data.email, code)
 
     return {
-      message: 'Đăng ký tài khoản thành công!',
+      message: emailTitles.emailAuthentication,
       data: {
-        user,
-        access_token: `Bearer ${access_token}`
+        accepted: dataSendMail.accepted
       }
     }
   }

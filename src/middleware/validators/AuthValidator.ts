@@ -51,14 +51,7 @@ class AuthValidator {
         .withMessage(
           'Mật khẩu phải bao gồm ít nhất một chữ cái in hoa, một chữ cái thường, một số và một ký tự đặc biệt'
         )
-        .trim(),
-
-      body('phone_number')
-        .notEmpty()
-        .withMessage('Số điện thoại không được để trống')
         .trim()
-        .isMobilePhone('vi-VN')
-        .withMessage('Số điện thoại không hợp lệ')
     ]
   }
 }
