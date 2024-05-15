@@ -7,11 +7,12 @@ module.exports = {
       'Users',
       [
         {
-          user_id: 'lp322c73-f703-4b16-847d-f61bae053p9i',
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
           first_name: 'Luffy',
           last_name: 'Monkey D',
           email: 'luffy@gmail.com',
           password: hashSync('Luffy@2024', genSaltSync(10)),
+          gender: 0,
           code: '',
           is_auth: true,
           expires: ''

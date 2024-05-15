@@ -69,7 +69,7 @@ class authService {
     const code = generateCodeNumbers(6).toString()
     const expires = generateExpiration(2, 'minutes')
 
-    const [_, created] = await models.User.findOrCreate({
+    const [user, created] = await models.User.findOrCreate({
       where: { email: data.email },
       defaults: { ...data, code, expires }
     })
@@ -78,13 +78,20 @@ class authService {
       throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Email này đã tồn tại!')
     }
 
-    const dataSendMail = await emailService.sendEmail(emailTitles.emailAuthentication, data.email, code)
+    try {
+      const dataSendMail = await emailService.sendEmail(emailTitles.emailAuthentication, data.email, code)
 
-    return {
-      message: emailTitles.emailAuthentication,
-      data: {
-        accepted: dataSendMail.accepted
+      await models.Profile.create({ user_id: user.user_id })
+
+      return {
+        message: emailTitles.emailAuthentication,
+        data: {
+          to: dataSendMail.accepted
+        }
       }
+    } catch (error) {
+      await models.User.destroy({ where: { email: data.email } })
+      throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Lỗi không thể gửi được email!')
     }
   }
 
