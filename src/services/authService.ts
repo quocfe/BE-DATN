@@ -11,6 +11,7 @@ import models from '../db/models'
 import emailService from './emailService'
 import emailTitles from '../constants/email'
 import { generateExpiration, generateCodeNumbers } from '../utils/utils'
+import userService from './userService'
 
 class authService {
   constructor(
@@ -24,37 +25,51 @@ class authService {
     const { email, password } = data
 
     const existsUser = await models.User.findOne({
-      where: { email }
+      where: { email },
+      include: [
+        {
+          model: models.Profile,
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        },
+        {
+          model: models.Interest,
+          through: { attributes: [] },
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        }
+      ]
     })
 
     if (!existsUser) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
-        message: 'Email không tồn tại!',
-        errorField: 'EMAIL'
+        email: 'Email không tồn tại!'
       })
     }
 
     if (!compareValue(password, existsUser.password)) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
-        message: 'Mật khẩu không chính xác!',
-        errorField: 'PASSWORD'
+        password: 'Mật khẩu không chính xác!'
       })
     }
-
-    const user = _.omit({ ...existsUser.toJSON() }, 'password', 'code', 'is_auth', 'expires') as UserOutput
 
     if (existsUser.is_auth === false) {
       throw new CustomErrorHandler(StatusCodes.FORBIDDEN, {
-        message: 'Xác thực email của bạn!',
-        error: 'CONFIRM_EMAIL'
+        email: 'Xác thực email của bạn!'
       })
     }
 
-    const access_token = generateToken(user, this.secretKey, this.expiresAccessToken)
-    const refresh_token = generateToken(user, this.secretKey, this.expiresRefreshToken)
+    const user = _.omit(existsUser.toJSON(), 'password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt')
+
+    const userPayload: UserOutput = {
+      user_id: user.user_id,
+      email: user.email
+    }
+
+    const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
+
+    const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
 
     return {
-      message: 'Đăng nhập thành công.',
+      message: 'Đăng nhập thành công!',
       data: {
         user,
         access_token: `Bearer ${access_token}`
@@ -69,7 +84,7 @@ class authService {
     const code = generateCodeNumbers(6).toString()
     const expires = generateExpiration(2, 'minutes')
 
-    const [user, created] = await models.User.findOrCreate({
+    const [_, created] = await models.User.findOrCreate({
       where: { email: data.email },
       defaults: { ...data, code, expires }
     })
@@ -80,8 +95,6 @@ class authService {
 
     try {
       const dataSendMail = await emailService.sendEmail(emailTitles.emailAuthentication, data.email, code)
-
-      await models.Profile.create({ user_id: user.user_id })
 
       return {
         message: emailTitles.emailAuthentication,
