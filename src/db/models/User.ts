@@ -1,6 +1,7 @@
 import db from '../../connection'
 import { v4 as uuidv4 } from 'uuid'
-import { DataTypes, Model, Optional } from 'sequelize'
+import { BelongsToManyAddAssociationMixin, DataTypes, Model, Optional } from 'sequelize'
+import Interest from './Interest'
 
 export interface UserAttributes {
   user_id: string
@@ -8,6 +9,7 @@ export interface UserAttributes {
   last_name: string
   email: string
   password: string
+  gender: number
   code: string
   is_auth: boolean
   expires: string
@@ -24,11 +26,15 @@ class User extends Model<UserAttributes, UserCreationAttribute> implements UserA
   declare last_name: string
   declare email: string
   declare password: string
+  declare gender: number
   declare code: string
   declare is_auth: boolean
   declare expires: string
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
+
+  declare addInterest: BelongsToManyAddAssociationMixin<Interest, string>
+  declare addInterests: BelongsToManyAddAssociationMixin<Interest[], string>
 }
 
 User.init(
@@ -49,11 +55,16 @@ User.init(
     },
     email: {
       allowNull: true,
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      unique: true
     },
     password: {
       allowNull: true,
       type: DataTypes.STRING
+    },
+    gender: {
+      allowNull: true,
+      type: DataTypes.INTEGER
     },
     code: {
       allowNull: true,

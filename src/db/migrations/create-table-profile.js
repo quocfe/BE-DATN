@@ -3,44 +3,61 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Users', {
-      user_id: {
+    await queryInterface.createTable('Profiles', {
+      profile_id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING
       },
-      first_name: {
+      phone_number: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
-      last_name: {
+      date_of_birth: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: Sequelize.DATE
       },
-      email: {
+      biography: {
         allowNull: true,
         type: Sequelize.STRING,
         unique: true
       },
-      password: {
+      profile_picture: {
         allowNull: true,
         type: Sequelize.STRING
       },
-      gender: {
+      cover_photo: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      home_town: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      relationship_status: {
         allowNull: true,
         type: Sequelize.INTEGER
       },
-      code: {
+      education: {
         allowNull: true,
         type: Sequelize.STRING
       },
-      is_auth: {
-        allowNull: true,
-        type: Sequelize.BOOLEAN
-      },
-      expires: {
+      job: {
         allowNull: true,
         type: Sequelize.STRING
+      },
+      alias: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      user_id: {
+        allowNull: false,
+        type: Sequelize.STRING,
+        references: {
+          key: 'user_id',
+          model: 'Users'
+        },
+        onDelete: 'CASCADE'
       },
       createdAt: {
         allowNull: false,
@@ -56,6 +73,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users')
+    await queryInterface.dropTable('Profiles')
   }
 }
