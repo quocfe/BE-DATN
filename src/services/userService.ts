@@ -9,15 +9,18 @@ class userService {
   // Lấy thông tin người dùng
   async getProfile(user_id: string) {
     const user = await models.User.findByPk(user_id, {
+      attributes: { exclude: ['password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt'] },
       include: [
+        {
+          model: models.Profile,
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        },
         {
           model: models.Interest,
           through: { attributes: [] },
-          attributes: ['interest_name'],
-          required: true
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
         }
-      ],
-      attributes: { exclude: ['password', 'code', 'is_auth', 'expires'] }
+      ]
     })
 
     return {
