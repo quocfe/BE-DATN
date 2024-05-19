@@ -4,18 +4,17 @@ const { hashSync, genSaltSync } = require('bcryptjs')
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert(
-      'Users',
+      'UserInterests',
       [
         {
+          id: 1,
           user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
-          first_name: 'Dev',
-          last_name: 'Kan',
-          email: 'kanisdev@gmail.com',
-          password: hashSync('123456', genSaltSync(10)),
-          gender: 0,
-          code: '',
-          is_auth: true,
-          expires: ''
+          interest_id: 'ap123c73-f703-4b16-847d-f61bae053a1z'
+        },
+        {
+          id: 2,
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          interest_id: 'fp623h28-f703-4b16-847d-f61bae053f6u'
         }
       ],
       {}
@@ -23,6 +22,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('Users', null, {})
+    await queryInterface.bulkDelete('UserInterests', null, {})
   }
 }
