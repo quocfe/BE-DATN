@@ -29,15 +29,13 @@ class authService {
 
     if (!existsUser) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
-        message: 'Email không tồn tại!',
-        errorField: 'EMAIL'
+        email: 'Email không tồn tại!'
       })
     }
 
     if (!compareValue(password, existsUser.password)) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
-        message: 'Mật khẩu không chính xác!',
-        errorField: 'PASSWORD'
+        password: 'Mật khẩu không chính xác!'
       })
     }
 
@@ -45,8 +43,7 @@ class authService {
 
     if (existsUser.is_auth === false) {
       throw new CustomErrorHandler(StatusCodes.FORBIDDEN, {
-        message: 'Xác thực email của bạn!',
-        error: 'CONFIRM_EMAIL'
+        email: 'Xác thực email của bạn!'
       })
     }
 
