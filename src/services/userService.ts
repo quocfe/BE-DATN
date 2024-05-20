@@ -11,13 +11,17 @@ class userService {
     const user = await models.User.findByPk(user_id, {
       include: [
         {
+          model: models.Profile,
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        },
+        {
           model: models.Interest,
           through: { attributes: [] },
           attributes: ['interest_name'],
           required: true
         }
       ],
-      attributes: { exclude: ['password', 'code', 'is_auth', 'expires'] }
+      attributes: { exclude: ['password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt'] }
     })
 
     return {
