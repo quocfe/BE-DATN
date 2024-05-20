@@ -11,6 +11,7 @@ import models from '../db/models'
 import emailService from './emailService'
 import emailTitles from '../constants/email'
 import { generateExpiration, generateCodeNumbers } from '../utils/utils'
+import userService from './userService'
 
 class authService {
   constructor(
@@ -39,16 +40,21 @@ class authService {
       })
     }
 
-    const user = _.omit({ ...existsUser.toJSON() }, 'password', 'code', 'is_auth', 'expires') as UserOutput
-
     if (existsUser.is_auth === false) {
       throw new CustomErrorHandler(StatusCodes.FORBIDDEN, {
         email: 'Xác thực email của bạn!'
       })
     }
 
-    const access_token = generateToken(user, this.secretKey, this.expiresAccessToken)
-    const refresh_token = generateToken(user, this.secretKey, this.expiresRefreshToken)
+    const userPayload: UserOutput = {
+      user_id: existsUser.user_id,
+      email: existsUser.email
+    }
+
+    const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
+    const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
+
+    const user = await userService.getProfile(existsUser.user_id)
 
     return {
       message: 'Đăng nhập thành công.',
