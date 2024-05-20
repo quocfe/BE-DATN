@@ -57,6 +57,7 @@ class authService {
       })
     }
 
+<<<<<<< kanisdev/update
     const user = _.omit(existsUser.toJSON(), 'password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt')
 
     const userPayload: UserOutput = {
@@ -67,6 +68,17 @@ class authService {
     const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
 
     const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
+=======
+    const userPayload: UserOutput = {
+      user_id: existsUser.user_id,
+      email: existsUser.email
+    }
+
+    const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
+    const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
+
+    const user = await userService.getProfile(existsUser.user_id)
+>>>>>>> main
 
     return {
       message: 'Đăng nhập thành công.',
