@@ -1,11 +1,45 @@
 import User from './User'
+import Profile from './Profile'
+import Interest from './Interest'
 
 import CategoryVideoModel from './CategoriesVideo'
 
 import VideoModal from './Video'
 
-export const setupModelRelationships = () => {}
+const userRelationships = () => {
+  User.hasOne(Profile, {
+    foreignKey: 'user_id'
+  })
 
-const models = { User, VideoModal, CategoryVideoModel }
+  User.belongsToMany(Interest, {
+    through: 'UserInterests',
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
+  })
+}
+
+const profileRelationships = () => {
+  Profile.belongsTo(User, {
+    foreignKey: 'user_id',
+    targetKey: 'user_id',
+    onDelete: 'CASCADE'
+  })
+}
+
+const interestRelationships = () => {
+  Interest.belongsToMany(User, {
+    through: 'UserInterests',
+    foreignKey: 'interest_id',
+    onDelete: 'CASCADE'
+  })
+}
+
+export const setupModelRelationships = () => {
+  userRelationships()
+  profileRelationships()
+  interestRelationships()
+}
+
+const models = { User, Profile, Interest }
 
 export default models

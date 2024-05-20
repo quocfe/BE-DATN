@@ -7,7 +7,8 @@ export interface VideoAttributes {
   id: string
   content: string
   title: string
-  link: string
+  url: string
+  public_id: string
   tag: string
   privacy: string
   view: number
@@ -23,7 +24,8 @@ interface VideoCreationAttribute
     | 'id'
     | 'content'
     | 'title'
-    | 'link'
+    | 'url'
+    | 'public_id'
     | 'tag'
     | 'privacy'
     | 'view'
@@ -37,7 +39,8 @@ class VideoModal extends Model<VideoAttributes, VideoCreationAttribute> implemen
   declare id: string
   declare content: string
   declare title: string
-  declare link: string
+  declare url: string
+  declare public_id: string
   declare tag: string
   declare privacy: string
   declare view: number
@@ -63,7 +66,11 @@ VideoModal.init(
       allowNull: true,
       type: DataTypes.STRING
     },
-    link: {
+    url: {
+      allowNull: true,
+      type: DataTypes.STRING
+    },
+    public_id: {
       allowNull: true,
       type: DataTypes.STRING
     },

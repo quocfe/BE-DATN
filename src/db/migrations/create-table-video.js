@@ -17,9 +17,13 @@ module.exports = {
         allowNull: true,
         type: Sequelize.TEXT
       },
-      link: {
-        allowNull: false,
+      url: {
+        allowNull: true,
         type: Sequelize.TEXT
+      },
+      public_id: {
+        allowNull: true,
+        type: Sequelize.STRING
       },
       tag: {
         allowNull: true,
