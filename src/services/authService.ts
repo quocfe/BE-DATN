@@ -25,7 +25,18 @@ class authService {
     const { email, password } = data
 
     const existsUser = await models.User.findOne({
-      where: { email }
+      where: { email },
+      include: [
+        {
+          model: models.Profile,
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        },
+        {
+          model: models.Interest,
+          through: { attributes: [] },
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        }
+      ]
     })
 
     if (!existsUser) {
@@ -46,6 +57,18 @@ class authService {
       })
     }
 
+<<<<<<< kanisdev/update
+    const user = _.omit(existsUser.toJSON(), 'password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt')
+
+    const userPayload: UserOutput = {
+      user_id: user.user_id,
+      email: user.email
+    }
+
+    const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
+
+    const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
+=======
     const userPayload: UserOutput = {
       user_id: existsUser.user_id,
       email: existsUser.email
@@ -55,6 +78,7 @@ class authService {
     const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
 
     const user = await userService.getProfile(existsUser.user_id)
+>>>>>>> main
 
     return {
       message: 'Đăng nhập thành công.',
