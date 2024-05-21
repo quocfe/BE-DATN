@@ -62,12 +62,13 @@ Profile.init(
     profile_picture: {
       allowNull: true,
       type: DataTypes.STRING,
-      defaultValue: ''
+      defaultValue: 'https://thespiritofsaigon.net/wp-content/uploads/2022/10/avatar-vo-danh-15.jpg'
     },
     cover_photo: {
       allowNull: true,
       type: DataTypes.STRING,
-      defaultValue: ''
+      defaultValue:
+        'https://static.vecteezy.com/system/resources/previews/006/852/817/non_2x/abstract-colorful-gradient-lines-with-blue-and-pink-light-on-purple-background-free-vector.jpg'
     },
     home_town: {
       allowNull: true,

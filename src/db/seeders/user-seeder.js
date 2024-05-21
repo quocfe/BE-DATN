@@ -8,8 +8,8 @@ module.exports = {
       [
         {
           user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
-          first_name: 'Luffy',
-          last_name: 'Monkey D',
+          first_name: 'Dev',
+          last_name: 'Kan',
           email: 'kanisdev@gmail.com',
           password: hashSync('123456', genSaltSync(10)),
           gender: 0,
