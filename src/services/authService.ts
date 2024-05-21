@@ -56,15 +56,6 @@ class authService {
         email: 'Xác thực email của bạn!'
       })
     }
-    
-    const user = _.omit(existsUser.toJSON(), 'password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt')
-
-    const userPayload: UserOutput = {
-      user_id: user.user_id,
-      email: user.email
-    }
-
-    const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
 
     const user = _.omit(existsUser.toJSON(), 'password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt')
 
@@ -78,7 +69,7 @@ class authService {
     const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
 
     return {
-      message: 'Đăng nhập thành công.',
+      message: 'Đăng nhập thành công!',
       data: {
         user,
         access_token: `Bearer ${access_token}`
