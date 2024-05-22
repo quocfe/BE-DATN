@@ -3,55 +3,61 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Videos', {
-      id: {
+    await queryInterface.createTable('Profiles', {
+      profile_id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING
       },
-      content: {
+      phone_number: {
         allowNull: true,
-        type: Sequelize.STRING
-      },
-      title: {
-        allowNull: true,
-        type: Sequelize.STRING
-      },
-      url: {
-        allowNull: true,
-        type: Sequelize.TEXT
-      },
-      public_id: {
-        allowNull: true,
-        type: Sequelize.STRING
-      },
-      tag: {
-        allowNull: true,
-        type: Sequelize.STRING
-      },
-      privacy: {
-        allowNull: false,
-        type: Sequelize.STRING
-      },
-      view: {
-        allowNull: false,
         type: Sequelize.INTEGER
       },
-      category_video_id: {
+      date_of_birth: {
+        allowNull: true,
+        type: Sequelize.DATE
+      },
+      biography: {
         allowNull: true,
         type: Sequelize.STRING,
-        references: {
-          model: CategoryVideoModel, // Tham chiếu tới model Category
-          key: 'id' // Khóa chính của model Category
-        }
+        unique: true
+      },
+      profile_picture: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      cover_photo: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      home_town: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      relationship_status: {
+        allowNull: true,
+        type: Sequelize.INTEGER
+      },
+      education: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      job: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      alias: {
+        allowNull: true,
+        type: Sequelize.STRING
       },
       user_id: {
-        type: Sequelize.STRING,
         allowNull: false,
+        type: Sequelize.STRING,
         references: {
-          model: User, // Tham chiếu tới model Category
-          key: 'user_id' // Khóa chính của model Category
-        }
+          key: 'user_id',
+          model: 'Users'
+        },
+        onDelete: 'CASCADE'
       },
       createdAt: {
         allowNull: false,
@@ -67,6 +73,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Videos')
+    await queryInterface.dropTable('Profiles')
   }
 }

@@ -7,7 +7,8 @@ export interface VideoAttributes {
   id: string
   content: string
   title: string
-  link: string
+  url: string
+  public_id: string
   tag: string
   privacy: string
   view: number
@@ -23,7 +24,8 @@ interface VideoCreationAttribute
     | 'id'
     | 'content'
     | 'title'
-    | 'link'
+    | 'url'
+    | 'public_id'
     | 'tag'
     | 'privacy'
     | 'view'
@@ -37,7 +39,8 @@ class VideoModal extends Model<VideoAttributes, VideoCreationAttribute> implemen
   declare id: string
   declare content: string
   declare title: string
-  declare link: string
+  declare url: string
+  declare public_id: string
   declare tag: string
   declare privacy: string
   declare view: number
@@ -63,8 +66,12 @@ VideoModal.init(
       allowNull: true,
       type: DataTypes.STRING
     },
-    link: {
-      allowNull: true,
+    url: {
+      allowNull: false,
+      type: DataTypes.STRING
+    },
+    public_id: {
+      allowNull: false,
       type: DataTypes.STRING
     },
     tag: {
@@ -73,8 +80,8 @@ VideoModal.init(
     },
     privacy: {
       allowNull: false,
-      type: DataTypes.ENUM(PRIVACY.private, PRIVACY.public),
-      defaultValue: PRIVACY.public
+      type: DataTypes.ENUM(PRIVACY.ALL, PRIVACY.FRIEND, PRIVACY.ONLY),
+      defaultValue: PRIVACY.ALL
     },
     view: {
       allowNull: false,
@@ -86,7 +93,7 @@ VideoModal.init(
       type: DataTypes.STRING
     },
     user_id: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.STRING
     },
     createdAt: {
