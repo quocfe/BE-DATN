@@ -1,9 +1,6 @@
 import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
-
-import CategoryVideoModel from './CategoriesVideo'
-
 import VideoModal from './Video'
 
 const userRelationships = () => {
@@ -40,6 +37,6 @@ export const setupModelRelationships = () => {
   interestRelationships()
 }
 
-const models = { User, Profile, Interest }
+const models = { User, Profile, Interest, Video: VideoModal }
 
 export default models

@@ -1,6 +1,7 @@
 const PRIVACY = {
-  public: 'public',
-  private: 'private'
+  ALL: 'ALL',
+  FRIEND: 'FRIEND',
+  ONLY: 'ONLY'
 } as const
 
 export default PRIVACY

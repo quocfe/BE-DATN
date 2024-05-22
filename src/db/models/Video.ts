@@ -67,11 +67,11 @@ VideoModal.init(
       type: DataTypes.STRING
     },
     url: {
-      allowNull: true,
+      allowNull: false,
       type: DataTypes.STRING
     },
     public_id: {
-      allowNull: true,
+      allowNull: false,
       type: DataTypes.STRING
     },
     tag: {
@@ -80,8 +80,8 @@ VideoModal.init(
     },
     privacy: {
       allowNull: false,
-      type: DataTypes.ENUM(PRIVACY.private, PRIVACY.public),
-      defaultValue: PRIVACY.public
+      type: DataTypes.ENUM(PRIVACY.ALL, PRIVACY.FRIEND, PRIVACY.ONLY),
+      defaultValue: PRIVACY.ALL
     },
     view: {
       allowNull: false,
@@ -93,7 +93,7 @@ VideoModal.init(
       type: DataTypes.STRING
     },
     user_id: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.STRING
     },
     createdAt: {
