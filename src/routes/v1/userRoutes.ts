@@ -7,4 +7,6 @@ const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
 
+router.post('/profile/update', Middleware.verifyToken, tryCatch(userController.updateProfile))
+
 export default router
