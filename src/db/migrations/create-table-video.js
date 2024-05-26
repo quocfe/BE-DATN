@@ -40,18 +40,18 @@ module.exports = {
       category_video_id: {
         allowNull: true,
         type: Sequelize.STRING,
-        references: {
-          model: CategoryVideoModel, // Tham chiếu tới model Category
-          key: 'id' // Khóa chính của model Category
-        }
+        // references: {
+        //   model: CategoryVideoModel, // Tham chiếu tới model Category
+        //   key: 'id' // Khóa chính của model Category
+        // }
       },
       user_id: {
         type: Sequelize.STRING,
         allowNull: false,
-        references: {
-          model: User, // Tham chiếu tới model Category
-          key: 'user_id' // Khóa chính của model Category
-        }
+        // references: {
+        //   model: User, // Tham chiếu tới model Category
+        //   key: 'user_id' // Khóa chính của model Category
+        // }
       },
       createdAt: {
         allowNull: false,
