@@ -95,27 +95,17 @@ class messageController {
   }
 
   async sendReactMessage(req: Request, res: Response) {
-    const reactMessageData: ReactMessageInput = req.body
+    if (req.user) {
+      const reactMessageData: ReactMessageInput = req.body
+      const { user_id } = req.user
+      const data = await messageService.sendReactMessage({
+        ...reactMessageData,
+        user_id,
+        createdBy: user_id
+      })
 
-    const data = await messageService.sendReactMessage(reactMessageData)
-
-    sendResponseSuccess(res, data)
-  }
-
-  async updateReactMessage(req: Request, res: Response) {
-    const updateReactMessage: UpdateReactMessageInput = req.body
-
-    const data = await messageService.updateReactMessage(updateReactMessage)
-
-    sendResponseSuccess(res, data)
-  }
-
-  async deleteReactMessage(req: Request, res: Response) {
-    const { react_message_id } = req.params
-
-    const data = await messageService.deleteReactMessage(react_message_id)
-
-    sendResponseSuccess(res, data)
+      sendResponseSuccess(res, data)
+    }
   }
 }
 

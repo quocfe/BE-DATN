@@ -344,52 +344,49 @@ class messageService {
     if (!checkMessage) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại message!')
     }
+    const checkReactMessage = await models.ReactMessage.findOne({
+      where: {
+        message_id: reactMessageData.message_id,
+        user_id: reactMessageData.user_id
+      }
+    })
+
+    if (checkReactMessage) {
+      if (checkReactMessage.emoji === reactMessageData.emoji) {
+        // delete
+        await models.ReactMessage.destroy({
+          where: {
+            react_message_id: checkReactMessage.react_message_id
+          }
+        })
+        return {
+          message: 'delete ReactMessage ok',
+          data: {}
+        }
+      } else {
+        const data = {
+          ...checkReactMessage,
+          emoji: reactMessageData.emoji,
+          updatedAt: new Date()
+        }
+
+        await models.ReactMessage.update(data, {
+          where: {
+            react_message_id: checkReactMessage.react_message_id
+          }
+        })
+
+        return {
+          message: 'update ReactMessage ok',
+          data: {}
+        }
+      }
+    }
 
     await models.ReactMessage.create(reactMessageData)
 
     return {
       message: 'sendReactMessage ok',
-      data: {}
-    }
-  }
-
-  async updateReactMessage(updateReactMessage: UpdateReactMessageInput) {
-    const checkMessage = await models.ReactMessage.findByPk(updateReactMessage.react_message_id)
-    if (!checkMessage) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại react message!')
-    }
-
-    const data = {
-      ...updateReactMessage,
-      updatedAt: new Date()
-    }
-
-    await models.ReactMessage.update(data, {
-      where: {
-        react_message_id: updateReactMessage.react_message_id
-      }
-    })
-
-    return {
-      message: 'updateReactMessage ok',
-      data: { data }
-    }
-  }
-
-  async deleteReactMessage(react_message_id: string) {
-    const checkMessage = await models.ReactMessage.findByPk(react_message_id)
-    if (!checkMessage) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại react message!')
-    }
-
-    await models.ReactMessage.destroy({
-      where: {
-        react_message_id: react_message_id
-      }
-    })
-
-    return {
-      message: 'deleteReactMessage ok',
       data: {}
     }
   }

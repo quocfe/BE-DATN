@@ -1,6 +1,7 @@
 import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
+import Friendship from './Friendship'
 import GroupMessage from './GroupMessage'
 import MemberGroup from './MemberGroup'
 import ReactMessage from './ReactMessage'
@@ -18,8 +19,19 @@ const userRelationships = () => {
     onDelete: 'CASCADE'
   })
 
-  User.hasMany(GroupMessage, { foreignKey: 'createdBy' })
-  User.hasMany(MemberGroup, { foreignKey: 'user_id' })
+  User.belongsToMany(User, {
+    through: 'Friendships',
+    as: 'Friends',
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
+  })
+
+  User.belongsToMany(User, {
+    through: 'Friendships',
+    as: 'UserFriends',
+    foreignKey: 'friend_id',
+    onDelete: 'CASCADE'
+  })
 }
 
 const profileRelationships = () => {
@@ -72,6 +84,6 @@ export const setupModelRelationships = () => {
   reactMessage()
 }
 
-const models = { User, Profile, Interest, GroupMessage, MemberGroup, Message, ReactMessage, SeenMessage }
+const models = { User, Profile, Interest, Friendship, GroupMessage, MemberGroup, Message, ReactMessage, SeenMessage }
 
 export default models
