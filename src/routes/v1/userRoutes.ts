@@ -9,4 +9,36 @@ router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfil
 
 router.post('/profile/update', Middleware.verifyToken, tryCatch(userController.updateProfile))
 
+router.post('/sender_friend_request/:friend_id', Middleware.verifyToken, tryCatch(userController.sendFriendRequest))
+
+router.get('/list/sent_friend_request', Middleware.verifyToken, tryCatch(userController.fetchAllSentFriendRequest))
+
+router.get(
+  '/list/received_friend_request',
+  Middleware.verifyToken,
+  tryCatch(userController.fetchAllReceivedFriendRequest)
+)
+
+router.post(
+  '/friend/accept_friend_request/:friend_id',
+  Middleware.verifyToken,
+  tryCatch(userController.acceptFriendRequest)
+)
+
+router.post(
+  '/friend/cancel_friend_request/:friend_id',
+  Middleware.verifyToken,
+  tryCatch(userController.cancelFriendRequest)
+)
+
+router.post('/friend/blocked_user/:friend_id', Middleware.verifyToken, tryCatch(userController.blockedUser))
+
+router.post('/friend/unblocked_user/:friend_id', Middleware.verifyToken, tryCatch(userController.unblockedUser))
+
+router.get('/friend/list/block', Middleware.verifyToken, tryCatch(userController.fetchAllListBlockUser))
+
+router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFriendOfUser))
+
+router.get('/friend/list/search/:name', Middleware.verifyToken, tryCatch(userController.searchUserOrFanpage))
+
 export default router
