@@ -5,6 +5,7 @@ const UserMigration = require('./create-table-user')
 const ProfileMigration = require('./create-table-profile')
 const InterestMigration = require('./create-table-interest')
 const UserInterestsMigration = require('./create-table-user-interests')
+const FriendShipMigration = require('./create-table-friendship')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -16,9 +17,13 @@ module.exports = {
     await InterestMigration.up(queryInterface, Sequelize)
     // UserInterests
     await UserInterestsMigration.up(queryInterface, Sequelize)
+    // Friendship
+    await FriendShipMigration.up(queryInterface, Sequelize)
   },
 
   async down(queryInterface, Sequelize) {
+    // Friendship
+    await FriendShipMigration.up(queryInterface, Sequelize)
     // UserInterests
     await UserInterestsMigration.down(queryInterface, Sequelize)
     // Interests

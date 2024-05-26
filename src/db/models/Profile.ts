@@ -10,6 +10,7 @@ export interface ProfileAttributes {
   profile_picture: string
   cover_photo: string
   home_town: string
+  relationship_status: number
   education: string
   job: string
   alias: string
@@ -29,6 +30,7 @@ class Profile extends Model<ProfileAttributes, ProfileCreationAttribute> impleme
   declare cover_photo: string
   declare home_town: string
   declare education: string
+  declare relationship_status: number
   declare job: string
   declare alias: string
   declare user_id: string
@@ -46,8 +48,8 @@ Profile.init(
     },
     phone_number: {
       allowNull: true,
-      type: DataTypes.INTEGER,
-      defaultValue: null
+      type: DataTypes.STRING,
+      defaultValue: ''
     },
     date_of_birth: {
       allowNull: true,
@@ -62,7 +64,8 @@ Profile.init(
     profile_picture: {
       allowNull: true,
       type: DataTypes.STRING,
-      defaultValue: 'https://thespiritofsaigon.net/wp-content/uploads/2022/10/avatar-vo-danh-15.jpg'
+      defaultValue:
+        'https://bizweb.dktcdn.net/100/363/455/articles/aa764fc66c05b85be114-ccb99895-18ba-427d-baab-e8549180465e.jpg?v=1697384878447'
     },
     cover_photo: {
       allowNull: true,
@@ -79,6 +82,11 @@ Profile.init(
       allowNull: true,
       type: DataTypes.STRING,
       defaultValue: ''
+    },
+    relationship_status: {
+      allowNull: true,
+      type: DataTypes.INTEGER,
+      defaultValue: null
     },
     job: {
       allowNull: true,
