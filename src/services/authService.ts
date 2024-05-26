@@ -69,7 +69,7 @@ class authService {
     const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
 
     return {
-      message: 'Đăng nhập thành công!',
+      message: 'Đăng nhập thành công',
       data: {
         user,
         access_token: `Bearer ${access_token}`
@@ -84,7 +84,7 @@ class authService {
     const code = generateCodeNumbers(6).toString()
     const expires = generateExpiration(2, 'minutes')
 
-    const [user, created] = await models.User.findOrCreate({
+    const [_, created] = await models.User.findOrCreate({
       where: { email: data.email },
       defaults: { ...data, code, expires }
     })
@@ -95,8 +95,6 @@ class authService {
 
     try {
       const dataSendMail = await emailService.sendEmail(emailTitles.emailAuthentication, data.email, code)
-
-      await models.Profile.create({ user_id: user.user_id })
 
       return {
         message: emailTitles.emailAuthentication,

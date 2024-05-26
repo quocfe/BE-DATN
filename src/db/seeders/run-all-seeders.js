@@ -5,6 +5,7 @@ const UserSeeder = require('./user-seeder')
 const ProfileSeeder = require('./profile-seeder')
 const InterestSeeder = require('./interest-seeder')
 const UserInterestSeeder = require('./user-interest-seeder')
+const FriendshipSeeder = require('./friendship-seeder')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -12,9 +13,11 @@ module.exports = {
     await ProfileSeeder.up(queryInterface, Sequelize)
     await InterestSeeder.up(queryInterface, Sequelize)
     await UserInterestSeeder.up(queryInterface, Sequelize)
+    await FriendshipSeeder.up(queryInterface, Sequelize)
   },
 
   async down(queryInterface, Sequelize) {
+    await FriendshipSeeder.down(queryInterface, Sequelize)
     await UserInterestSeeder.down(queryInterface, Sequelize)
     await InterestSeeder.down(queryInterface, Sequelize)
     await ProfileSeeder.down(queryInterface, Sequelize)

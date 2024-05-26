@@ -1,7 +1,8 @@
 import db from '../../connection'
 import { v4 as uuidv4 } from 'uuid'
-import { BelongsToManyAddAssociationMixin, DataTypes, Model, Optional } from 'sequelize'
+import { BelongsToManyAddAssociationMixin, DataTypes, FindOptions, Model, Optional } from 'sequelize'
 import Interest from './Interest'
+import Profile from './Profile'
 
 export interface UserAttributes {
   user_id: string
@@ -33,8 +34,15 @@ class User extends Model<UserAttributes, UserCreationAttribute> implements UserA
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 
+  declare Friends: User
+  declare UserFriends: User
+  declare Profile: Profile
+
   declare addInterest: BelongsToManyAddAssociationMixin<Interest, string>
   declare addInterests: BelongsToManyAddAssociationMixin<Interest[], string>
+
+  declare getFriends: (options?: FindOptions) => Promise<User[]>
+  declare getUserFriends: (options?: FindOptions) => Promise<User[]>
 }
 
 User.init(

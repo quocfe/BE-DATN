@@ -1,6 +1,11 @@
 import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
+import GroupMessage from './GroupMessage'
+import MemberGroup from './MemberGroup'
+import ReactMessage from './ReactMessage'
+import SeenMessage from './SeenMessage'
+import Message from './Message'
 
 const userRelationships = () => {
   User.hasOne(Profile, {
@@ -12,12 +17,14 @@ const userRelationships = () => {
     foreignKey: 'user_id',
     onDelete: 'CASCADE'
   })
+
+  User.hasMany(GroupMessage, { foreignKey: 'createdBy' })
+  User.hasMany(MemberGroup, { foreignKey: 'user_id' })
 }
 
 const profileRelationships = () => {
   Profile.belongsTo(User, {
     foreignKey: 'user_id',
-    targetKey: 'user_id',
     onDelete: 'CASCADE'
   })
 }
@@ -30,12 +37,41 @@ const interestRelationships = () => {
   })
 }
 
+const groupMessageRelationships = () => {
+  GroupMessage.hasMany(Message, { foreignKey: 'group_message_id', onDelete: 'cascade' })
+  GroupMessage.hasMany(MemberGroup, { foreignKey: 'group_message_id', onDelete: 'cascade' })
+  GroupMessage.belongsTo(User, { foreignKey: 'createdBy' })
+}
+
+const memberGroup = () => {
+  MemberGroup.belongsTo(User, { foreignKey: 'user_id' })
+  MemberGroup.belongsTo(GroupMessage, { foreignKey: 'group_message_id' })
+}
+
+const messageRelationships = () => {
+  Message.hasMany(ReactMessage, { foreignKey: 'message_id', onDelete: 'cascade' })
+  Message.hasMany(SeenMessage, { foreignKey: 'message_id', onDelete: 'cascade' })
+}
+
+const seenMessage = () => {
+  SeenMessage.belongsTo(Message, { foreignKey: 'message_id' })
+}
+
+const reactMessage = () => {
+  ReactMessage.belongsTo(Message, { foreignKey: 'message_id' })
+}
+
 export const setupModelRelationships = () => {
   userRelationships()
   profileRelationships()
   interestRelationships()
+  messageRelationships()
+  groupMessageRelationships()
+  memberGroup()
+  seenMessage()
+  reactMessage()
 }
 
-const models = { User, Profile, Interest }
+const models = { User, Profile, Interest, GroupMessage, MemberGroup, Message, ReactMessage, SeenMessage }
 
 export default models

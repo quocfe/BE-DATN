@@ -60,8 +60,10 @@ class emailService {
 
     user.code = ''
     user.is_auth = true
+    user.expires = ''
 
     await user.save()
+    await models.Profile.create({ user_id: user.user_id })
 
     return {
       message: 'Đã xác thực email',
