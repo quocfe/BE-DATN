@@ -64,7 +64,8 @@ Profile.init(
     profile_picture: {
       allowNull: true,
       type: DataTypes.STRING,
-      defaultValue: 'https://thespiritofsaigon.net/wp-content/uploads/2022/10/avatar-vo-danh-15.jpg'
+      defaultValue:
+        'https://bizweb.dktcdn.net/100/363/455/articles/aa764fc66c05b85be114-ccb99895-18ba-427d-baab-e8549180465e.jpg?v=1697384878447'
     },
     cover_photo: {
       allowNull: true,

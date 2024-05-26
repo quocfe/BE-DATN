@@ -1,6 +1,7 @@
 import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
+import Friendship from './Friendship'
 
 const userRelationships = () => {
   User.hasOne(Profile, {
@@ -12,12 +13,25 @@ const userRelationships = () => {
     foreignKey: 'user_id',
     onDelete: 'CASCADE'
   })
+
+  User.belongsToMany(User, {
+    through: 'Friendships',
+    as: 'Friends',
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
+  })
+
+  User.belongsToMany(User, {
+    through: 'Friendships',
+    as: 'UserFriends',
+    foreignKey: 'friend_id',
+    onDelete: 'CASCADE'
+  })
 }
 
 const profileRelationships = () => {
   Profile.belongsTo(User, {
     foreignKey: 'user_id',
-    targetKey: 'user_id',
     onDelete: 'CASCADE'
   })
 }
@@ -36,6 +50,6 @@ export const setupModelRelationships = () => {
   interestRelationships()
 }
 
-const models = { User, Profile, Interest }
+const models = { User, Profile, Interest, Friendship }
 
 export default models

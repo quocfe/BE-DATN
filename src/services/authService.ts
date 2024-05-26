@@ -69,7 +69,7 @@ class authService {
     const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
 
     return {
-      message: 'Đăng nhập thành công!',
+      message: 'Đăng nhập thành công',
       data: {
         user,
         access_token: `Bearer ${access_token}`
