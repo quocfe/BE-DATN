@@ -168,6 +168,20 @@ class userController {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
+
+  // Tìm kiếm bạn bè
+  async searchFriends(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const { name } = req.params
+
+      const data = await userService.searchFriends(user_id, name)
+
+      sendResponseSuccess(res, data)
+    } else {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
+    }
+  }
 }
 
 export default new userController()
