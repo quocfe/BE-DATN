@@ -4,6 +4,7 @@ import { sendResponseSuccess } from '../utils/response'
 import { StatusCodes } from 'http-status-codes'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
+import { getPublicIdFromUrl } from '../utils/cloudinary'
 
 class userController {
   // Lấy thông tin người dùng
@@ -24,6 +25,11 @@ class userController {
     if (req.user) {
       const { user_id } = req.user
       const dataProfileUpdate: ProfileInput = req.body
+
+      if (req.file) {
+        const file = req.file
+        dataProfileUpdate.profile_picture = file.path
+      }
 
       const data = await userService.updateProfile(user_id, dataProfileUpdate)
 

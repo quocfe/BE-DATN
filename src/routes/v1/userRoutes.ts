@@ -2,12 +2,18 @@ import { Router } from 'express'
 import userController from '../../controllers/userController'
 import Middleware from '../../middleware'
 import { tryCatch } from '../../utils/response'
+import uploadCloud from '../../middleware/uploader'
 
 const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
 
-router.post('/profile/update', Middleware.verifyToken, tryCatch(userController.updateProfile))
+router.post(
+  '/profile/update',
+  uploadCloud.single('file'),
+  Middleware.verifyToken,
+  tryCatch(userController.updateProfile)
+)
 
 router.post('/sender_friend_request/:friend_id', Middleware.verifyToken, tryCatch(userController.sendFriendRequest))
 
