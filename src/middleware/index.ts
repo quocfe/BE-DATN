@@ -54,6 +54,16 @@ class Middleware {
     }
   }
 
+  // Xác thực vai trò
+  verifyTokenAdminRole(role_id: string) {
+    return [
+      this.verifyToken,
+      (req: Request, res: Response, next: NextFunction) => {
+        const user = req.user
+      }
+    ]
+  }
+
   // Xử lý lỗi toàn cục
   errorHandling(error: string | CustomErrorData, req: Request, res: Response, next: NextFunction) {
     sendResponseError(res, error)

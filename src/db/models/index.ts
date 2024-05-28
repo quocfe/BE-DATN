@@ -2,6 +2,20 @@ import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
 import Friendship from './Friendship'
+import Role from './Role'
+import Account from './Account'
+
+const roleRelationships = () => {
+  Role.hasMany(Account, {
+    foreignKey: 'role_id'
+  })
+}
+
+const accountRelationship = () => {
+  Account.belongsTo(Role, {
+    foreignKey: 'role_id'
+  })
+}
 
 const userRelationships = () => {
   User.hasOne(Profile, {
@@ -45,11 +59,13 @@ const interestRelationships = () => {
 }
 
 export const setupModelRelationships = () => {
+  roleRelationships()
+  accountRelationship()
   userRelationships()
   profileRelationships()
   interestRelationships()
 }
 
-const models = { User, Profile, Interest, Friendship }
+const models = { Role, Account, User, Profile, Interest, Friendship }
 
 export default models
