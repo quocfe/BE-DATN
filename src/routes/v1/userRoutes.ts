@@ -6,7 +6,6 @@ import { tryCatch } from '../../utils/response'
 const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
-
 router.post('/profile/update', Middleware.verifyToken, tryCatch(userController.updateProfile))
 
 router.post('/sender_friend_request/:friend_id', Middleware.verifyToken, tryCatch(userController.sendFriendRequest))
