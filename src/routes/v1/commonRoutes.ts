@@ -25,4 +25,11 @@ router.post('/new_auth_code_email/:email', tryCatch(authController.newAuthCodeEm
 
 router.get('/search_all/:name', Middleware.verifyToken, tryCatch(userController.searchUserOrFanpage))
 
+router.post(
+  '/admin/login',
+  AuthValidator.checkLogin(),
+  Middleware.handleValidatorError,
+  tryCatch(authController.loginAdmin)
+)
+
 export default router

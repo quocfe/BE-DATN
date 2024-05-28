@@ -30,7 +30,7 @@ module.exports = {
           cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
           home_town: '',
           education: '',
-          relationship_status: 0,
+          relationship_status: 1,
           job: '',
           alias: '',
           user_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece'
@@ -55,7 +55,7 @@ module.exports = {
           date_of_birth: null,
           biography: '',
           profile_picture:
-            'https://static.wikia.nocookie.net/naruto-onepiece-fairytail/images/9/97/Vinsmoke_Sanji.png/revision/latest?cb=20161215200750',
+            'https://revolucaonerd.com/wordpress/wp-content/files/revolucaonerd.com/2023/02/sanji-one-piece.webp',
           cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
           home_town: '',
           education: '',
@@ -69,8 +69,7 @@ module.exports = {
           phone_number: null,
           date_of_birth: null,
           biography: 'Thành viên băng hải tặc mũ rơm',
-          profile_picture:
-            'https://static.wikia.nocookie.net/onepiece/images/c/c6/Nami_post_timeskip.jpg/revision/latest?cb=20220425001226&path-prefix=vi',
+          profile_picture: 'https://genk.mediacdn.vn/2019/4/16/anh-1-1555405706224872675384.jpg',
           cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
           home_town: '',
           education: '',

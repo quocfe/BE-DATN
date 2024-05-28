@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken'
 declare module 'express' {
   interface Request {
     user?: UserOutput
+    // admin here
   }
 }
 
@@ -52,6 +53,16 @@ class Middleware {
         })
       )
     }
+  }
+
+  // Xác thực vai trò
+  verifyTokenAdminRole(role_id: string) {
+    return [
+      this.verifyToken,
+      (req: Request, res: Response, next: NextFunction) => {
+        const user = req.user
+      }
+    ]
   }
 
   // Xử lý lỗi toàn cục

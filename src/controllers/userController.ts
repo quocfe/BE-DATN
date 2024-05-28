@@ -4,9 +4,21 @@ import { sendResponseSuccess } from '../utils/response'
 import { StatusCodes } from 'http-status-codes'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
-import { getPublicIdFromUrl } from '../utils/cloudinary'
+import { MulterFiles } from '../types/multer.type'
 
 class userController {
+  // Danh sách người dùng
+  async fetchAllUsers(req: Request, res: Response, next: NextFunction) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const data = await userService.fetchAllUsers(user_id)
+
+      sendResponseSuccess(res, data)
+    } else {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
+    }
+  }
+
   // Lấy thông tin người dùng
   async getProfile(req: Request, res: Response, next: NextFunction) {
     if (req.user) {
@@ -20,15 +32,38 @@ class userController {
     }
   }
 
+  // Lấy thông tin người dùng khác
+  async getProfileByUserId(req: Request, res: Response, next: NextFunction) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const { friend_id } = req.params
+
+      const data = await userService.getProfile(friend_id, user_id)
+
+      sendResponseSuccess(res, data)
+    } else {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
+    }
+  }
+
   // Cập nhật hồ sơ người dùng
   async updateProfile(req: Request, res: Response) {
     if (req.user) {
       const { user_id } = req.user
       const dataProfileUpdate: ProfileInput = req.body
 
-      if (req.file) {
-        const file = req.file
-        dataProfileUpdate.profile_picture = file.path
+      const files = req.files as MulterFiles
+
+      if (req.files) {
+        if (files.profile_picture) {
+          const profilePicture = files.profile_picture[0]
+          dataProfileUpdate.profile_picture = profilePicture.path
+        }
+
+        if (files.cover_photo) {
+          const coverPhoto = files.cover_photo[0]
+          dataProfileUpdate.cover_photo = coverPhoto.path
+        }
       }
 
       const data = await userService.updateProfile(user_id, dataProfileUpdate)
