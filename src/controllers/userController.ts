@@ -4,7 +4,6 @@ import { sendResponseSuccess } from '../utils/response'
 import { StatusCodes } from 'http-status-codes'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
-import { getPublicIdFromUrl } from '../utils/cloudinary'
 
 class userController {
   // Lấy thông tin người dùng
