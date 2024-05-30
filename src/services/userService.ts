@@ -262,7 +262,7 @@ class userService {
       message: 'Danh sách bạn bè',
       data: { friends }
     }
-  }
+  } 
 
   // Tìm kiếm người dùng hoặc fanpage
   async searchUserOrFanpage(user_id: string, name: string) {

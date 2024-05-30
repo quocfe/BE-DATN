@@ -2,35 +2,33 @@
 /** @type {import('sequelize-cli').Migration} */
 
 const UserMigration = require('./create-table-user')
+const StoryMigration = require('./create-table-story')
+const FriendShipMigration = require('./create-table-friendship')
+const NotificationMigration = require('./create-table-notification')
 const ProfileMigration = require('./create-table-profile')
 const InterestMigration = require('./create-table-interest')
 const UserInterestsMigration = require('./create-table-user-interests')
-const FriendShipMigration = require('./create-table-friendship')
-
+const FanpageMigration = require('./create-table-fanpage')
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // User
     await UserMigration.up(queryInterface, Sequelize)
-    // Profile
     await ProfileMigration.up(queryInterface, Sequelize)
-    // Interests
+    await FanpageMigration.up(queryInterface, Sequelize)
     await InterestMigration.up(queryInterface, Sequelize)
-    // UserInterests
     await UserInterestsMigration.up(queryInterface, Sequelize)
-    // Friendship
     await FriendShipMigration.up(queryInterface, Sequelize)
+    await StoryMigration.up(queryInterface, Sequelize)
+    await NotificationMigration.up(queryInterface, Sequelize)
   },
 
   async down(queryInterface, Sequelize) {
-    // Friendship
-    await FriendShipMigration.up(queryInterface, Sequelize)
-    // UserInterests
+    await NotificationMigration.down(queryInterface, Sequelize)
+    await StoryMigration.down(queryInterface, Sequelize)
+    await FriendShipMigration.down(queryInterface, Sequelize)
     await UserInterestsMigration.down(queryInterface, Sequelize)
-    // Interests
     await InterestMigration.down(queryInterface, Sequelize)
-    // Profile
+    await FanpageMigration.down(queryInterface, Sequelize)
     await ProfileMigration.down(queryInterface, Sequelize)
-    // User
     await UserMigration.down(queryInterface, Sequelize)
   }
 }
