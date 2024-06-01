@@ -84,6 +84,16 @@ export const setupModelRelationships = () => {
   reactMessage()
 }
 
-const models = { User, Profile, Interest, Friendship, GroupMessage, MemberGroup, Message, ReactMessage, SeenMessage }
+const models = {
+  User,
+  Profile,
+  Interest,
+  Friendship,
+  GroupMessage,
+  MemberGroup,
+  Message,
+  ReactMessage,
+  SeenMessage
+}
 
 export default models

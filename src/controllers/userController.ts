@@ -25,6 +25,11 @@ class userController {
       const { user_id } = req.user
       const dataProfileUpdate: ProfileInput = req.body
 
+      if (req.file) {
+        const file = req.file
+        dataProfileUpdate.profile_picture = file.path
+      }
+
       const data = await userService.updateProfile(user_id, dataProfileUpdate)
 
       sendResponseSuccess(res, data)

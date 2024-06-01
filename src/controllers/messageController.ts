@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import messageService from '../services/messageService'
 import { CreateGroupMessageInput } from '../types/groupMessage.type'
 import { CreateMemberGroupInput } from '../types/memberGroup.type'
-import { MessageInput, ReplyMessageInput } from '../types/message.type'
+import { MessageInput, MessageMediaInput, ReplyMessageInput } from '../types/message.type'
 import { ReactMessageInput, UpdateReactMessageInput } from '../types/reactMessage.type'
 import { sendResponseSuccess } from '../utils/response'
 
@@ -61,6 +61,30 @@ class messageController {
     }
   }
 
+  async sendMessageAttach(req: Request, res: Response) {
+    if (req.user) {
+      const { user_id: sender } = req.user
+      const messageData: MessageMediaInput = req.body
+
+      console.log(req.file)
+      if (req.file) {
+        messageData.body = req.file.originalname
+        messageData.sub_body = req.file.path
+      }
+
+      const dataAfterUpload = {
+        body: messageData.body,
+        sub_body: messageData.sub_body,
+        group_message_id: messageData.group_message_id,
+        type: messageData.type
+      }
+
+      const data = await messageService.sendMessageAttach(dataAfterUpload, sender)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
   async replyMessage(req: Request, res: Response) {
     if (req.user) {
       const replyMessageInput: ReplyMessageInput = req.body
@@ -84,7 +108,6 @@ class messageController {
   }
 
   async deleteMessageFromMe(req: Request, res: Response) {
-    console.log('deleteMessageFromMe')
     if (req.user) {
       const { id: messageId } = req.params
       const { user_id: userLoggin } = req.user //
@@ -104,6 +127,18 @@ class messageController {
         createdBy: user_id
       })
       //test send react message
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  async searchMessage(req: Request, res: Response) {
+    if (req.user) {
+      const { message } = req.params
+      const { conversationId } = req.body
+      const { user_id } = req.user
+      const data = await messageService.searchMessage(message, conversationId, user_id)
+      //test send react message
+
       sendResponseSuccess(res, data)
     }
   }

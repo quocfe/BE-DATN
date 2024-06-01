@@ -1,12 +1,14 @@
 import { StatusCodes } from 'http-status-codes'
 import models from '../db/models'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
-import { MessageInput, ReplyMessageInput } from '../types/message.type'
+import { MessageInput, MessageMediaInput, ReplyMessageInput } from '../types/message.type'
 import { CreateGroupMessageInput } from '../types/groupMessage.type'
 import { CreateMemberGroupInput } from '../types/memberGroup.type'
 import { Op } from 'sequelize'
 import { ReactMessageInput, UpdateReactMessageInput } from '../types/reactMessage.type'
 import userService from './userService'
+import { MessageAttributes } from '../db/models/Message'
+import { User } from '../types/user.type'
 
 class messageService {
   async getConversation(userLoggin: string) {
@@ -95,7 +97,7 @@ class messageService {
   }
 
   async createGroup(createGroupData: CreateGroupMessageInput, userLoggin: string) {
-    const users = JSON.parse(createGroupData.list_user)
+    const users: string[] = JSON.parse(createGroupData.list_user)
     const countUser = [userLoggin, ...users]
     let group_name = createGroupData.group_name
     let group_thumbnail = createGroupData.group_thumbnail
@@ -119,7 +121,7 @@ class messageService {
     if (!group_name) {
       const userPromises = countUser.map(async (userId) => await models.User.findByPk(userId))
       const usersData = await Promise.all(userPromises)
-      group_name = usersData.map((user: any) => `${user.first_name} ${user.last_name}`).join(', ')
+      group_name = usersData.map((user) => `${user?.first_name} ${user?.last_name}`).join(', ')
     }
 
     // Tạo dữ liệu nhóm
@@ -154,7 +156,7 @@ class messageService {
   }
 
   async addMembersToGroup(memberGroupData: CreateMemberGroupInput) {
-    const users = JSON.parse(memberGroupData.listUser)
+    const users: string[] = JSON.parse(memberGroupData.listUser)
     const checkGroup = await models.GroupMessage.findByPk(memberGroupData.group_message_id)
 
     if (!checkGroup) {
@@ -166,13 +168,13 @@ class messageService {
         group_message_id: memberGroupData.group_message_id
       }
     })
-    const newMembers = users.filter((user: any) => !existingMembers.some((member) => member.user_id === user))
+    const newMembers = users.filter((user: string) => !existingMembers.some((member) => member.user_id === user))
     if (newMembers.length === 0) {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'All members already exist!')
     }
 
     await Promise.all(
-      newMembers.map(async (user: any) => {
+      newMembers.map(async (user: string) => {
         const checkUser = await models.MemberGroup.findOne({
           where: {
             user_id: {
@@ -213,8 +215,8 @@ class messageService {
 
     const reactData = await models.ReactMessage.findAll()
 
-    const getReplyMessages = (messages: any, parent_id: any) => {
-      return messages.find((message: any) => message.message_id === parent_id)
+    const getReplyMessages = (messages: MessageAttributes[], parent_id: string) => {
+      return messages.find((message: MessageAttributes) => message.message_id === parent_id)
     }
 
     const getThubmail = async (user_id: string) => {
@@ -251,8 +253,11 @@ class messageService {
 
         const replyMessageData = {
           body: replyMessage?.body,
+          sub_body: replyMessage?.sub_body,
           createdBy: replyMessage?.createdBy,
           type: replyMessage?.type,
+          status: replyMessage?.status,
+          message_id: replyMessage?.message_id,
           reply_user: reply_user
         }
         return {
@@ -303,6 +308,44 @@ class messageService {
       message: 'Gửi tin nhắn thành công!',
       data: {
         messageData
+      }
+    }
+  }
+
+  async sendMessageAttach(messageMediaData: MessageMediaInput, sender: string) {
+    const checkGroup = await models.GroupMessage.findByPk(messageMediaData.group_message_id)
+    if (checkGroup) {
+      const data = { ...messageMediaData, createdBy: sender }
+
+      await models.Message.create(data)
+    } else {
+      if (!messageMediaData.receiver) {
+        throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+      }
+      const newGroupMessage = await models.GroupMessage.create({
+        status: true,
+        type: 1,
+        createdBy: sender
+      })
+      const newGroupMessageId = newGroupMessage.group_message_id
+
+      await models.MemberGroup.bulkCreate([
+        { user_id: sender, status: true, group_message_id: newGroupMessageId },
+        { user_id: messageMediaData.receiver, status: true, group_message_id: newGroupMessageId }
+      ])
+
+      const newmessageMediaData = {
+        ...messageMediaData,
+        createdBy: sender,
+        group_message_id: newGroupMessageId
+      }
+      await models.Message.create(newmessageMediaData)
+    }
+
+    return {
+      message: 'Gửi tin nhắn thành công!',
+      data: {
+        messageMediaData
       }
     }
   }
@@ -408,6 +451,33 @@ class messageService {
     return {
       message: 'sendReactMessage ok',
       data: {}
+    }
+  }
+
+  async searchMessage(query: string, conversationId: string, user_id: string) {
+    // const data = await this.getMessage(conversationId)
+    // const result = data.data.filter((item) => {
+    //   return item.body.includes(query.toLowerCase())
+    // })
+    const message = await models.Message.findAll({
+      where: {
+        group_message_id: conversationId,
+        body: {
+          [Op.like]: `%${query}%`
+        },
+
+        [Op.or]: {
+          status: true,
+          detelectedBy: {
+            [Op.ne]: user_id
+          }
+        }
+      }
+    })
+
+    return {
+      message: 'searchMessage ok',
+      data: message
     }
   }
 }

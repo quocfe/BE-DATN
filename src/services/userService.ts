@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
 import { Op } from 'sequelize'
+import { deleteImageOrVideoByPublicId, getPublicIdFromUrl } from '../utils/cloudinary'
 
 class userService {
   // Lấy thông tin người dùng
@@ -40,6 +41,11 @@ class userService {
 
     if (!profileUser) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Profile người dùng không tồn tại!')
+    }
+
+    if (profileUser.profile_picture.includes('cloudinary')) {
+      const public_id = getPublicIdFromUrl(profileUser.profile_picture)
+      deleteImageOrVideoByPublicId(public_id)
     }
 
     await profileUser.update(dataProfileUpdate)

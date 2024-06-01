@@ -13,6 +13,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.TEXT
       },
+      sub_body: {
+        allowNull: true,
+        type: Sequelize.TEXT
+      },
       status: {
         allowNull: true,
         type: Sequelize.BOOLEAN

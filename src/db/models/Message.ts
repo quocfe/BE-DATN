@@ -5,6 +5,7 @@ import { DataTypes, Model, Optional } from 'sequelize'
 export type MessageAttributes = {
   message_id: string
   body: string
+  sub_body: string
   status: boolean
   group_message_id: string
   parent_id: string
@@ -21,6 +22,7 @@ interface MessageCreationAttribute
     MessageAttributes,
     | 'message_id'
     | 'body'
+    | 'sub_body'
     | 'group_message_id'
     | 'parent_id'
     | 'status'
@@ -35,6 +37,7 @@ interface MessageCreationAttribute
 class Message extends Model<MessageAttributes, MessageCreationAttribute> implements MessageAttributes {
   declare message_id: string
   declare body: string
+  declare sub_body: string
   declare status: boolean
   declare group_message_id: string
   declare parent_id: string
@@ -56,6 +59,10 @@ Message.init(
     },
     body: {
       allowNull: false,
+      type: DataTypes.STRING
+    },
+    sub_body: {
+      allowNull: true,
       type: DataTypes.STRING
     },
     status: {

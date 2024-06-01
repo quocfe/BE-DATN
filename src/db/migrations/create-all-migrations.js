@@ -30,6 +30,7 @@ module.exports = {
     await MemberGroupMigration.up(queryInterface, Sequelize)
     // MessageMigration
     await MessageMigration.up(queryInterface, Sequelize)
+
     // ReactMessageMigration
     await ReactMessageMigration.up(queryInterface, Sequelize)
     // SeenMessageMigration
@@ -63,6 +64,7 @@ module.exports = {
     await MemberGroupMigration.up(queryInterface, Sequelize)
     // MessageMigration
     await MessageMigration.up(queryInterface, Sequelize)
+
     // ReactMessageMigration
     await ReactMessageMigration.up(queryInterface, Sequelize)
     // SeenMessageMigration
