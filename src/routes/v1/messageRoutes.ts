@@ -18,5 +18,5 @@ router.delete(
   Middleware.verifyToken,
   tryCatch(messageController.deleteMessageFromOthers)
 )
-
+router.delete('/deletemessagefromme/:id', Middleware.verifyToken, tryCatch(messageController.deleteMessageFromMe))
 export default router

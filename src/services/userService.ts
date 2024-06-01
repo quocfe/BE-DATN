@@ -418,6 +418,49 @@ class userService {
       }
     }
   }
+  // Tìm kiếm bạn bè
+  async searchFriends(user_id: string, name: string) {
+    const user = await models.User.findByPk(user_id, {
+      attributes: [],
+      include: [
+        {
+          model: models.User,
+          through: { attributes: [], where: { status: 'Đã chấp nhận' } },
+          as: 'Friends',
+          attributes: ['user_id', 'first_name', 'last_name'],
+          where: {
+            [Op.or]: [
+              {
+                last_name: {
+                  [Op.like]: `${name.charAt(0).toUpperCase()}%`
+                }
+              },
+              {
+                first_name: {
+                  [Op.like]: `${name.charAt(0).toUpperCase()}%`
+                }
+              }
+            ]
+          },
+          include: [
+            {
+              model: models.Profile,
+              attributes: ['profile_picture']
+            }
+          ]
+        }
+      ]
+    })
+
+    const friends = user?.Friends ?? []
+
+    return {
+      message: 'Bạn bè đã tìm kiếm',
+      data: {
+        friends
+      }
+    }
+  }
 }
 
 export default new userService()

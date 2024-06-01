@@ -40,4 +40,6 @@ router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFrie
 
 router.get('/friend/list/search/:name', Middleware.verifyToken, tryCatch(userController.searchUserOrFanpage))
 
+router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
+
 export default router

@@ -16,7 +16,7 @@ class messageService {
     // Extract group message IDs from MemberGroupData
     const groupMessageIds = MemberGroupData.map((item) => item.group_message_id)
 
-    // Fetch relevant GroupMessage data
+    // Fetch GroupMessage data
     const GroupMessageData = await models.GroupMessage.findAll({
       where: { group_message_id: groupMessageIds }
     })
@@ -53,7 +53,9 @@ class messageService {
     // Create group messages with messages
     const data = await Promise.all(
       GroupMessageData.map(async (groupMessage) => {
-        const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
+        const messages = MessageData.filter(
+          (message) => message.group_message_id === groupMessage.group_message_id && message.status != true
+        )
 
         if (groupMessage.type === 1) {
           const groupName = await getUserName(groupMessage.group_message_id)
@@ -230,15 +232,34 @@ class messageService {
         const reactions = reactData.filter((react) => react.message_id === message.message_id)
         const replyMessage = getReplyMessages(messages, message.parent_id)
         const thumbnail = await getThubmail(message.createdBy)
+        const user = await models.User.findOne({
+          where: {
+            user_id: message.createdBy
+          }
+        })
+        const user_name = `${user?.first_name} ${user?.last_name}`
+        let reply_user = ''
+
+        if (replyMessage) {
+          const userOld = await models.User.findOne({
+            where: {
+              user_id: replyMessage.createdBy
+            }
+          })
+          reply_user = `${userOld?.first_name} ${userOld?.last_name}`
+        }
+
         const replyMessageData = {
           body: replyMessage?.body,
           createdBy: replyMessage?.createdBy,
-          type: replyMessage?.type
+          type: replyMessage?.type,
+          reply_user: reply_user
         }
         return {
           ...message.get({ plain: true }),
           reactions,
           thumbnail,
+          user_name,
           replyMessage: replyMessageData
         }
       })
@@ -319,9 +340,8 @@ class messageService {
     }
   }
 
-  async deleteMessageFromMe(messsageId: string, userLoggin: string) {
-    const message = await models.Message.findByPk(messsageId)
-
+  async deleteMessageFromMe(messageId: string, userLoggin: string) {
+    const message = await models.Message.findByPk(messageId)
     if (!message) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'message not found!')
     }

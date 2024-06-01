@@ -84,12 +84,12 @@ class messageController {
   }
 
   async deleteMessageFromMe(req: Request, res: Response) {
+    console.log('deleteMessageFromMe')
     if (req.user) {
       const { id: messageId } = req.params
       const { user_id: userLoggin } = req.user //
 
       const data = await messageService.deleteMessageFromMe(messageId, userLoggin)
-
       sendResponseSuccess(res, data)
     }
   }
