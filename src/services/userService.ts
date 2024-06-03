@@ -7,9 +7,63 @@ import { Op } from 'sequelize'
 import { deleteImageOrVideoByPublicId, getPublicIdFromUrl } from '../utils/cloudinary'
 
 class userService {
+  // Danh sách người dùng
+  async fetchAllUsers(user_id: string) {
+    const status = ['Đã chấp nhận', 'Chờ chấp nhận', 'Đã chặn']
+    const friends = await models.Friendship.findAll({
+      where: {
+        [Op.or]: [
+          {
+            [Op.and]: [
+              { user_id },
+              {
+                status: {
+                  [Op.or]: status
+                }
+              }
+            ]
+          },
+          {
+            friend_id: user_id,
+            status: {
+              [Op.or]: status
+            }
+          }
+        ]
+      }
+    })
+
+    const friendUserIds: string[] = friends.map((friend) => {
+      return friend.user_id === user_id ? friend.friend_id : friend.user_id
+    })
+
+    const users = await models.User.findAll({
+      where: {
+        user_id: {
+          [Op.ne]: user_id,
+          [Op.notIn]: friendUserIds
+        }
+      },
+      attributes: ['user_id', 'first_name', 'last_name'],
+      include: [
+        {
+          model: models.Profile,
+          attributes: ['profile_picture']
+        }
+      ]
+    })
+
+    return {
+      message: 'Danh sách người dùng',
+      data: {
+        users
+      }
+    }
+  }
+
   // Lấy thông tin người dùng
-  async getProfile(user_id: string) {
-    const user = await models.User.findByPk(user_id, {
+  async getProfile(friend_id: string, user_id?: string) {
+    const user = await models.User.findByPk(friend_id, {
       attributes: { exclude: ['password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt'] },
       include: [
         {
@@ -24,10 +78,28 @@ class userService {
       ]
     })
 
+    if (!user) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng này không tồn tại!')
+    }
+
+    let relationship
+
+    // Kiểm tra xem mối quan hệ với người dùng này là gì
+    if (user_id && friend_id !== user_id) {
+      relationship = await models.Friendship.findOne({
+        where: {
+          user_id: friend_id,
+          friend_id: user_id
+        },
+        attributes: ['status']
+      })
+    }
+
     return {
       message: 'Lấy thông tin người dùng thành công.',
       data: {
-        user
+        user,
+        relationship
       }
     }
   }
@@ -93,15 +165,37 @@ class userService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng không tồn tại!')
     }
 
-    const friend = await models.Friendship.findOne({
+    const existingRequest = await models.Friendship.findOne({
       where: {
         user_id,
         friend_id
       }
     })
 
-    if (friend) {
+    if (existingRequest) {
       throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Đã gửi lời mời đến tài khoản này trước đó!')
+    }
+
+    // kiểm tra người dùng khác đã gửi kết bạn cho mình không
+    const receivedRequest = await models.Friendship.findOne({
+      where: {
+        user_id: friend_id,
+        friend_id: user_id,
+        [Op.or]: [{ status: ['Chờ chấp nhận', 'Đã chặn'] }]
+      }
+    })
+
+    if (receivedRequest) {
+      if (receivedRequest.status === 'Chờ chấp nhận') {
+        throw new CustomErrorHandler(
+          StatusCodes.CONFLICT,
+          'Người này đã gửi kết bạn tới bạn, vui lòng kiểm tra và chấp nhận lời mời kết bạn của họ!'
+        )
+      }
+
+      if (receivedRequest.status === 'Đã chặn') {
+        throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Bạn với người dùng này đã chặn trên hệ thống!')
+      }
     }
 
     await models.Friendship.create({
@@ -190,11 +284,28 @@ class userService {
 
   // Danh sách người dùng đã gửi kết bạn tới tôi
   async fetchAllReceivedFriendRequest(user_id: string) {
-    const friends = await models.Friendship.findAll({
+    const friendRquests = await models.Friendship.findAll({
       where: {
         friend_id: user_id,
         status: 'Chờ chấp nhận'
       }
+    })
+
+    const listFriendIds = friendRquests.map((user) => {
+      return user.user_id
+    })
+
+    const friends = await models.User.findAll({
+      where: {
+        user_id: listFriendIds
+      },
+      attributes: ['user_id', 'last_name', 'first_name'],
+      include: [
+        {
+          model: models.Profile,
+          attributes: ['profile_picture']
+        }
+      ]
     })
 
     return {
@@ -262,11 +373,11 @@ class userService {
       ]
     })
 
-    const friends = user?.Friends
+    const friends = user?.Friends ?? []
 
     return {
       message: 'Danh sách bạn bè',
-      data: { friends }
+      data: { friends: friends }
     }
   }
 

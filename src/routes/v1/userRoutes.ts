@@ -8,6 +8,8 @@ const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
 
+router.get('/profile/:friend_id', Middleware.verifyToken, tryCatch(userController.getProfileByUserId))
+
 router.post(
   '/profile/update',
   uploadCloud.single('file'),
@@ -46,5 +48,7 @@ router.get('/friend/list/block', Middleware.verifyToken, tryCatch(userController
 router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFriendOfUser))
 
 router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
+
+router.get('/list', Middleware.verifyToken, tryCatch(userController.fetchAllUsers))
 
 export default router

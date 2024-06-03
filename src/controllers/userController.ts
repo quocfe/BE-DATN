@@ -6,12 +6,38 @@ import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
 
 class userController {
+  // Danh sách người dùng
+  async fetchAllUsers(req: Request, res: Response, next: NextFunction) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const data = await userService.fetchAllUsers(user_id)
+
+      sendResponseSuccess(res, data)
+    } else {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
+    }
+  }
+
   // Lấy thông tin người dùng
   async getProfile(req: Request, res: Response, next: NextFunction) {
     if (req.user) {
       const { user_id } = req.user
 
       const data = await userService.getProfile(user_id)
+
+      sendResponseSuccess(res, data)
+    } else {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
+    }
+  }
+
+  // Lấy thông tin người dùng khác
+  async getProfileByUserId(req: Request, res: Response, next: NextFunction) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const { friend_id } = req.params
+
+      const data = await userService.getProfile(friend_id, user_id)
 
       sendResponseSuccess(res, data)
     } else {
