@@ -4,6 +4,7 @@ import { sendResponseSuccess } from '../utils/response'
 import { StatusCodes } from 'http-status-codes'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
+import { MulterFiles } from '../types/multer.type'
 
 class userController {
   // Danh sách người dùng
@@ -51,9 +52,18 @@ class userController {
       const { user_id } = req.user
       const dataProfileUpdate: ProfileInput = req.body
 
-      if (req.file) {
-        const file = req.file
-        dataProfileUpdate.profile_picture = file.path
+      const files = req.files as MulterFiles
+
+      if (req.files) {
+        if (files.profile_picture) {
+          const profilePicture = files.profile_picture[0]
+          dataProfileUpdate.profile_picture = profilePicture.path
+        }
+
+        if (files.cover_photo) {
+          const coverPhoto = files.cover_photo[0]
+          dataProfileUpdate.cover_photo = coverPhoto.path
+        }
       }
 
       const data = await userService.updateProfile(user_id, dataProfileUpdate)

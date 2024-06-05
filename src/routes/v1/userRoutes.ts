@@ -12,7 +12,7 @@ router.get('/profile/:friend_id', Middleware.verifyToken, tryCatch(userControlle
 
 router.post(
   '/profile/update',
-  uploadCloud.single('file'),
+  uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
   Middleware.verifyToken,
   tryCatch(userController.updateProfile)
 )

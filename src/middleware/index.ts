@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken'
 declare module 'express' {
   interface Request {
     user?: UserOutput
+    // admin here
   }
 }
 
