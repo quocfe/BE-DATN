@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
 import { MulterFiles } from '../types/multer.type'
+import { ChangePassword } from '../types/user.type'
 
 class userController {
   // Danh sách người dùng
@@ -221,6 +222,22 @@ class userController {
       sendResponseSuccess(res, data)
     } else {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
+    }
+  }
+
+  // Thay đổi mật khẩu
+  async changePassword(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+
+      const passwordChangeRequest: ChangePassword = req.body
+
+      const old_password = passwordChangeRequest.old_password
+      const new_password = passwordChangeRequest.new_password
+
+      const data = await userService.changePassword(user_id, old_password, new_password)
+
+      sendResponseSuccess(res, data)
     }
   }
 }

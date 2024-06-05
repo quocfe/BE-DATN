@@ -5,6 +5,8 @@ import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
 import { Op } from 'sequelize'
 import { deleteImageOrVideoByPublicId, getPublicIdFromUrl } from '../utils/cloudinary'
+import { compareValue } from '../utils/bcrypt'
+import { hashSync } from 'bcryptjs'
 
 class userService {
   // Danh sách người dùng
@@ -577,6 +579,32 @@ class userService {
       data: {
         friends
       }
+    }
+  }
+
+  // Thay đổi mật khẩu
+  async changePassword(user_id: string, old_password: string, new_password: string) {
+    const user = await models.User.findByPk(user_id)
+
+    if (!user) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng không tồn tại!')
+    }
+
+    const isMatchPassword = compareValue(old_password, user.password)
+
+    if (!isMatchPassword) {
+      throw new CustomErrorHandler(StatusCodes.UNAUTHORIZED, 'Mật khẩu không chính xác!')
+    }
+
+    const password = hashSync(new_password, 8)
+
+    await user.update({
+      password
+    })
+
+    return {
+      message: 'Đổi mật khẩu thành công',
+      data: {}
     }
   }
 }
