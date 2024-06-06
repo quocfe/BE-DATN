@@ -60,6 +60,50 @@ module.exports = {
           code: '',
           is_auth: true,
           expires: ''
+        },
+        {
+          user_id: 'usopp-22c73-f703-4b16-847d-f61bae05-onepiece',
+          first_name: 'Monkey D',
+          last_name: 'Usopp',
+          email: 'usopp@gmail.com',
+          password: hashSync('123456', genSaltSync(10)),
+          gender: 1,
+          code: '',
+          is_auth: true,
+          expires: ''
+        },
+        {
+          user_id: 'robin-22c73-f703-4b16-847d-f61bae05-onepiece',
+          first_name: 'Nico',
+          last_name: 'Robin',
+          email: 'robin@gmail.com',
+          password: hashSync('123456', genSaltSync(10)),
+          gender: 2,
+          code: '',
+          is_auth: true,
+          expires: ''
+        },
+        {
+          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          first_name: 'Nico',
+          last_name: 'Jinbei',
+          email: 'jinbei@gmail.com',
+          password: hashSync('123456', genSaltSync(10)),
+          gender: 1,
+          code: '',
+          is_auth: true,
+          expires: ''
+        },
+        {
+          user_id: 'akainu-22c73-f703-4b16-847d-f61bae05-onepiece',
+          first_name: 'Monkey D',
+          last_name: 'Akainu',
+          email: 'akainu@gmail.com',
+          password: hashSync('123456', genSaltSync(10)),
+          gender: 1,
+          code: '',
+          is_auth: true,
+          expires: ''
         }
       ],
       {}
