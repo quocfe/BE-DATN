@@ -20,7 +20,8 @@ class messageService {
 
     // Fetch GroupMessage data
     const GroupMessageData = await models.GroupMessage.findAll({
-      where: { group_message_id: groupMessageIds }
+      where: { group_message_id: groupMessageIds },
+      order: [['updatedAt', 'DESC']]
     })
 
     // Fetch all MemberGroup and Message data
@@ -454,25 +455,10 @@ class messageService {
     }
   }
 
-  async searchMessage(query: string, conversationId: string, user_id: string) {
-    // const data = await this.getMessage(conversationId)
-    // const result = data.data.filter((item) => {
-    //   return item.body.includes(query.toLowerCase())
-    // })
-    const message = await models.Message.findAll({
-      where: {
-        group_message_id: conversationId,
-        body: {
-          [Op.like]: `%${query}%`
-        },
-
-        [Op.or]: {
-          status: true,
-          detelectedBy: {
-            [Op.ne]: user_id
-          }
-        }
-      }
+  async searchMessage(query: string, conversationId: string) {
+    const conversation = await this.getMessage(conversationId)
+    const message = conversation.data.filter((item) => {
+      return item.body.includes(query)
     })
 
     return {

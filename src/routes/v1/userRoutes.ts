@@ -49,14 +49,10 @@ router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFrie
 
 router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
 
-<<<<<<< HEAD
 router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
-=======
 router.get('/list', Middleware.verifyToken, tryCatch(userController.fetchAllUsers))
-
 router.post('/change_password', Middleware.verifyToken, tryCatch(userController.changePassword))
 
 router.get('/friends_of_friends/:friend_id', Middleware.verifyToken, tryCatch(userController.fetchAllFriendsOfFriends))
->>>>>>> main
 
 export default router

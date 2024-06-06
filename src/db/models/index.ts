@@ -2,13 +2,11 @@ import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
 import Friendship from './Friendship'
-<<<<<<< HEAD
 import GroupMessage from './GroupMessage'
 import MemberGroup from './MemberGroup'
 import ReactMessage from './ReactMessage'
 import SeenMessage from './SeenMessage'
 import Message from './Message'
-=======
 import Role from './Role'
 import Account from './Account'
 
@@ -23,7 +21,6 @@ const accountRelationship = () => {
     foreignKey: 'role_id'
   })
 }
->>>>>>> main
 
 const userRelationships = () => {
   User.hasOne(Profile, {
@@ -103,7 +100,6 @@ export const setupModelRelationships = () => {
   reactMessage()
 }
 
-<<<<<<< HEAD
 const models = {
   User,
   Profile,
@@ -113,10 +109,9 @@ const models = {
   MemberGroup,
   Message,
   ReactMessage,
-  SeenMessage
+  SeenMessage,
+  Role,
+  Account
 }
-=======
-const models = { Role, Account, User, Profile, Interest, Friendship }
->>>>>>> main
 
 export default models

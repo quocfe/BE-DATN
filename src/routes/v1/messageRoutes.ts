@@ -9,8 +9,7 @@ const router = Router()
 router.get('/getmessage/:id', Middleware.verifyToken, tryCatch(messageController.getMessage))
 router.get('/conversation', Middleware.verifyToken, tryCatch(messageController.getConversation))
 router.post('/sendmessage', Middleware.verifyToken, tryCatch(messageController.sendMessage))
-router.get('/search/:message', Middleware.verifyToken, tryCatch(messageController.searchMessage))
-
+router.get('/search/:conversationId/:query', Middleware.verifyToken, tryCatch(messageController.searchMessage))
 router.post(
   '/sendmessageattach',
   uploadCloud.single('messageattach'),

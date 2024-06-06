@@ -133,10 +133,8 @@ class messageController {
 
   async searchMessage(req: Request, res: Response) {
     if (req.user) {
-      const { message } = req.params
-      const { conversationId } = req.body
-      const { user_id } = req.user
-      const data = await messageService.searchMessage(message, conversationId, user_id)
+      const { query, conversationId } = req.params
+      const data = await messageService.searchMessage(query, conversationId)
       //test send react message
 
       sendResponseSuccess(res, data)

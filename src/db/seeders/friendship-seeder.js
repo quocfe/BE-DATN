@@ -53,6 +53,30 @@ module.exports = {
           user_id: 'akainu-22c73-f703-4b16-847d-f61bae05-onepiece',
           friend_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
           status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'a12as3c73-f703-4b16-847d-f61bae05oaiuq',
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          friend_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'sdsdsddasdasd-f703-4b16-847d-f61bae05oaiuq',
+          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'a12as3c73-f7sdfsdfsdf03-4b16-847d-f61bae05oaiuq',
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          friend_id: 'robin-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'sdafsdfsd-f703-4b16-847d-f61bae05oaiuq',
+          user_id: 'robin-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          status: 'Đã chấp nhận'
         }
       ],
       {}
