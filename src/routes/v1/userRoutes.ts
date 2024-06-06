@@ -53,4 +53,6 @@ router.get('/list', Middleware.verifyToken, tryCatch(userController.fetchAllUser
 
 router.post('/change_password', Middleware.verifyToken, tryCatch(userController.changePassword))
 
+router.get('/friends_of_friends/:friend_id', Middleware.verifyToken, tryCatch(userController.fetchAllFriendsOfFriends))
+
 export default router

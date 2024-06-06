@@ -240,6 +240,15 @@ class userController {
       sendResponseSuccess(res, data)
     }
   }
+
+  //  Danh sách bạn bè của bạn bè
+  async fetchAllFriendsOfFriends(req: Request, res: Response) {
+    const { friend_id } = req.params
+
+    const data = await userService.fetchFriendOfUser(friend_id)
+
+    sendResponseSuccess(res, data)
+  }
 }
 
 export default new userController()
