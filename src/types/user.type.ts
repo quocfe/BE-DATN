@@ -18,3 +18,8 @@ export type Profile = {
   alias: string
   user_id: string
 }
+
+export type ChangePassword = {
+  old_password: string
+  new_password: string
+}

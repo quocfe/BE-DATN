@@ -8,9 +8,11 @@ const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
 
+router.get('/profile/:friend_id', Middleware.verifyToken, tryCatch(userController.getProfileByUserId))
+
 router.post(
   '/profile/update',
-  uploadCloud.single('file'),
+  uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
   Middleware.verifyToken,
   tryCatch(userController.updateProfile)
 )
@@ -46,5 +48,11 @@ router.get('/friend/list/block', Middleware.verifyToken, tryCatch(userController
 router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFriendOfUser))
 
 router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
+
+router.get('/list', Middleware.verifyToken, tryCatch(userController.fetchAllUsers))
+
+router.post('/change_password', Middleware.verifyToken, tryCatch(userController.changePassword))
+
+router.get('/friends_of_friends/:friend_id', Middleware.verifyToken, tryCatch(userController.fetchAllFriendsOfFriends))
 
 export default router
