@@ -1,6 +1,8 @@
 'use strict'
 /** @type {import('sequelize-cli').Migration} */
 
+const RoleMigration = require('./create-table-role')
+const AccountMigration = require('./create-table-account')
 const UserMigration = require('./create-table-user')
 const ProfileMigration = require('./create-table-profile')
 const InterestMigration = require('./create-table-interest')
@@ -14,6 +16,10 @@ const SeenMessageMigration = require('./create-table-seenMessage')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Role
+    await RoleMigration.up(queryInterface, Sequelize)
+    // Account
+    await AccountMigration.up(queryInterface, Sequelize)
     // User
     await UserMigration.up(queryInterface, Sequelize)
     // Profile
@@ -58,6 +64,7 @@ module.exports = {
     await ProfileMigration.down(queryInterface, Sequelize)
     // User
     await UserMigration.down(queryInterface, Sequelize)
+<<<<<<< HEAD
     // GroupMessageMigration
     await GroupMessageMigration.up(queryInterface, Sequelize)
     // MemberGroup
@@ -69,5 +76,11 @@ module.exports = {
     await ReactMessageMigration.up(queryInterface, Sequelize)
     // SeenMessageMigration
     await SeenMessageMigration.up(queryInterface, Sequelize)
+=======
+    // Account
+    await AccountMigration.down(queryInterface, Sequelize)
+    // Role
+    await RoleMigration.down(queryInterface, Sequelize)
+>>>>>>> main
   }
 }

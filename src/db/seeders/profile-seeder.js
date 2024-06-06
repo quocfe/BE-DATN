@@ -32,7 +32,7 @@ module.exports = {
           cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
           home_town: '',
           education: '',
-          relationship_status: 0,
+          relationship_status: 1,
           job: '',
           alias: '',
           user_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece'
@@ -57,7 +57,7 @@ module.exports = {
           date_of_birth: null,
           biography: '',
           profile_picture:
-            'https://static.wikia.nocookie.net/naruto-onepiece-fairytail/images/9/97/Vinsmoke_Sanji.png/revision/latest?cb=20161215200750',
+            'https://revolucaonerd.com/wordpress/wp-content/files/revolucaonerd.com/2023/02/sanji-one-piece.webp',
           cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
           home_town: '',
           education: '',
@@ -71,8 +71,7 @@ module.exports = {
           phone_number: null,
           date_of_birth: null,
           biography: 'Thành viên băng hải tặc mũ rơm',
-          profile_picture:
-            'https://static.wikia.nocookie.net/onepiece/images/c/c6/Nami_post_timeskip.jpg/revision/latest?cb=20220425001226&path-prefix=vi',
+          profile_picture: 'https://genk.mediacdn.vn/2019/4/16/anh-1-1555405706224872675384.jpg',
           cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
           home_town: '',
           education: '',
@@ -80,6 +79,65 @@ module.exports = {
           job: '',
           alias: 'Hoa tiêu',
           user_id: 'nami-22c73-f703-4b16-847d-f61bae05-onepiece'
+        },
+        {
+          profile_id: 'vsu1na83-9e0c-4864-9115-72345abml1i19',
+          phone_number: null,
+          date_of_birth: null,
+          biography: 'Thành viên băng hải tặc mũ rơm',
+          profile_picture:
+            'https://imgix.ranker.com/user_node_img/50088/1001742935/original/a-dumbass-photo-u1?auto=format&q=60&fit=crop&fm=pjpg&dpr=2&w=375',
+          cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
+          home_town: '',
+          education: '',
+          relationship_status: 3,
+          job: '',
+          alias: 'Bắn tỉa',
+          user_id: 'usopp-22c73-f703-4b16-847d-f61bae05-onepiece'
+        },
+        {
+          profile_id: 'x31mla83-9e0c-4864-9115-72345abml1iu71s',
+          phone_number: null,
+          date_of_birth: null,
+          biography: 'Thành viên băng hải tặc mũ rơm',
+          profile_picture:
+            'https://static.wikia.nocookie.net/onepiece/images/4/45/Nico_Robin_Tied_Hair.jpg/revision/latest/scale-to-width-down/754?cb=20211215070508&path-prefix=vi',
+          cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
+          home_town: '',
+          education: '',
+          relationship_status: 1,
+          job: '',
+          alias: 'Nhà khảo cổ',
+          user_id: 'robin-22c73-f703-4b16-847d-f61bae05-onepiece'
+        },
+        {
+          profile_id: '1yau18-9e0c-4864-9115-72345abml1iu71s',
+          phone_number: null,
+          date_of_birth: null,
+          biography: 'Thành viên băng hải tặc mũ rơm',
+          profile_picture: 'https://i.pinimg.com/736x/d0/d5/91/d0d59102cf996bdd113c54019099fea1.jpg',
+          cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
+          home_town: '',
+          education: '',
+          relationship_status: 3,
+          job: '',
+          alias: 'Người cá',
+          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece'
+        },
+        {
+          profile_id: '2da1la83-9e0c-4864-9115-72345abml1iudaski',
+          phone_number: null,
+          date_of_birth: null,
+          biography: 'Lực lượng nòng cốt hải quân',
+          profile_picture:
+            'https://static1.cbrimages.com/wordpress/wp-content/uploads/2022/09/Sakazuki---One-Piece.png',
+          cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
+          home_town: '',
+          education: '',
+          relationship_status: 1,
+          job: '',
+          alias: 'Thủy sư',
+          user_id: 'akainu-22c73-f703-4b16-847d-f61bae05-onepiece'
         }
       ],
       {}

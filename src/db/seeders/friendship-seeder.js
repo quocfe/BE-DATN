@@ -41,6 +41,18 @@ module.exports = {
           user_id: 'nami-22c73-f703-4b16-847d-f61bae05-onepiece',
           friend_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
           status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'a17a3c73-f703-4b16-847d-f61bae05n0lop',
+          user_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'akainu-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'da12z3c73-f703-4b16-847d-f61bae05n0lzao1',
+          user_id: 'akainu-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
         }
       ],
       {}
