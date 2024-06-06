@@ -11,7 +11,7 @@
     "insert:db": "npx sequelize-cli db:create",
     "drop:db": "npx sequelize-cli db:drop",
     "undo:all-migrations": "npx sequelize-cli db:migrate:undo --name create-all-migrations",
-    "create:db": "yarn drop:db && yarn insert:db && npx sequelize-cli db:migrate --to create-all-migrations.js",
+    "create:db": "yarn drop:db && yarn insert:db && npx sequelize-cli db:migrate --to create-all-migrations.js --debug",
     "undo:all-senders": "npx sequelize-cli db:seed:undo --seed undo-all-seeders.js",
     "seed:db": "npx sequelize-cli db:seed:undo --seed run-all-seeders.js && npx sequelize-cli db:seed --seed run-all-seeders.js --debug"
   },

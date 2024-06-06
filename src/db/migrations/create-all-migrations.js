@@ -64,7 +64,6 @@ module.exports = {
     await ProfileMigration.down(queryInterface, Sequelize)
     // User
     await UserMigration.down(queryInterface, Sequelize)
-<<<<<<< HEAD
     // GroupMessageMigration
     await GroupMessageMigration.up(queryInterface, Sequelize)
     // MemberGroup
@@ -76,11 +75,9 @@ module.exports = {
     await ReactMessageMigration.up(queryInterface, Sequelize)
     // SeenMessageMigration
     await SeenMessageMigration.up(queryInterface, Sequelize)
-=======
     // Account
     await AccountMigration.down(queryInterface, Sequelize)
     // Role
     await RoleMigration.down(queryInterface, Sequelize)
->>>>>>> main
   }
 }
