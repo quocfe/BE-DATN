@@ -99,7 +99,7 @@ module.exports = {
           date_of_birth: null,
           biography: 'Thành viên băng hải tặc mũ rơm',
           profile_picture:
-            'https://static.wikia.nocookie.net/onepiece/images/4/45/Nico_Robin_Tied_Hair.jpg/revision/latest/scale-to-width-down/754?cb=20211215070508&path-prefix=vi',
+            'https://d1j8r0kxyu9tj8.cloudfront.net/files/1625905500zZGRYKFZHWjR4JG.jpg',
           cover_photo: 'https://images3.alphacoders.com/130/1305748.jpg',
           home_town: '',
           education: '',
