@@ -519,11 +519,13 @@ class userService {
             }
           },
           as: 'Friends',
-          attributes: ['user_id', 'first_name', 'last_name']
-        },
-        {
-          model: models.Profile,
-          attributes: ['profile_picture']
+          attributes: ['user_id', 'first_name', 'last_name'],
+          include: [
+            {
+              model: models.Profile,
+              attributes: ['profile_picture']
+            }
+          ]
         }
       ]
     })
