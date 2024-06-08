@@ -63,8 +63,8 @@ module.exports = {
         },
         {
           user_id: 'usopp-22c73-f703-4b16-847d-f61bae05-onepiece',
-          first_name: 'Monkey D',
-          last_name: 'Usopp',
+          first_name: 'Usopp',
+          last_name: 'God',
           email: 'usopp@gmail.com',
           password: hashSync('123456', genSaltSync(10)),
           gender: 1,
@@ -74,8 +74,8 @@ module.exports = {
         },
         {
           user_id: 'robin-22c73-f703-4b16-847d-f61bae05-onepiece',
-          first_name: 'Nico',
-          last_name: 'Robin',
+          first_name: 'Robin',
+          last_name: 'Nico',
           email: 'robin@gmail.com',
           password: hashSync('123456', genSaltSync(10)),
           gender: 2,
@@ -85,8 +85,8 @@ module.exports = {
         },
         {
           user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
-          first_name: 'Nico',
-          last_name: 'Jinbei',
+          first_name: 'Jinbei',
+          last_name: 'Monkey',
           email: 'jinbei@gmail.com',
           password: hashSync('123456', genSaltSync(10)),
           gender: 1,
@@ -96,8 +96,8 @@ module.exports = {
         },
         {
           user_id: 'akainu-22c73-f703-4b16-847d-f61bae05-onepiece',
-          first_name: 'Monkey D',
-          last_name: 'Akainu',
+          first_name: 'Akainu',
+          last_name: 'Sakazuki',
           email: 'akainu@gmail.com',
           password: hashSync('123456', genSaltSync(10)),
           gender: 1,
