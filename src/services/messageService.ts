@@ -9,6 +9,7 @@ import { ReactMessageInput, UpdateReactMessageInput } from '../types/reactMessag
 import userService from './userService'
 import { MessageAttributes } from '../db/models/Message'
 import { User } from '../types/user.type'
+import { io } from '../sockets/socket'
 
 class messageService {
   async getConversation(userLoggin: string) {
@@ -43,6 +44,19 @@ class messageService {
       }
       return ''
     }
+    // get id
+    const getUserId = async (groupMessageId: string) => {
+      const data = AllMemberGroup.filter((member) => member.group_message_id === groupMessageId)
+      const userFilter = data.find((item) => item.user_id !== userLoggin)
+
+      if (userFilter) {
+        const user = await models.User.findOne({
+          where: { user_id: userFilter.user_id }
+        })
+        return user?.user_id
+      }
+      return ''
+    }
     // Hepler function to get thubmail
     const getThubmail = async (groupMessageId: string) => {
       const data = AllMemberGroup.filter((member) => member.group_message_id === groupMessageId)
@@ -63,10 +77,12 @@ class messageService {
         if (groupMessage.type === 1) {
           const groupName = await getUserName(groupMessage.group_message_id)
           const thubmail = await getThubmail(groupMessage.group_message_id)
+          const user_id = await getUserId(groupMessage.group_message_id)
           return {
             ...groupMessage.get({ plain: true }),
             group_name: groupName,
             group_thumbnail: thubmail,
+            user_id: user_id,
             messages: messages[0]
           }
         }
@@ -282,6 +298,8 @@ class messageService {
     if (checkGroup) {
       const data = { ...messageData, createdBy: sender }
       await models.Message.create(data)
+
+      io.emit('newMessage', data)
     } else {
       const newGroupMessage = await models.GroupMessage.create({
         status: true,

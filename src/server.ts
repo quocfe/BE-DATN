@@ -7,9 +7,12 @@ import initialRoutes from './routes/v1'
 import Middleware from './middleware'
 import db from './connection'
 import { setupModelRelationships } from './db/models'
-const app: Express = express()
+import { app, httpServer } from './sockets/socket'
+
 const PORT = process.env.PORT || 5000
 const BASE_URL = process.env.BASE_URL || 'http://localhost'
+
+// start socket
 
 app.use(morgan('dev'))
 app.use(cookieParser())
@@ -31,7 +34,7 @@ db.authenticate()
   .then(() => {
     setupModelRelationships()
     console.log('[INFO] Kết nối thành công đến cơ sở dữ liệu.')
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`[INFO] Server đã bắt đầu lắng nghe yêu cầu từ máy khách tại ${BASE_URL}:${PORT}`)
     })
   })
