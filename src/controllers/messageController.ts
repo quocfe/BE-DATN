@@ -75,6 +75,7 @@ class messageController {
       const dataAfterUpload = {
         body: messageData.body,
         sub_body: messageData.sub_body,
+        receiver: messageData.receiver,
         group_message_id: messageData.group_message_id,
         type: messageData.type
       }

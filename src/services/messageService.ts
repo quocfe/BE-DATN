@@ -9,7 +9,7 @@ import { ReactMessageInput, UpdateReactMessageInput } from '../types/reactMessag
 import userService from './userService'
 import { MessageAttributes } from '../db/models/Message'
 import { User } from '../types/user.type'
-import { io } from '../sockets/socket'
+import { getReceiverSocketId, io } from '../sockets/socket'
 
 class messageService {
   async getConversation(userLoggin: string) {
@@ -295,11 +295,10 @@ class messageService {
 
   async sendMessage(messageData: MessageInput, sender: string) {
     const checkGroup = await models.GroupMessage.findByPk(messageData.group_message_id)
+    let messageSocket
     if (checkGroup) {
       const data = { ...messageData, createdBy: sender }
-      await models.Message.create(data)
-
-      io.emit('newMessage', data)
+      messageSocket = await models.Message.create(data)
     } else {
       const newGroupMessage = await models.GroupMessage.create({
         status: true,
@@ -320,7 +319,34 @@ class messageService {
         createdBy: sender,
         group_message_id: newGroupMessageId
       }
-      await models.Message.create(newMessageData)
+      messageSocket = await models.Message.create(newMessageData)
+    }
+    if (messageData) {
+      const memmbersId = await models.MemberGroup.findAll({
+        where: {
+          group_message_id: messageData.group_message_id
+        }
+      })
+      memmbersId.forEach(async (member) => {
+        const receiver = getReceiverSocketId(member.user_id)
+        if (receiver) {
+          io.to(receiver).emit('newMessage', receiver)
+          const seenMessage = await models.SeenMessage.create({
+            message_id: messageSocket.message_id,
+            user_id: member.user_id,
+            status: false
+          })
+          io.to(receiver).emit('notifyMessage', messageSocket.group_message_id)
+        } else {
+          await models.SeenMessage.create({
+            message_id: messageSocket.message_id,
+            user_id: member.user_id,
+            status: false
+          })
+        }
+      })
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
     }
 
     return {
@@ -361,11 +387,90 @@ class messageService {
       await models.Message.create(newmessageMediaData)
     }
 
+    if (messageMediaData?.receiver) {
+      const receiver = getReceiverSocketId(messageMediaData.receiver)
+      io.to(receiver).emit('newMessage', messageMediaData)
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+    }
+
     return {
       message: 'Gửi tin nhắn thành công!',
       data: {
         messageMediaData
       }
+    }
+  }
+
+  async sendReactMessage(reactMessageData: ReactMessageInput) {
+    const checkMessage = await models.Message.findByPk(reactMessageData.message_id)
+    if (!checkMessage) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại message!')
+    }
+    const checkReactMessage = await models.ReactMessage.findOne({
+      where: {
+        message_id: reactMessageData.message_id,
+        user_id: reactMessageData.user_id
+      }
+    })
+
+    if (checkReactMessage) {
+      if (checkReactMessage.emoji === reactMessageData.emoji) {
+        // delete
+        await models.ReactMessage.destroy({
+          where: {
+            react_message_id: checkReactMessage.react_message_id
+          }
+        })
+        if (reactMessageData?.receiver) {
+          const receiver = getReceiverSocketId(reactMessageData?.receiver)
+          io.to(receiver).emit('reactMessage', reactMessageData)
+        } else {
+          throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+        }
+        return {
+          message: 'delete ReactMessage ok',
+          data: {}
+        }
+      } else {
+        const data = {
+          ...checkReactMessage,
+          emoji: reactMessageData.emoji,
+          updatedAt: new Date()
+        }
+
+        await models.ReactMessage.update(data, {
+          where: {
+            react_message_id: checkReactMessage.react_message_id
+          }
+        })
+
+        if (reactMessageData?.receiver) {
+          const receiver = getReceiverSocketId(reactMessageData?.receiver)
+          io.to(receiver).emit('reactMessage', reactMessageData)
+        } else {
+          throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+        }
+
+        return {
+          message: 'update ReactMessage ok',
+          data: {}
+        }
+      }
+    }
+
+    await models.ReactMessage.create(reactMessageData)
+
+    if (reactMessageData?.receiver) {
+      const receiver = getReceiverSocketId(reactMessageData?.receiver)
+      io.to(receiver).emit('reactMessage', reactMessageData)
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+    }
+
+    return {
+      message: 'sendReactMessage ok',
+      data: {}
     }
   }
 
@@ -375,7 +480,15 @@ class messageService {
       createdBy: userLoggin
     }
 
-    await models.Message.create(data)
+    const messageSocket = await models.Message.create(data)
+
+    if (replyMessageInput?.receiver) {
+      const receiver = getReceiverSocketId(replyMessageInput.receiver)
+      io.to(receiver).emit('newMessage', messageSocket)
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+    }
+
     return {
       message: 'Gửi tin nhán này',
       data: {
@@ -421,58 +534,6 @@ class messageService {
     }
   }
 
-  async sendReactMessage(reactMessageData: ReactMessageInput) {
-    const checkMessage = await models.Message.findByPk(reactMessageData.message_id)
-    if (!checkMessage) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại message!')
-    }
-    const checkReactMessage = await models.ReactMessage.findOne({
-      where: {
-        message_id: reactMessageData.message_id,
-        user_id: reactMessageData.user_id
-      }
-    })
-
-    if (checkReactMessage) {
-      if (checkReactMessage.emoji === reactMessageData.emoji) {
-        // delete
-        await models.ReactMessage.destroy({
-          where: {
-            react_message_id: checkReactMessage.react_message_id
-          }
-        })
-        return {
-          message: 'delete ReactMessage ok',
-          data: {}
-        }
-      } else {
-        const data = {
-          ...checkReactMessage,
-          emoji: reactMessageData.emoji,
-          updatedAt: new Date()
-        }
-
-        await models.ReactMessage.update(data, {
-          where: {
-            react_message_id: checkReactMessage.react_message_id
-          }
-        })
-
-        return {
-          message: 'update ReactMessage ok',
-          data: {}
-        }
-      }
-    }
-
-    await models.ReactMessage.create(reactMessageData)
-
-    return {
-      message: 'sendReactMessage ok',
-      data: {}
-    }
-  }
-
   async searchMessage(query: string, conversationId: string) {
     const conversation = await this.getMessage(conversationId)
     const message = conversation.data.filter((item) => {
@@ -485,5 +546,5 @@ class messageService {
     }
   }
 }
-// refactor reactMessage
+
 export default new messageService()
