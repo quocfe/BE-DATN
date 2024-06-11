@@ -1,15 +1,13 @@
 import { StatusCodes } from 'http-status-codes'
+import { Op } from 'sequelize'
 import models from '../db/models'
-import { CustomErrorHandler } from '../utils/ErrorHandling'
-import { MessageInput, MessageMediaInput, ReplyMessageInput } from '../types/message.type'
+import { MessageAttributes } from '../db/models/Message'
 import { CreateGroupMessageInput } from '../types/groupMessage.type'
 import { CreateMemberGroupInput } from '../types/memberGroup.type'
-import { Op } from 'sequelize'
-import { ReactMessageInput, UpdateReactMessageInput } from '../types/reactMessage.type'
-import userService from './userService'
-import { MessageAttributes } from '../db/models/Message'
-import { User } from '../types/user.type'
-import { getReceiverSocketId, io } from '../sockets/socket'
+import { MessageInput, MessageMediaInput, ReplyMessageInput } from '../types/message.type'
+import { ReactMessageInput } from '../types/reactMessage.type'
+import { CustomErrorHandler } from '../utils/ErrorHandling'
+import messageSocketService from './messageSocketService'
 
 class messageService {
   async getConversation(userLoggin: string) {
@@ -229,8 +227,8 @@ class messageService {
       },
       order: [['createdAt', 'ASC']]
     })
-
     const reactData = await models.ReactMessage.findAll()
+    const recallData = await models.RecallMessage.findAll()
 
     const getReplyMessages = (messages: MessageAttributes[], parent_id: string) => {
       return messages.find((message: MessageAttributes) => message.message_id === parent_id)
@@ -249,7 +247,10 @@ class messageService {
     const data = await Promise.all(
       messages.map(async (message) => {
         const reactions = reactData.filter((react) => react.message_id === message.message_id)
+        const recalls = recallData.filter((recall) => recall.message_id === message.message_id)
         const replyMessage = getReplyMessages(messages, message.parent_id)
+        const recallInReply = recallData.filter((recall) => recall.message_id === replyMessage?.message_id)
+        console.log('recallInReply', recallInReply)
         const thumbnail = await getThubmail(message.createdBy)
         const user = await models.User.findOne({
           where: {
@@ -275,11 +276,13 @@ class messageService {
           type: replyMessage?.type,
           status: replyMessage?.status,
           message_id: replyMessage?.message_id,
-          reply_user: reply_user
+          reply_user: reply_user,
+          recallInReply
         }
         return {
           ...message.get({ plain: true }),
           reactions,
+          recalls,
           thumbnail,
           user_name,
           replyMessage: replyMessageData
@@ -293,12 +296,20 @@ class messageService {
     }
   }
 
+  async getRecallMessage() {
+    const data = await models.RecallMessage.findAll()
+    return {
+      message: 'lấy thông tin recall ok',
+      data
+    }
+  }
+
   async sendMessage(messageData: MessageInput, sender: string) {
     const checkGroup = await models.GroupMessage.findByPk(messageData.group_message_id)
-    let messageSocket
+
     if (checkGroup) {
       const data = { ...messageData, createdBy: sender }
-      messageSocket = await models.Message.create(data)
+      await models.Message.create(data)
     } else {
       const newGroupMessage = await models.GroupMessage.create({
         status: true,
@@ -319,35 +330,9 @@ class messageService {
         createdBy: sender,
         group_message_id: newGroupMessageId
       }
-      messageSocket = await models.Message.create(newMessageData)
+      await models.Message.create(newMessageData)
     }
-    if (messageData) {
-      const memmbersId = await models.MemberGroup.findAll({
-        where: {
-          group_message_id: messageData.group_message_id
-        }
-      })
-      memmbersId.forEach(async (member) => {
-        const receiver = getReceiverSocketId(member.user_id)
-        if (receiver) {
-          io.to(receiver).emit('newMessage', receiver)
-          const seenMessage = await models.SeenMessage.create({
-            message_id: messageSocket.message_id,
-            user_id: member.user_id,
-            status: false
-          })
-          io.to(receiver).emit('notifyMessage', messageSocket.group_message_id)
-        } else {
-          await models.SeenMessage.create({
-            message_id: messageSocket.message_id,
-            user_id: member.user_id,
-            status: false
-          })
-        }
-      })
-    } else {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
-    }
+    await messageSocketService.emitNewMessage(messageData.group_message_id)
 
     return {
       message: 'Gửi tin nhắn thành công!',
@@ -359,6 +344,7 @@ class messageService {
 
   async sendMessageAttach(messageMediaData: MessageMediaInput, sender: string) {
     const checkGroup = await models.GroupMessage.findByPk(messageMediaData.group_message_id)
+
     if (checkGroup) {
       const data = { ...messageMediaData, createdBy: sender }
 
@@ -387,12 +373,7 @@ class messageService {
       await models.Message.create(newmessageMediaData)
     }
 
-    if (messageMediaData?.receiver) {
-      const receiver = getReceiverSocketId(messageMediaData.receiver)
-      io.to(receiver).emit('newMessage', messageMediaData)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
-    }
+    await messageSocketService.emitNewMessage(messageMediaData.group_message_id)
 
     return {
       message: 'Gửi tin nhắn thành công!',
@@ -422,12 +403,7 @@ class messageService {
             react_message_id: checkReactMessage.react_message_id
           }
         })
-        if (reactMessageData?.receiver) {
-          const receiver = getReceiverSocketId(reactMessageData?.receiver)
-          io.to(receiver).emit('reactMessage', reactMessageData)
-        } else {
-          throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
-        }
+        await messageSocketService.emitReactMessage(reactMessageData.message_id)
         return {
           message: 'delete ReactMessage ok',
           data: {}
@@ -444,13 +420,8 @@ class messageService {
             react_message_id: checkReactMessage.react_message_id
           }
         })
-
-        if (reactMessageData?.receiver) {
-          const receiver = getReceiverSocketId(reactMessageData?.receiver)
-          io.to(receiver).emit('reactMessage', reactMessageData)
-        } else {
-          throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
-        }
+        // update
+        await messageSocketService.emitReactMessage(reactMessageData.message_id)
 
         return {
           message: 'update ReactMessage ok',
@@ -461,12 +432,7 @@ class messageService {
 
     await models.ReactMessage.create(reactMessageData)
 
-    if (reactMessageData?.receiver) {
-      const receiver = getReceiverSocketId(reactMessageData?.receiver)
-      io.to(receiver).emit('reactMessage', reactMessageData)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
-    }
+    await messageSocketService.emitReactMessage(reactMessageData.message_id)
 
     return {
       message: 'sendReactMessage ok',
@@ -480,14 +446,9 @@ class messageService {
       createdBy: userLoggin
     }
 
-    const messageSocket = await models.Message.create(data)
+    await models.Message.create(data)
 
-    if (replyMessageInput?.receiver) {
-      const receiver = getReceiverSocketId(replyMessageInput.receiver)
-      io.to(receiver).emit('newMessage', messageSocket)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
-    }
+    await messageSocketService.emitNewMessage(replyMessageInput.group_message_id)
 
     return {
       message: 'Gửi tin nhán này',
@@ -497,40 +458,42 @@ class messageService {
     }
   }
 
-  async deleteMessageFromOthers(message_id: string, userLoggin: string) {
+  async recallMessage(message_id: string, userLoggin: string, forAll: boolean) {
     const message = await models.Message.findByPk(message_id)
-
-    if (!message) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, ' message not found!')
-    }
-
-    // Nếu tin nhắn không phải do người dùng gửi: go o phia toi
-    const data = await message.update({ status: false, detelectedBy: userLoggin, detelectedAt: new Date() })
-
-    return {
-      message: 'deleteMessageFromOthers ok',
-      data: {
-        data
+    const recall = await models.RecallMessage.findAll({
+      where: {
+        message_id: message_id
       }
-    }
-  }
-
-  async deleteMessageFromMe(messageId: string, userLoggin: string) {
-    const message = await models.Message.findByPk(messageId)
+    })
     if (!message) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'message not found!')
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'khong tim thay tin nhan')
     }
 
-    if (message.createdBy !== userLoggin) {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'ko co quyen xoa tin nhan')
+    // thu hoi toan bo
+    if (forAll) {
+      if (message.createdBy !== userLoggin) {
+        throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Khong co quyen xoa')
+      }
+
+      await message.update({
+        status: false
+      })
+
+      await messageSocketService.emitNewMessage(message.group_message_id)
     } else {
-      // Thu hoi tin da gui ( xoa luon )
-      await message.update({ status: true, detelectedBy: userLoggin, detelectedAt: new Date() })
+      if (recall.filter((item) => item.user_id != userLoggin)) {
+        await models.RecallMessage.create({
+          user_id: userLoggin,
+          message_id: message_id
+        })
+      }
+
+      await messageSocketService.emitNewMessage(message.group_message_id)
     }
 
     return {
-      message: 'deleteMessageFromMe ok',
-      data: {}
+      message: 'recall ok',
+      data: message
     }
   }
 

@@ -49,6 +49,12 @@ class messageController {
     sendResponseSuccess(res, data)
   }
 
+  async getRecallMessage(req: Request, res: Response) {
+    const data = await messageService.getRecallMessage()
+
+    sendResponseSuccess(res, data)
+  }
+
   async sendMessage(req: Request, res: Response) {
     if (req.user) {
       const { user_id: sender } = req.user
@@ -97,23 +103,13 @@ class messageController {
     }
   }
 
-  async deleteMessageFromOthers(req: Request, res: Response) {
+  async recallMessage(req: Request, res: Response) {
     if (req.user) {
-      const { id: message_id } = req.params
+      const { message_id, forAll } = req.body
       const { user_id: userLoggin } = req.user // ID của người dùng đang thực hiện xóa
 
-      const data = await messageService.deleteMessageFromOthers(message_id, userLoggin)
+      const data = await messageService.recallMessage(message_id, userLoggin, forAll)
 
-      sendResponseSuccess(res, data)
-    }
-  }
-
-  async deleteMessageFromMe(req: Request, res: Response) {
-    if (req.user) {
-      const { id: messageId } = req.params
-      const { user_id: userLoggin } = req.user //
-
-      const data = await messageService.deleteMessageFromMe(messageId, userLoggin)
       sendResponseSuccess(res, data)
     }
   }

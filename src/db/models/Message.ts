@@ -66,8 +66,9 @@ Message.init(
       type: DataTypes.STRING
     },
     status: {
-      allowNull: true,
-      type: DataTypes.BOOLEAN
+      allowNull: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
     },
     group_message_id: {
       allowNull: false,
