@@ -89,11 +89,19 @@ class userService {
     // Kiểm tra xem mối quan hệ với người dùng này là gì
     if (user_id && friend_id !== user_id) {
       relationship = await models.Friendship.findOne({
+        attributes: ['user_id', 'friend_id', 'status'],
         where: {
-          user_id: friend_id,
-          friend_id: user_id
-        },
-        attributes: ['status']
+          [Op.or]: [
+            {
+              user_id,
+              friend_id
+            },
+            {
+              user_id: friend_id,
+              friend_id: user_id
+            }
+          ]
+        }
       })
     }
 
