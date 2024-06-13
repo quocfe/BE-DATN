@@ -383,13 +383,11 @@ class userService {
     }
   }
 
-  // Tìm kiếm người dùng hoặc fanpage
+  // Tìm kiếm người dùng
   async searchUserOrFanpage(user_id: string, name: string) {
-    const blocks = await models.Friendship.findAll({
-      where: {
-        status: 'Đã chặn'
-      }
-    })
+    const friendships = await models.Friendship.findAll()
+
+    const blocks = friendships.filter((f) => f.status === 'Đã chặn')
 
     // acc: accumulator - biến tích lũy
     const blockedUserIds = blocks.reduce((acc: string[], block) => {
@@ -403,7 +401,7 @@ class userService {
 
     const searchName = name ? name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() : ''
 
-    const listUserOrFanpage = await models.User.findAll({
+    const listUserSearch = await models.User.findAll({
       attributes: ['user_id', 'last_name', 'first_name'],
       where: {
         [Op.and]: [
@@ -434,10 +432,30 @@ class userService {
       ]
     })
 
+    const customListUserSearch = listUserSearch.map((user) => {
+      // kiểm tra mối quan hệ giữa người dùng được tìm kiếm và người dùng đang tìm kiếm
+      const record = friendships.find(
+        (f) =>
+          (f.user_id === user.user_id && f.friend_id === user_id) ||
+          (f.friend_id === user.user_id && f.user_id === user_id)
+      )
+
+      let status = 'Chưa kết bạn'
+
+      if (record) {
+        status = record.status
+      }
+
+      return {
+        ...user.toJSON(),
+        status: status
+      }
+    })
+
     return {
       message: 'Danh sách tìm kiếm',
       data: {
-        list: listUserOrFanpage
+        list: customListUserSearch
       }
     }
   }
