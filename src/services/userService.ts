@@ -383,7 +383,7 @@ class userService {
     }
   }
 
-  // Tìm kiếm người dùng
+  // Tìm kiếm người dùng hoặc fanpage
   async searchUserOrFanpage(user_id: string, name: string) {
     const friendships = await models.Friendship.findAll()
 
@@ -443,7 +443,7 @@ class userService {
       let status = 'Chưa kết bạn'
 
       if (record) {
-        status = record.status
+        status = 'Bạn bè'
       }
 
       return {
