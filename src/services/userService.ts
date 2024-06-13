@@ -391,9 +391,17 @@ class userService {
       }
     })
 
-    const blockedUserIds = blocks.map((block) => {
-      return block.user_id === user_id ? block.friend_id : block.user_id
-    })
+    // acc: accumulator - biến tích lũy
+    const blockedUserIds = blocks.reduce((acc: string[], block) => {
+      if (block.user_id === user_id) {
+        acc.push(block.friend_id)
+      } else if (block.friend_id === user_id) {
+        acc.push(block.user_id)
+      }
+      return acc
+    }, [])
+
+    const searchName = name ? name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() : ''
 
     const listUserOrFanpage = await models.User.findAll({
       attributes: ['user_id', 'last_name', 'first_name'],
@@ -403,12 +411,12 @@ class userService {
             [Op.or]: [
               {
                 last_name: {
-                  [Op.like]: `${name.charAt(0).toUpperCase()}%`
+                  [Op.like]: `${searchName}%`
                 }
               },
               {
                 first_name: {
-                  [Op.like]: `${name.charAt(0).toUpperCase()}%`
+                  [Op.like]: `${searchName}%`
                 }
               }
             ]
@@ -542,6 +550,8 @@ class userService {
 
   // Tìm kiếm bạn bè
   async searchFriends(user_id: string, name: string) {
+    const searchName = name ? name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() : ''
+
     const user = await models.User.findByPk(user_id, {
       attributes: [],
       include: [
@@ -554,12 +564,12 @@ class userService {
             [Op.or]: [
               {
                 last_name: {
-                  [Op.like]: `${name.charAt(0).toUpperCase()}%`
+                  [Op.like]: `${searchName}%`
                 }
               },
               {
                 first_name: {
-                  [Op.like]: `${name.charAt(0).toUpperCase()}%`
+                  [Op.like]: `${searchName}%`
                 }
               }
             ]
