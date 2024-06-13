@@ -444,6 +444,8 @@ class userService {
 
       if (record) {
         status = 'Bạn bè'
+      } else if (!record && user.user_id === user_id) {
+        status = 'Tôi'
       }
 
       return {
