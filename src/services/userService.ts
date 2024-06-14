@@ -376,7 +376,7 @@ class userService {
           include: [
             {
               model: models.Profile,
-              attributes: ['profile_picture', 'cover_photo]
+              attributes: ['profile_picture', 'cover_photo']
             }
           ]
         }
