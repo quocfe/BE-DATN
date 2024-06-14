@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import { Op } from 'sequelize'
+import { Model, Op, Sequelize } from 'sequelize'
 import models from '../db/models'
 import { MessageAttributes } from '../db/models/Message'
 import { CreateGroupMessageInput } from '../types/groupMessage.type'
@@ -10,11 +10,33 @@ import { CustomErrorHandler } from '../utils/ErrorHandling'
 import messageSocketService from './messageSocketService'
 
 class messageService {
+  // fn get Thubmail
+  getThubmail = async (user_id: string | undefined) => {
+    const profile = await models.Profile.findOne({
+      where: {
+        user_id: user_id
+      }
+    })
+
+    return profile?.profile_picture
+  }
+  // fn getFullName
+  getFullName = async (user_id: string | undefined) => {
+    const user = await models.User.findOne({
+      where: {
+        user_id: user_id
+      }
+    })
+    return `${user?.first_name} ${user?.last_name}`
+  }
+
+  // fn check exist groupMessage
+
   async getConversation(userLoggin: string) {
-    // Fetch MemberGroup data for the logged-in user
+    // lấy MemberGroup data từ loggin user
     const MemberGroupData = await models.MemberGroup.findAll({ where: { user_id: userLoggin } })
 
-    // Extract group message IDs from MemberGroupData
+    // groupMessageIds
     const groupMessageIds = MemberGroupData.map((item) => item.group_message_id)
 
     // Fetch GroupMessage data
@@ -56,7 +78,7 @@ class messageService {
       return ''
     }
     // Hepler function to get thubmail
-    const getThubmail = async (groupMessageId: string) => {
+    const getThubmailConversation = async (groupMessageId: string) => {
       const data = AllMemberGroup.filter((member) => member.group_message_id === groupMessageId)
       const userFilter = data.find((item) => item.user_id !== userLoggin)
       const user = await models.Profile.findOne({
@@ -68,24 +90,34 @@ class messageService {
     // Create group messages with messages
     const data = await Promise.all(
       GroupMessageData.map(async (groupMessage) => {
-        const messages = MessageData.filter(
-          (message) => message.group_message_id === groupMessage.group_message_id && message.status != true
-        )
-
+        // const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
+        const messages = await this.getMessage(groupMessage.group_message_id)
+        const messageStatusTrue = messages.filter((m) => m.status === true)
+        const message = messageStatusTrue[messageStatusTrue.length - 1]
+        const filterMessage = {
+          message_id: message.message_id,
+          body: message.body,
+          sub_body: message.sub_body,
+          status: message.status,
+          type: message.type,
+          group_message_id: message.group_message_id,
+          reactions: message.reactions,
+          user_name: message.user_name
+        }
         if (groupMessage.type === 1) {
           const groupName = await getUserName(groupMessage.group_message_id)
-          const thubmail = await getThubmail(groupMessage.group_message_id)
+          const thubmail = await getThubmailConversation(groupMessage.group_message_id)
           const user_id = await getUserId(groupMessage.group_message_id)
           return {
             ...groupMessage.get({ plain: true }),
             group_name: groupName,
             group_thumbnail: thubmail,
             user_id: user_id,
-            messages: messages[0]
+            messages: filterMessage
           }
         }
 
-        return { ...groupMessage.get({ plain: true }), messages: messages[0] }
+        return { ...groupMessage.get({ plain: true }), messages: filterMessage }
       })
     )
 
@@ -214,6 +246,38 @@ class messageService {
     }
   }
 
+  async getMembersGroup(id: string) {
+    const checkGroup = await models.GroupMessage.findByPk(id)
+
+    if (!checkGroup) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group message khog ton tai')
+    }
+
+    const dataMembers = await models.MemberGroup.findAll({
+      where: {
+        group_message_id: id
+      }
+    })
+
+    const data = await Promise.all(
+      dataMembers.map(async (member) => {
+        const avatar = await this.getThubmail(member.user_id)
+        const fullname = await this.getFullName(member.user_id)
+        return {
+          user_id: member.user_id,
+          role: member.role,
+          avatar,
+          fullname
+        }
+      })
+    )
+
+    return {
+      message: 'lấy member group ok',
+      data
+    }
+  }
+
   async getMessage(id: string) {
     const checkGroup = await models.GroupMessage.findByPk(id)
 
@@ -234,24 +298,14 @@ class messageService {
       return messages.find((message: MessageAttributes) => message.message_id === parent_id)
     }
 
-    const getThubmail = async (user_id: string) => {
-      const profile = await models.Profile.findOne({
-        where: {
-          user_id: user_id
-        }
-      })
-
-      return profile?.profile_picture
-    }
-
     const data = await Promise.all(
       messages.map(async (message) => {
         const reactions = reactData.filter((react) => react.message_id === message.message_id)
         const recalls = recallData.filter((recall) => recall.message_id === message.message_id)
         const replyMessage = getReplyMessages(messages, message.parent_id)
         const recallInReply = recallData.filter((recall) => recall.message_id === replyMessage?.message_id)
-        console.log('recallInReply', recallInReply)
-        const thumbnail = await getThubmail(message.createdBy)
+
+        const thumbnail = await this.getThubmail(message.createdBy)
         const user = await models.User.findOne({
           where: {
             user_id: message.createdBy
@@ -290,9 +344,90 @@ class messageService {
       })
     )
 
-    return {
-      message: 'lấy thông tin messsage ok',
-      data
+    return data
+  }
+
+  async getOneToOneMessage(receiver: string, sender: string) {
+    // Lấy tất cả groupId mà receiver tham gia
+    const groupsWithReceiver = await models.MemberGroup.findAll({
+      where: { user_id: receiver },
+      attributes: ['group_message_id']
+    })
+    // Lấy danh sách groupId từ kết quả của receiver
+    const groupIds = groupsWithReceiver.map((group) => group.group_message_id)
+
+    // Tìm các group mà receiver tham gia và nằm trong danh sách groupId của sender
+    const commonGroups = await models.MemberGroup.findAll({
+      where: {
+        user_id: sender,
+        group_message_id: groupIds
+      },
+      attributes: ['group_message_id']
+    })
+
+    const filteredGroupIds = await models.GroupMessage.findAll({
+      where: {
+        group_message_id: commonGroups.map((group) => group.group_message_id),
+        type: 1
+      },
+      attributes: ['group_message_id']
+    })
+
+    const groupIdCheck = filteredGroupIds.map((filter) => filter.group_message_id)
+
+    if (groupIdCheck[0]) {
+      const messages = await this.getMessage(groupIdCheck[0])
+      const info = {
+        group_id: receiver,
+        avatar: await this.getThubmail(receiver),
+        group_name: await this.getFullName(receiver)
+      }
+      return {
+        message: 'lấy thông tin messsage ok',
+        data: {
+          info,
+          messages
+        }
+      }
+    } else {
+      const info = {
+        group_id: receiver,
+        avatar: await this.getThubmail(receiver),
+        group_name: await this.getFullName(receiver)
+      }
+      return {
+        message: 'lấy thông tin messsage ok',
+        data: {
+          info,
+          messages: []
+        }
+      }
+    }
+  }
+
+  async getGroupMessage(id: string) {
+    const checkGroupExists = await models.GroupMessage.findByPk(id)
+    // return checkGroupExists
+    if (checkGroupExists) {
+      if (checkGroupExists?.type === 2) {
+        const messages = await this.getMessage(checkGroupExists.group_message_id)
+        const info = {
+          group_id: checkGroupExists.group_message_id,
+          avatar: checkGroupExists.group_thumbnail,
+          group_name: checkGroupExists.group_name
+        }
+        return {
+          message: 'lấy thông tin messsage ok',
+          data: {
+            info,
+            messages
+          }
+        }
+      } else {
+        return {
+          message: 'không tồn tại group'
+        }
+      }
     }
   }
 
@@ -308,8 +443,11 @@ class messageService {
     const checkGroup = await models.GroupMessage.findByPk(messageData.group_message_id)
 
     if (checkGroup) {
+      await checkGroup.update({ updatedAt: new Date() })
       const data = { ...messageData, createdBy: sender }
       await models.Message.create(data)
+
+      await messageSocketService.emitNewMessage(messageData.group_message_id)
     } else {
       const newGroupMessage = await models.GroupMessage.create({
         status: true,
@@ -317,9 +455,11 @@ class messageService {
         createdBy: sender
       })
       const newGroupMessageId = newGroupMessage.group_message_id
+
       if (!messageData.receiver) {
-        throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+        throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận 1')
       }
+
       await models.MemberGroup.bulkCreate([
         { user_id: sender, status: true, group_message_id: newGroupMessageId },
         { user_id: messageData.receiver, status: true, group_message_id: newGroupMessageId }
@@ -331,8 +471,9 @@ class messageService {
         group_message_id: newGroupMessageId
       }
       await models.Message.create(newMessageData)
+      await messageSocketService.emitNewMessage(newGroupMessageId)
+      await messageSocketService.emitNewConversation(newGroupMessageId)
     }
-    await messageSocketService.emitNewMessage(messageData.group_message_id)
 
     return {
       message: 'Gửi tin nhắn thành công!',
@@ -347,11 +488,14 @@ class messageService {
 
     if (checkGroup) {
       const data = { ...messageMediaData, createdBy: sender }
-
       await models.Message.create(data)
+      await models.GroupMessage.update(
+        { updatedAt: new Date() },
+        { where: { group_message_id: checkGroup?.group_message_id } }
+      )
     } else {
       if (!messageMediaData.receiver) {
-        throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+        throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận 2')
       }
       const newGroupMessage = await models.GroupMessage.create({
         status: true,
@@ -371,8 +515,8 @@ class messageService {
         group_message_id: newGroupMessageId
       }
       await models.Message.create(newmessageMediaData)
+      await models.GroupMessage.update({ updatedAt: new Date() }, { where: { group_message_id: newGroupMessageId } })
     }
-
     await messageSocketService.emitNewMessage(messageMediaData.group_message_id)
 
     return {
@@ -499,13 +643,37 @@ class messageService {
 
   async searchMessage(query: string, conversationId: string) {
     const conversation = await this.getMessage(conversationId)
-    const message = conversation.data.filter((item) => {
+    const message = conversation.filter((item) => {
       return item.body.includes(query)
     })
 
     return {
       message: 'searchMessage ok',
       data: message
+    }
+  }
+
+  async changeImageGroup(group_id: string, image: string) {
+    const checkGroup = await models.GroupMessage.findOne({
+      where: {
+        [Op.and]: {
+          group_message_id: group_id,
+          type: 2
+        }
+      }
+    })
+
+    if (!checkGroup) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm')
+    }
+
+    const data = await checkGroup.update({
+      group_thumbnail: image
+    })
+
+    return {
+      message: 'changeImageGroup ok',
+      data
     }
   }
 }

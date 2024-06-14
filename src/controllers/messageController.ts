@@ -5,6 +5,7 @@ import { CreateMemberGroupInput } from '../types/memberGroup.type'
 import { MessageInput, MessageMediaInput, ReplyMessageInput } from '../types/message.type'
 import { ReactMessageInput, UpdateReactMessageInput } from '../types/reactMessage.type'
 import { sendResponseSuccess } from '../utils/response'
+import { StatusCodes } from 'http-status-codes'
 
 class messageController {
   async getConversation(req: Request, res: Response) {
@@ -15,6 +16,13 @@ class messageController {
       sendResponseSuccess(res, data)
     }
   }
+
+  async changeImageGroup(req: Request, res: Response) {
+    const { image, group_id } = req.body
+    const data = await messageService.changeImageGroup(group_id, image)
+    sendResponseSuccess(res, data)
+  }
+
   async deteleConversation(req: Request, res: Response) {
     const { id } = req.params
     const data = await messageService.deteleConversation(id)
@@ -33,6 +41,14 @@ class messageController {
     }
   }
 
+  async getMembersGroup(req: Request, res: Response) {
+    const { id } = req.params
+
+    const data = await messageService.getMembersGroup(id)
+
+    sendResponseSuccess(res, data)
+  }
+
   async addMembersToGroup(req: Request, res: Response) {
     const memberGroupData: CreateMemberGroupInput = req.body
 
@@ -41,12 +57,23 @@ class messageController {
     sendResponseSuccess(res, data)
   }
 
-  async getMessage(req: Request, res: Response) {
-    const { id } = req.params
+  async getOneToOneMessage(req: Request, res: Response) {
+    if (req.user) {
+      const { user_id: sender } = req.user
+      const { id: receiver } = req.params
 
-    const data = await messageService.getMessage(id)
+      const data = await messageService.getOneToOneMessage(receiver, sender)
+      res.status(200).json(data)
+    }
+  }
 
-    sendResponseSuccess(res, data)
+  async getGroupMessage(req: Request, res: Response) {
+    if (req.user) {
+      const { id } = req.params
+      console.log('group_id', id)
+      const data = await messageService.getGroupMessage(id)
+      res.status(200).json(data)
+    }
   }
 
   async getRecallMessage(req: Request, res: Response) {

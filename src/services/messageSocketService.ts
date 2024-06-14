@@ -19,7 +19,7 @@ class messageSocketService {
         }
       })
     } else {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận react message socket')
     }
   }
 
@@ -49,7 +49,25 @@ class messageSocketService {
         }
       })
     } else {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận')
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận new message socket')
+    }
+  }
+
+  async emitNewConversation(group_message_id: string) {
+    if (group_message_id) {
+      const memmbersId = await models.MemberGroup.findAll({
+        where: {
+          group_message_id
+        }
+      })
+      memmbersId.forEach(async (member) => {
+        const receiver = getReceiverSocketId(member.user_id)
+        if (receiver) {
+          io.to(receiver).emit('newConversation', receiver)
+        }
+      })
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận new converstaion socket')
     }
   }
 }
