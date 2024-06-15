@@ -18,8 +18,17 @@ class messageController {
   }
 
   async changeImageGroup(req: Request, res: Response) {
-    const { image, group_id } = req.body
-    const data = await messageService.changeImageGroup(group_id, image)
+    if (req.user) {
+      const { image, group_id } = req.body
+      const { user_id: userLoggin } = req.user
+      const data = await messageService.changeImageGroup(group_id, image, userLoggin)
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  async changeGroupName(req: Request, res: Response) {
+    const { group_name, group_id } = req.body
+    const data = await messageService.changeGroupName(group_id, group_name)
     sendResponseSuccess(res, data)
   }
 
@@ -99,21 +108,21 @@ class messageController {
       const { user_id: sender } = req.user
       const messageData: MessageMediaInput = req.body
 
-      console.log(req.file)
-      if (req.file) {
-        messageData.body = req.file.originalname
-        messageData.sub_body = req.file.path
-      }
+      // console.log(req.file)
+      // if (req.file) {
+      //   messageData.body = req.file.originalname
+      //   messageData.sub_body = req.file.path
+      // }
 
-      const dataAfterUpload = {
-        body: messageData.body,
-        sub_body: messageData.sub_body,
-        receiver: messageData.receiver,
-        group_message_id: messageData.group_message_id,
-        type: messageData.type
-      }
+      // const dataAfterUpload = {
+      //   body: messageData.body,
+      //   sub_body: messageData.sub_body,
+      //   receiver: messageData.receiver,
+      //   group_message_id: messageData.group_message_id,
+      //   type: messageData.type
+      // }
 
-      const data = await messageService.sendMessageAttach(dataAfterUpload, sender)
+      const data = await messageService.sendMessageAttach(messageData, sender)
 
       sendResponseSuccess(res, data)
     }

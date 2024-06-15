@@ -26,6 +26,7 @@ router.post('/creategroup', Middleware.verifyToken, tryCatch(messageController.c
 router.post('/addmemberstogroup', Middleware.verifyToken, tryCatch(messageController.addMembersToGroup))
 router.post('/recallmessage', Middleware.verifyToken, tryCatch(messageController.recallMessage))
 router.post('/changeimagegroup', Middleware.verifyToken, tryCatch(messageController.changeImageGroup))
+router.post('/changegroupname', Middleware.verifyToken, tryCatch(messageController.changeGroupName))
 
 //  ------------------- //
 router.delete('/deleteconversation/:id', Middleware.verifyToken, tryCatch(messageController.deteleConversation))

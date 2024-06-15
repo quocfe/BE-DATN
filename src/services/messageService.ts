@@ -8,6 +8,7 @@ import { MessageInput, MessageMediaInput, ReplyMessageInput } from '../types/mes
 import { ReactMessageInput } from '../types/reactMessage.type'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import messageSocketService from './messageSocketService'
+import notifyMessageService from './notifyMessageService'
 
 class messageService {
   // fn get Thubmail
@@ -95,14 +96,16 @@ class messageService {
         const messageStatusTrue = messages.filter((m) => m.status === true)
         const message = messageStatusTrue[messageStatusTrue.length - 1]
         const filterMessage = {
-          message_id: message.message_id,
-          body: message.body,
-          sub_body: message.sub_body,
-          status: message.status,
-          type: message.type,
-          group_message_id: message.group_message_id,
-          reactions: message.reactions,
-          user_name: message.user_name
+          message_id: message?.message_id,
+          body: message?.body,
+          sub_body: message?.sub_body,
+          status: message?.status,
+          type: message?.type,
+          group_message_id: message?.group_message_id,
+          reactions: message?.reactions,
+          user_name: message?.user_name,
+          createdAt: message?.createdAt,
+          updatedAt: message?.updatedAt
         }
         if (groupMessage.type === 1) {
           const groupName = await getUserName(groupMessage.group_message_id)
@@ -443,10 +446,15 @@ class messageService {
     const checkGroup = await models.GroupMessage.findByPk(messageData.group_message_id)
 
     if (checkGroup) {
-      await checkGroup.update({ updatedAt: new Date() })
       const data = { ...messageData, createdBy: sender }
       await models.Message.create(data)
-
+      const dataNotify = {
+        type: 1,
+        group_message_id: messageData.group_message_id,
+        content: 'new message'
+      }
+      await notifyMessageService.createNotify(dataNotify, sender)
+      await messageSocketService.emitNotifyMessage(messageData.group_message_id, dataNotify, sender)
       await messageSocketService.emitNewMessage(messageData.group_message_id)
     } else {
       const newGroupMessage = await models.GroupMessage.create({
@@ -471,8 +479,16 @@ class messageService {
         group_message_id: newGroupMessageId
       }
       await models.Message.create(newMessageData)
-      await messageSocketService.emitNewMessage(newGroupMessageId)
-      await messageSocketService.emitNewConversation(newGroupMessageId)
+      //
+      const dataNotify = {
+        type: 1,
+        group_message_id: newGroupMessageId,
+        content: 'new message'
+      }
+      await notifyMessageService.createNotify(dataNotify, sender)
+      await messageSocketService.emitNotifyMessage(newGroupMessage.group_message_id, dataNotify, sender)
+      await messageSocketService.emitNewMessage(newGroupMessage.group_message_id)
+      await messageSocketService.emitNewConversation(newGroupMessage.group_message_id)
     }
 
     return {
@@ -574,10 +590,18 @@ class messageService {
       }
     }
 
+    const username = await this.getFullName(reactMessageData.user_id)
+    const content = `${username} đã bày tỏ ${reactMessageData.emoji} về ${checkMessage.body} `
+    const dataEmitNewImageNotify = {
+      group_message_id: checkMessage.group_message_id,
+      content: content,
+      type: 3
+    }
+
     await models.ReactMessage.create(reactMessageData)
-
     await messageSocketService.emitReactMessage(reactMessageData.message_id)
-
+    await notifyMessageService.createNotify(dataEmitNewImageNotify, reactMessageData.user_id)
+    await messageSocketService.emitNotifyMessage(checkMessage.group_message_id, {}, reactMessageData.user_id)
     return {
       message: 'sendReactMessage ok',
       data: {}
@@ -623,6 +647,17 @@ class messageService {
         status: false
       })
 
+      const username = await this.getFullName(userLoggin)
+      const content = `${username} đã thu hồi tin nhắn`
+      const dataEmitNewImageNotify = {
+        group_message_id: message.group_message_id,
+        content: content,
+        type: 3
+      }
+
+      await notifyMessageService.createNotify(dataEmitNewImageNotify, userLoggin)
+      await messageSocketService.emitNotifyMessage(message.group_message_id, {}, userLoggin)
+
       await messageSocketService.emitNewMessage(message.group_message_id)
     } else {
       if (recall.filter((item) => item.user_id != userLoggin)) {
@@ -653,7 +688,7 @@ class messageService {
     }
   }
 
-  async changeImageGroup(group_id: string, image: string) {
+  async changeImageGroup(group_id: string, image: string, user_id: string) {
     const checkGroup = await models.GroupMessage.findOne({
       where: {
         [Op.and]: {
@@ -667,12 +702,57 @@ class messageService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm')
     }
 
-    const data = await checkGroup.update({
+    const data_image = await checkGroup.update({
       group_thumbnail: image
     })
 
+    const user_name = await this.getFullName(user_id)
+    const data = {
+      group_message_id: data_image.group_message_id,
+      user_name: user_name
+    }
+    const dataEmitNewImageNotify = {
+      group_message_id: data_image.group_message_id,
+      content: `${user_name} đã thay đổi ảnh nhóm`,
+      type: 2
+    }
+
+    await notifyMessageService.createNotify(dataEmitNewImageNotify, user_id)
+    await messageSocketService.emitNotifyMessage(group_id, {}, user_id)
+    await messageSocketService.emitNewGroupImage(group_id, data)
     return {
       message: 'changeImageGroup ok',
+      data
+    }
+  }
+
+  async changeGroupName(group_id: string, group_name: string) {
+    const checkGroup = await models.GroupMessage.findOne({
+      where: {
+        [Op.and]: {
+          group_message_id: group_id,
+          type: 2
+        }
+      }
+    })
+
+    if (!checkGroup) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm')
+    }
+
+    await checkGroup.update({
+      group_name
+    })
+
+    const data = {
+      group_message_id: group_id,
+      group_name: group_name
+    }
+
+    await messageSocketService.emitNewGroupName(group_id, data)
+
+    return {
+      message: 'thay đổi tên ok',
       data
     }
   }

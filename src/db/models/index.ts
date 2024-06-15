@@ -10,6 +10,7 @@ import Message from './Message'
 import Role from './Role'
 import Account from './Account'
 import RecallMessage from './RecallMessage'
+import NotifyGroupMessage from './NotifyGroupMessage'
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
@@ -67,12 +68,17 @@ const interestRelationships = () => {
 const groupMessageRelationships = () => {
   GroupMessage.hasMany(Message, { foreignKey: 'group_message_id', onDelete: 'cascade' })
   GroupMessage.hasMany(MemberGroup, { foreignKey: 'group_message_id', onDelete: 'cascade' })
+  GroupMessage.hasMany(NotifyGroupMessage, { foreignKey: 'group_message_id', onDelete: 'cascade' })
   GroupMessage.belongsTo(User, { foreignKey: 'createdBy' })
 }
 
 const memberGroup = () => {
   MemberGroup.belongsTo(User, { foreignKey: 'user_id' })
   MemberGroup.belongsTo(GroupMessage, { foreignKey: 'group_message_id' })
+}
+
+const notifyGroupMessage = () => {
+  NotifyGroupMessage.belongsTo(GroupMessage, { foreignKey: 'group_message_id' })
 }
 
 const messageRelationships = () => {
@@ -105,6 +111,7 @@ export const setupModelRelationships = () => {
   seenMessage()
   reactMessage()
   recallMessage()
+  notifyGroupMessage()
 }
 
 const models = {
@@ -118,6 +125,7 @@ const models = {
   ReactMessage,
   SeenMessage,
   RecallMessage,
+  NotifyGroupMessage,
   Role,
   Account
 }
