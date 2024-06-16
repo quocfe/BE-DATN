@@ -1,4 +1,4 @@
-import { UploadApiResponse, DeleteApiResponse } from 'cloudinary'
+import { UploadApiResponse, DeleteApiResponse, ResourceApiResponse } from 'cloudinary'
 import cloudinary from '../config/cloudinary'
 import fs from 'fs'
 import 'dotenv/config'
@@ -48,7 +48,7 @@ const cloudinaryUploadVideo = async (file: Express.Multer.File): Promise<UploadA
       const readStream = fs.createReadStream(filePath, { start: startByte, end: endByte })
 
       const uploadStream = cloudinary.uploader.upload_stream(
-        { resource_type: 'video', upload_preset: 'h11ma6am' },
+        { resource_type: 'video', upload_preset },
         (error: any, result: UploadApiResponse) => {
           if (error) {
             return reject(error)
@@ -113,12 +113,32 @@ const destroyCloudinary = (public_id: string, resource_type?: string) => {
       },
       (error: any, result: any) => {
         if (error) {
+          console.log(error)
           reject(error)
         }
+        console.log(result)
         resolve(result)
       }
     )
   })
 }
 
-export { cloudinaryUploadVideo, destroyCloudinary }
+const cloudinaryGetResource = (public_id: string) => {
+  return new Promise<ResourceApiResponse>((resolve, reject) => {
+    cloudinary.api.resource(
+      public_id,
+      {
+        resource_type: 'video'
+      },
+      (error: any, result: any) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      }
+    )
+  })
+}
+
+export { cloudinaryUploadVideo, destroyCloudinary, cloudinaryGetResource }

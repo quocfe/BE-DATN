@@ -11,7 +11,7 @@ module.exports = {
       },
       phone_number: {
         allowNull: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING
       },
       date_of_birth: {
         allowNull: true,
@@ -19,8 +19,7 @@ module.exports = {
       },
       biography: {
         allowNull: true,
-        type: Sequelize.STRING,
-        unique: true
+        type: Sequelize.STRING
       },
       profile_picture: {
         allowNull: true,

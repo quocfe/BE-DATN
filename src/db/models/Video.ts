@@ -2,11 +2,11 @@ import db from '../../connection'
 import { v4 as uuidv4 } from 'uuid'
 import { DataTypes, Model, Optional } from 'sequelize'
 import PRIVACY from '../../constants/video'
+import User from './User'
 
 export interface VideoAttributes {
   id: string
   content: string
-  title: string
   url: string
   public_id: string
   tag: string
@@ -14,6 +14,7 @@ export interface VideoAttributes {
   view: number
   category_video_id: string
   user_id: string
+  // list_like_user_id: Array<string>
   createdAt: Date
   updatedAt: Date
 }
@@ -23,7 +24,6 @@ interface VideoCreationAttribute
     VideoAttributes,
     | 'id'
     | 'content'
-    | 'title'
     | 'url'
     | 'public_id'
     | 'tag'
@@ -31,14 +31,14 @@ interface VideoCreationAttribute
     | 'view'
     | 'category_video_id'
     | 'user_id'
+    // | 'list_like_user_id'
     | 'createdAt'
     | 'updatedAt'
   > {}
 
-class VideoModal extends Model<VideoAttributes, VideoCreationAttribute> implements VideoAttributes {
+class Video extends Model<VideoAttributes, VideoCreationAttribute> implements VideoAttributes {
   declare id: string
   declare content: string
-  declare title: string
   declare url: string
   declare public_id: string
   declare tag: string
@@ -46,11 +46,12 @@ class VideoModal extends Model<VideoAttributes, VideoCreationAttribute> implemen
   declare view: number
   declare category_video_id: string
   declare user_id: string
+  declare list_like_user_id: Array<string>
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
 
-VideoModal.init(
+Video.init(
   {
     id: {
       allowNull: false,
@@ -59,10 +60,6 @@ VideoModal.init(
       defaultValue: () => uuidv4()
     },
     content: {
-      allowNull: true,
-      type: DataTypes.STRING
-    },
-    title: {
       allowNull: true,
       type: DataTypes.STRING
     },
@@ -96,6 +93,10 @@ VideoModal.init(
       allowNull: true,
       type: DataTypes.STRING
     },
+    // list_like_user_id: {
+    //   allowNull: true,
+    //   type: DataTypes.ARRAY(DataTypes.STRING)
+    // },
     createdAt: {
       allowNull: true,
       type: DataTypes.DATE
@@ -113,4 +114,8 @@ VideoModal.init(
   }
 )
 
-export default VideoModal
+export const videoRelationships = () => {
+  Video.belongsTo(User, { foreignKey: 'user_id', as: 'user' })
+}
+
+export default Video

@@ -1,7 +1,24 @@
 import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
-import VideoModal from './Video'
+import Video, { videoRelationships } from './Video'
+import CommentVideo, { commentVideoRelationships } from './CommentVideo'
+import Friendship from './Friendship'
+import LikeVideo from './LikeVideo'
+import Role from './Role'
+import Account from './Account'
+
+const roleRelationships = () => {
+  Role.hasMany(Account, {
+    foreignKey: 'role_id'
+  })
+}
+
+const accountRelationship = () => {
+  Account.belongsTo(Role, {
+    foreignKey: 'role_id'
+  })
+}
 
 const userRelationships = () => {
   User.hasOne(Profile, {
@@ -13,12 +30,25 @@ const userRelationships = () => {
     foreignKey: 'user_id',
     onDelete: 'CASCADE'
   })
+
+  User.belongsToMany(User, {
+    through: 'Friendships',
+    as: 'Friends',
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
+  })
+
+  User.belongsToMany(User, {
+    through: 'Friendships',
+    as: 'UserFriends',
+    foreignKey: 'friend_id',
+    onDelete: 'CASCADE'
+  })
 }
 
 const profileRelationships = () => {
   Profile.belongsTo(User, {
     foreignKey: 'user_id',
-    targetKey: 'user_id',
     onDelete: 'CASCADE'
   })
 }
@@ -32,11 +62,15 @@ const interestRelationships = () => {
 }
 
 export const setupModelRelationships = () => {
+  roleRelationships()
+  accountRelationship()
   userRelationships()
   profileRelationships()
   interestRelationships()
+  videoRelationships()
+  commentVideoRelationships()
 }
 
-const models = { User, Profile, Interest, Video: VideoModal }
+const models = { Role, Account, User, Profile, Interest, Friendship, Video, CommentVideo, LikeVideo }
 
 export default models
