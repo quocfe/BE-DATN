@@ -60,6 +60,13 @@ class authController {
 
     sendResponseSuccess(res, data)
   }
+
+  async loginAdmin(req: Request, res: Response) {
+    const loginData: LoginInput = req.body
+    const data = await authService.loginAdmin(loginData)
+    setCookie(res, 'refresh_token_admin', data.refresh_token as string)
+    sendResponseSuccess(res, _.omit(data, 'refresh_token'))
+  }
 }
 
 export default new authController()

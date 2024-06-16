@@ -3,52 +3,57 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Videos', {
-      id: {
+    await queryInterface.createTable('Accounts', {
+      account_id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING
       },
-      content: {
+      username: {
         allowNull: true,
         type: Sequelize.STRING
       },
-      title: {
+      email: {
         allowNull: true,
-        type: Sequelize.STRING
-      },
-      url: {
-        allowNull: true,
-        type: Sequelize.TEXT
-      },
-      public_id: {
-        allowNull: true,
-        type: Sequelize.STRING
-      },
-      tag: {
-        allowNull: true,
-        type: Sequelize.STRING
-      },
-      privacy: {
-        allowNull: false,
-        type: Sequelize.STRING
-      },
-      view: {
-        allowNull: false,
-        type: Sequelize.INTEGER
-      },
-      category_video_id: {
-        allowNull: true,
-        type: Sequelize.STRING
-      },
-      user_id: {
         type: Sequelize.STRING,
-        allowNull: false
+        unique: true
       },
-      // list_like_user_id: {
-      //   type: Sequelize.STRING,
-      //   allowNull: true
-      // },
+      password: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      status: {
+        allowNull: true,
+        type: Sequelize.ENUM('Đang hoạt động', 'Ngừng hoạt động', 'Đóng băng', 'Khóa vĩnh viễn')
+      },
+      last_login: {
+        allowNull: true,
+        type: Sequelize.DATE
+      },
+      profile_picture: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      phone_number: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      address: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      date_of_birth: {
+        allowNull: true,
+        type: Sequelize.DATE
+      },
+      role_id: {
+        allowNull: true,
+        type: Sequelize.STRING,
+        references: {
+          model: 'Roles',
+          key: 'role_id'
+        }
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -63,6 +68,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Videos')
+    await queryInterface.dropTable('Accounts')
   }
 }

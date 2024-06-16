@@ -2,7 +2,8 @@ import { Router } from 'express'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
-import { createVideo, destroyVideo } from '../../controllers/videoController'
+import { createVideo, destroyVideo, findOneVideo, getVideo, getVideos } from '../../controllers/videoController'
+import middleware from '../../middleware'
 
 const videoRouter = Router()
 
@@ -24,9 +25,18 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage })
 
-// create
-videoRouter.post('/create', upload.single('video'), createVideo)
+// getAll
+videoRouter.get('', middleware.verifyToken, getVideos)
 
-videoRouter.delete('/:public_id', destroyVideo)
+// GET ONE
+videoRouter.get('/:id', middleware.verifyToken, findOneVideo)
+
+// create
+videoRouter.post('/create', middleware.verifyToken, upload.single('video'), createVideo)
+
+videoRouter.delete('/:public_id', middleware.verifyToken, destroyVideo)
+
+// getOne
+videoRouter.get('/resource/:public_id', middleware.verifyToken, getVideo)
 
 export default videoRouter

@@ -11,7 +11,7 @@ import models from '../db/models'
 import emailService from './emailService'
 import emailTitles from '../constants/email'
 import { generateExpiration, generateCodeNumbers } from '../utils/utils'
-import userService from './userService'
+import { AccountOuput } from '../types/account.type'
 
 class authService {
   constructor(
@@ -25,7 +25,18 @@ class authService {
     const { email, password } = data
 
     const existsUser = await models.User.findOne({
-      where: { email }
+      where: { email },
+      include: [
+        {
+          model: models.Profile,
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        },
+        {
+          model: models.Interest,
+          through: { attributes: [] },
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        }
+      ]
     })
 
     if (!existsUser) {
@@ -46,18 +57,19 @@ class authService {
       })
     }
 
+    const user = _.omit(existsUser.toJSON(), 'password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt')
+
     const userPayload: UserOutput = {
-      user_id: existsUser.user_id,
-      email: existsUser.email
+      user_id: user.user_id,
+      email: user.email
     }
 
     const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
+
     const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
 
-    const user = await userService.getProfile(existsUser.user_id)
-
     return {
-      message: 'Đăng nhập thành công.',
+      message: 'Đăng nhập thành công',
       data: {
         user,
         access_token: `Bearer ${access_token}`
@@ -72,7 +84,7 @@ class authService {
     const code = generateCodeNumbers(6).toString()
     const expires = generateExpiration(2, 'minutes')
 
-    const [user, created] = await models.User.findOrCreate({
+    const [_, created] = await models.User.findOrCreate({
       where: { email: data.email },
       defaults: { ...data, code, expires }
     })
@@ -83,8 +95,6 @@ class authService {
 
     try {
       const dataSendMail = await emailService.sendEmail(emailTitles.emailAuthentication, data.email, code)
-
-      await models.Profile.create({ user_id: user.user_id })
 
       return {
         message: emailTitles.emailAuthentication,
@@ -130,6 +140,49 @@ class authService {
         message: 'Refresh token đã hết hạn. Vui lòng đăng nhập lại.',
         errorName: 'EXPIRED_REFRESH_TOKEN'
       })
+    }
+  }
+
+  // Đăng nhập admin
+  async loginAdmin(data: LoginInput) {
+    const { email, password } = data
+
+    const existsAccount = await models.Account.findOne({
+      where: { email }
+    })
+
+    if (!existsAccount) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
+        email: 'Email không tồn tại!'
+      })
+    }
+
+    if (!compareValue(password, existsAccount.password)) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
+        password: 'Mật khẩu không chính xác!'
+      })
+    }
+
+    const account = _.omit(existsAccount.toJSON(), 'password', 'createdAt', 'updatedAt')
+
+    const accountPayload: AccountOuput = {
+      account_id: account.account_id,
+      email: account.email,
+      username: account.username,
+      role_id: account.role_id
+    }
+
+    const access_token = generateToken(accountPayload, this.secretKey, this.expiresAccessToken)
+
+    const refresh_token = generateToken(accountPayload, this.secretKey, this.expiresRefreshToken)
+
+    return {
+      message: 'Đăng nhập thành công',
+      data: {
+        account,
+        access_token: `Bearer ${access_token}`
+      },
+      refresh_token
     }
   }
 }

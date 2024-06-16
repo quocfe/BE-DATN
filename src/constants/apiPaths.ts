@@ -5,7 +5,9 @@ const API_V1 = {
   common: `${V1}`,
   user: `${V1}/user`,
   interest: `${V1}/interest`,
-  videos: `${V1}/videos`
+  videos: `${V1}/videos`,
+  likeVideo: `${V1}/like-video`,
+  commentVideo: `${V1}/comment-video`
 } as const
 
 const API_V2 = {
