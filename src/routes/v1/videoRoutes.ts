@@ -2,7 +2,14 @@ import { Router } from 'express'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
-import { createVideo, destroyVideo, findOneVideo, getVideo, getVideos } from '../../controllers/videoController'
+import {
+  createVideo,
+  destroyVideo,
+  findOneVideo,
+  getVideo,
+  getVideos,
+  updateVideoView
+} from '../../controllers/videoController'
 import middleware from '../../middleware'
 
 const videoRouter = Router()
@@ -38,5 +45,8 @@ videoRouter.delete('/:public_id', middleware.verifyToken, destroyVideo)
 
 // getOne
 videoRouter.get('/resource/:public_id', middleware.verifyToken, getVideo)
+
+// getOne
+videoRouter.patch('/view/:video_id', middleware.verifyToken, updateVideoView)
 
 export default videoRouter

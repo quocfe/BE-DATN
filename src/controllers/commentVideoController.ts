@@ -120,7 +120,6 @@ const editCommentVideo = async (req: Request, res: Response) => {
   try {
     const { video_id } = req.params
     const { content, reply_id, parent_id, comment_id } = req.body
-    console.log(comment_id)
     const comment = await models.CommentVideo.update(
       {
         content
@@ -149,7 +148,6 @@ const editCommentVideo = async (req: Request, res: Response) => {
 const deleteCommentItem = async (req: Request, res: Response) => {
   try {
     const { comment_id } = req.params
-    console.log(comment_id)
     if (!comment_id) {
       throw new Error('comment_id is required')
     }
@@ -169,5 +167,6 @@ const deleteCommentItem = async (req: Request, res: Response) => {
     })
   }
 }
+
 
 export { getCommentVideoItem, addCommentVideo, getCommentVideoPartentItem, editCommentVideo, deleteCommentItem }
