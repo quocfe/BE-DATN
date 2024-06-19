@@ -18,6 +18,7 @@ const getVideos = async (req: Request, res: Response) => {
         }
       ]
     })
+
     return sendResponseSuccess(res, {
       message: 'Lấy danh sách thành công.',
       data: videos
@@ -74,6 +75,7 @@ const createVideo = async (req: Request<unknown, unknown, CreateVideoRequest>, r
 const findOneVideo = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
+    const user = req.user as UserOutput
 
     const video = await models.Video.findOne({
       where: { id: id },
@@ -92,9 +94,30 @@ const findOneVideo = async (req: Request, res: Response) => {
       ]
     })
 
+    if (!video) {
+      return res.status(404).json({
+        message: 'Video không tồn tại.'
+      })
+    }
+
+    const likes = await models.LikeVideo.findAll({
+      where: {
+        comment_id: '',
+        video_id: video.id // Sửa lỗi cú pháp
+      },
+      attributes: [
+        [db.fn('COUNT', db.col('*')), 'like_count'],
+        [db.fn('MAX', db.literal(`CASE WHEN user_id = '${user?.user_id}' THEN 1 ELSE 0 END`)), 'isLike']
+      ],
+      raw: true
+    })
+
+    const videoData = video.toJSON() // Chuyển đổi video thành đối tượng JSON
+    const likesData = likes.length > 0 ? likes[0] : { like_count: 0, isLike: 0 } // Xử lý trường hợp không có likes
+
     return sendResponseSuccess(res, {
       message: 'Tải bài viết thành công.',
-      data: video ?? {}
+      data: { ...videoData, ...likesData }
     })
   } catch (error: any) {
     res.status(500).json({

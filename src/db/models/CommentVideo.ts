@@ -86,6 +86,8 @@ export const commentVideoRelationships = () => {
 
   // Mối quan hệ: một CommentVideo có thể có nhiều CommentVideo con (hasMany)
   CommentVideo.hasMany(CommentVideo, { foreignKey: 'parent_id', as: 'children' })
+
+  CommentVideo.hasMany(models.LikeVideo, { foreignKey: 'comment_id', as: 'likes', onDelete: 'CASCADE' })
 }
 
 export default CommentVideo
