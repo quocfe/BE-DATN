@@ -2,12 +2,15 @@ import { Request, Response } from 'express'
 import { UserOutput } from '../types/user.type'
 import { sendResponseSuccess } from '../utils/response'
 import models from '../db/models'
-import { Op } from 'sequelize'
+import { Op, Sequelize } from 'sequelize'
+import db from '../connection'
 
 // [PATCH] /api/v1/comment-video/:video_id
 const getCommentVideoItem = async (req: Request, res: Response) => {
   try {
     const { video_id } = req.params
+    const user = req.user as UserOutput
+
     const comments = await models.CommentVideo.findAll({
       where: {
         video_id,
@@ -24,25 +27,41 @@ const getCommentVideoItem = async (req: Request, res: Response) => {
               attributes: ['cover_photo']
             }
           ]
-        },
-        {
-          model: models.CommentVideo,
-          as: 'children' // Include các bản ghi con,
         }
       ],
+
       order: [['createdAt', 'ASC']]
     })
 
-    // Tính số lượng children của mỗi bình luận cha
-    comments.forEach((comment: any) => {
-      comment.dataValues.children_count = comment.children.length
-      // Xóa đi children để tránh lưu vào kết quả cuối cùng
-      delete comment.dataValues.children
-    })
+    const newComments = await Promise.all(
+      comments.map(async (comment: any) => {
+        const likes = await models.LikeVideo.findAll({
+          where: {
+            comment_id: comment.id,
+            video_id: comment.video_id
+          },
+          attributes: [
+            [db.fn('COUNT', db.col('*')), 'like_count'],
+            [db.fn('MAX', db.literal(`CASE WHEN user_id = '${user?.user_id}' THEN 1 ELSE 0 END`)), 'isLike']
+          ]
+        })
+
+        const childrenComment = await models.CommentVideo.count({
+          where: {
+            parent_id: comment.id,
+            video_id: comment.video_id
+          }
+        })
+
+        comment.dataValues = { ...comment.dataValues, ...likes[0].dataValues }
+        comment.dataValues.reply_count = childrenComment
+        return comment // Trả về comment đã được thêm thông tin likes
+      })
+    )
 
     return res.json({
       message: 'Lấy comment thành công',
-      data: comments
+      data: newComments
     })
   } catch (error: any) {
     return res.status(500).json({
@@ -55,6 +74,7 @@ const getCommentVideoItem = async (req: Request, res: Response) => {
 const getCommentVideoPartentItem = async (req: Request, res: Response) => {
   try {
     const { comment_id } = req.params
+    const user = req.user as UserOutput
 
     const comments = await models.CommentVideo.findAll({
       where: {
@@ -76,9 +96,27 @@ const getCommentVideoPartentItem = async (req: Request, res: Response) => {
       order: [['createdAt', 'ASC']]
     })
 
+    const newComments = await Promise.all(
+      comments.map(async (comment: any) => {
+        const likes = await models.LikeVideo.findAll({
+          where: {
+            comment_id: comment.id,
+            video_id: comment.video_id
+          },
+          attributes: [
+            [db.fn('COUNT', db.col('*')), 'like_count'],
+            [db.fn('MAX', db.literal(`CASE WHEN user_id = '${user?.user_id}' THEN 1 ELSE 0 END`)), 'isLike']
+          ]
+        })
+
+        comment.dataValues = { ...comment.dataValues, ...likes[0].dataValues }
+        return comment // Trả về comment đã được thêm thông tin likes
+      })
+    )
+
     return res.json({
       message: 'Lấy comment thành công',
-      data: comments
+      data: newComments
     })
   } catch (error: any) {
     return res.status(500).json({
@@ -167,6 +205,5 @@ const deleteCommentItem = async (req: Request, res: Response) => {
     })
   }
 }
-
 
 export { getCommentVideoItem, addCommentVideo, getCommentVideoPartentItem, editCommentVideo, deleteCommentItem }

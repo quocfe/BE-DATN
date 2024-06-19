@@ -78,6 +78,8 @@ export const likevideoRelationships = () => {
   LikeVideo.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' })
 
   LikeVideo.belongsTo(models.Video, { foreignKey: 'video_id', as: 'video' })
+
+  LikeVideo.belongsTo(models.CommentVideo, { foreignKey: 'comment_id', as: 'comment' })
 }
 
 export default LikeVideo
