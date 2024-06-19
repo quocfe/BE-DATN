@@ -1,57 +1,56 @@
-'use strict'
+import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
+export default {
+  async up(queryInterface: QueryInterface) {
     await queryInterface.createTable('Profiles', {
       profile_id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       phone_number: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       date_of_birth: {
         allowNull: true,
-        type: Sequelize.DATE
+        type: DataTypes.DATE
       },
       biography: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       profile_picture: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       cover_photo: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       home_town: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       relationship_status: {
         allowNull: true,
-        type: Sequelize.INTEGER
+        type: DataTypes.INTEGER
       },
       education: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       job: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       alias: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       user_id: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           key: 'user_id',
           model: 'Users'
@@ -60,18 +59,18 @@ module.exports = {
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     })
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface: QueryInterface) {
     await queryInterface.dropTable('Profiles')
   }
 }

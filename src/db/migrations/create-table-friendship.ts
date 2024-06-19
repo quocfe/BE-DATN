@@ -1,17 +1,16 @@
-'use strict'
+import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
+export default {
+  async up(queryInterface: QueryInterface) {
     await queryInterface.createTable('Friendships', {
       friendship_id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       user_id: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           model: 'Users',
           key: 'user_id'
@@ -20,7 +19,7 @@ module.exports = {
       },
       friend_id: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           model: 'Users',
           key: 'user_id'
@@ -29,22 +28,22 @@ module.exports = {
       },
       status: {
         allowNull: false,
-        type: Sequelize.ENUM('Chờ chấp nhận', 'Đã chấp nhận', 'Đã chặn')
+        type: DataTypes.ENUM('Chờ chấp nhận', 'Đã chấp nhận', 'Đã chặn')
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     })
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface: QueryInterface) {
     await queryInterface.dropTable('Friendships')
   }
 }

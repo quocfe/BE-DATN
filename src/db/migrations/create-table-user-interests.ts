@@ -1,18 +1,17 @@
-'use strict'
+import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
+export default {
+  async up(queryInterface: QueryInterface) {
     await queryInterface.createTable('UserInterests', {
       id: {
         allowNull: false,
         primaryKey: true,
         autoIncrement: true,
-        type: Sequelize.INTEGER
+        type: DataTypes.INTEGER
       },
       user_id: {
         allowNull: true,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           key: 'user_id',
           model: 'Users'
@@ -20,7 +19,7 @@ module.exports = {
       },
       interest_id: {
         allowNull: true,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           key: 'interest_id',
           model: 'Interests'
@@ -29,18 +28,18 @@ module.exports = {
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     })
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface: QueryInterface) {
     await queryInterface.dropTable('UserInterests')
   }
 }

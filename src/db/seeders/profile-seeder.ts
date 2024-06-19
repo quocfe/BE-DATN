@@ -1,8 +1,7 @@
-'use strict'
-/** @type {import('sequelize-cli').Migration} */
+import { QueryInterface } from 'sequelize'
 
-module.exports = {
-  async up(queryInterface, Sequelize) {
+export default {
+  async up(queryInterface: QueryInterface) {
     await queryInterface.bulkInsert(
       'Profiles',
       [
@@ -683,7 +682,7 @@ module.exports = {
     )
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('Profiles', null, {})
+  async down(queryInterface: QueryInterface) {
+    await queryInterface.bulkDelete('Profiles', {}, {})
   }
 }
