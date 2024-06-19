@@ -138,4 +138,38 @@ const getVideo = async (req: Request, res: Response) => {
   }
 }
 
-export { getVideos, createVideo, destroyVideo, getVideo, findOneVideo }
+// const updateVideo = async (req: Request, res: Response) => {
+//   try {
+//     const { video_id } = req.params
+//     const { content } = req.body
+
+//     const updateData = await models.Video.update({
+//       content
+//     })
+//   } catch (error) {}
+// }
+
+const updateVideoView = async (req: Request, res: Response) => {
+  try {
+    const { video_id } = req.params
+    const { content } = req.body
+
+    const video = await models.Video.findOne({
+      where: {
+        id: video_id
+      }
+    })
+
+    if (!video) {
+      return res.status(404).json({ message: 'Video not found' })
+    }
+
+    video.update({
+      view: video.view + 1
+    })
+
+    return res.json({ message: 'Video view count updated successfully', video })
+  } catch (error) {}
+}
+
+export { getVideos, createVideo, destroyVideo, getVideo, findOneVideo, updateVideoView }

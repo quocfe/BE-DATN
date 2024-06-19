@@ -23,6 +23,7 @@ interface VideoCreationAttribute
   > {}
 
 class LikeVideo extends Model<LikeVideoAttributes, VideoCreationAttribute> implements LikeVideoAttributes {
+  [x: string]: any
   declare id: string
   declare user_id: string
   declare video_id: string
