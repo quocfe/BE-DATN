@@ -1,54 +1,53 @@
-'use strict'
+import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
+export default {
+  async up(queryInterface: QueryInterface) {
     await queryInterface.createTable('Accounts', {
       account_id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       username: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       email: {
         allowNull: true,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         unique: true
       },
       password: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       status: {
         allowNull: true,
-        type: Sequelize.ENUM('Đang hoạt động', 'Ngừng hoạt động', 'Đóng băng', 'Khóa vĩnh viễn')
+        type: DataTypes.ENUM('Đang hoạt động', 'Ngừng hoạt động', 'Đóng băng', 'Khóa vĩnh viễn')
       },
       last_login: {
         allowNull: true,
-        type: Sequelize.DATE
+        type: DataTypes.DATE
       },
       profile_picture: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       phone_number: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       address: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       date_of_birth: {
         allowNull: true,
-        type: Sequelize.DATE
+        type: DataTypes.DATE
       },
       role_id: {
         allowNull: true,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           model: 'Roles',
           key: 'role_id'
@@ -56,18 +55,18 @@ module.exports = {
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     })
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface: QueryInterface) {
     await queryInterface.dropTable('Accounts')
   }
 }

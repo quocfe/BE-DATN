@@ -1,8 +1,8 @@
-'use strict'
-/** @type {import('sequelize-cli').Migration} */
-const { hashSync, genSaltSync } = require('bcryptjs')
-module.exports = {
-  async up(queryInterface, Sequelize) {
+import { QueryInterface } from 'sequelize'
+import { hashSync, genSaltSync } from 'bcryptjs'
+
+export default {
+  async up(queryInterface: QueryInterface) {
     await queryInterface.bulkInsert(
       'Users',
       [
@@ -484,7 +484,7 @@ module.exports = {
     )
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('Users', null, {})
+  async down(queryInterface: QueryInterface) {
+    await queryInterface.bulkDelete('Users', {}, {})
   }
 }
