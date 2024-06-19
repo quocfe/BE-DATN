@@ -107,7 +107,6 @@ const findOneVideo = async (req: Request, res: Response) => {
 const destroyVideo = async (req: Request, res: Response) => {
   try {
     const { public_id } = req.params
-
     const result = await destroyCloudinary(public_id, 'video')
 
     return res.json({

@@ -48,7 +48,7 @@ const cloudinaryUploadVideo = async (file: Express.Multer.File): Promise<UploadA
       const readStream = fs.createReadStream(filePath, { start: startByte, end: endByte })
 
       const uploadStream = cloudinary.uploader.upload_stream(
-        { resource_type: 'video', upload_preset: 'on3uibxs' },
+        { resource_type: 'video', upload_preset },
         (error: any, result: UploadApiResponse) => {
           if (error) {
             return reject(error)
