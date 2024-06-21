@@ -451,7 +451,11 @@ class userService {
       let status = 'Chưa kết bạn'
 
       if (record) {
-        status = 'Bạn bè'
+        if (record.status === 'Chờ chấp nhận') {
+          status = 'Chưa kết bạn + Chờ chấp nhận'
+        } else {
+          status = 'Bạn bè'
+        }
       } else if (!record && user.user_id === user_id) {
         status = 'Tôi'
       }
