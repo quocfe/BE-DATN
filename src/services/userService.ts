@@ -383,7 +383,11 @@ class userService {
       ]
     })
 
-    const friends = user?.Friends ?? []
+    if (!user) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng này không tồn tại')
+    }
+
+    const friends = user.Friends
 
     return {
       message: 'Danh sách bạn bè',
@@ -440,7 +444,7 @@ class userService {
       ]
     })
 
-    const customListUserSearch = listUserSearch.map((user) => {
+    const userSearchWithStatus = listUserSearch.map((user) => {
       // kiểm tra mối quan hệ giữa người dùng được tìm kiếm và người dùng đang tìm kiếm
       const record = friendships.find(
         (f) =>
@@ -469,7 +473,7 @@ class userService {
     return {
       message: 'Danh sách tìm kiếm',
       data: {
-        list: customListUserSearch
+        list: userSearchWithStatus
       }
     }
   }
