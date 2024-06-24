@@ -4,6 +4,7 @@ import Interest from './Interest'
 import Friendship from './Friendship'
 import Role from './Role'
 import Account from './Account'
+import SearchHistory from './SearchHistory'
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
@@ -41,6 +42,10 @@ const userRelationships = () => {
     foreignKey: 'friend_id',
     onDelete: 'CASCADE'
   })
+
+  User.hasMany(SearchHistory, {
+    foreignKey: 'user_id'
+  })
 }
 
 const profileRelationships = () => {
@@ -58,14 +63,34 @@ const interestRelationships = () => {
   })
 }
 
+const searchHistoryRelationships = () => {
+  SearchHistory.belongsTo(User, {
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
+  })
+
+  SearchHistory.belongsTo(User, {
+    foreignKey: 'target_id',
+    targetKey: 'user_id',
+    onDelete: 'CASCADE'
+  })
+
+  // SearchHistory.belongsTo(Fanpage, {
+  //   foreignKey: 'target_id',
+  //   targetKey: 'fanpage_id',
+  //   onDelete: 'CASCADE'
+  // })
+}
+
 export const setupModelRelationships = () => {
   roleRelationships()
   accountRelationship()
   userRelationships()
   profileRelationships()
   interestRelationships()
+  searchHistoryRelationships()
 }
 
-const models = { Role, Account, User, Profile, Interest, Friendship }
+const models = { Role, Account, User, Profile, Interest, Friendship, SearchHistory }
 
 export default models

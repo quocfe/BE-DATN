@@ -55,4 +55,12 @@ router.post('/change_password', Middleware.verifyToken, tryCatch(userController.
 
 router.get('/friends_of_friends/:friend_id', Middleware.verifyToken, tryCatch(userController.fetchAllFriendsOfFriends))
 
+router.get('/search/histories', Middleware.verifyToken, tryCatch(userController.fetchAllSearchHistory))
+
+router.post('/search/history/add', Middleware.verifyToken, tryCatch(userController.addNewSearchHistory))
+
+router.delete('/search/history/delete/:target_id', Middleware.verifyToken, tryCatch(userController.deleteSearchHistory))
+
+router.delete('/search/history/clear', Middleware.verifyToken, tryCatch(userController.clearSearchHistory))
+
 export default router

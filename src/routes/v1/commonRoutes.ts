@@ -1,9 +1,10 @@
-import { Router } from 'express'
+import { Request, Response, Router } from 'express'
 import Middleware from '../../middleware'
 import authController from '../../controllers/authController'
 import AuthValidator from '../../middleware/validators/AuthValidator'
 import { tryCatch } from '../../utils/response'
 import userController from '../../controllers/userController'
+import models from '../../db/models'
 const router = Router()
 
 router.post('/login', AuthValidator.checkLogin(), Middleware.handleValidatorError, tryCatch(authController.login))

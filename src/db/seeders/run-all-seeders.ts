@@ -6,6 +6,7 @@ import ProfileSeeder from './profile-seeder'
 import InterestSeeder from './interest-seeder'
 import UserInterestSeeder from './user-interest-seeder'
 import FriendshipSeeder from './friendship-seeder'
+import SearchHistorySeeder from './search-history-seeder'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -16,9 +17,11 @@ export default {
     await InterestSeeder.up(queryInterface)
     await UserInterestSeeder.up(queryInterface)
     await FriendshipSeeder.up(queryInterface)
+    await SearchHistorySeeder.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
+    await SearchHistorySeeder.down(queryInterface)
     await FriendshipSeeder.down(queryInterface)
     await UserInterestSeeder.down(queryInterface)
     await InterestSeeder.down(queryInterface)

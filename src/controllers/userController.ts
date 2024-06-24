@@ -6,6 +6,8 @@ import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
 import { MulterFiles } from '../types/multer.type'
 import { ChangePassword } from '../types/user.type'
+import { CreateSearchHistory } from '../types/searchHistory.type'
+import searchHistoryService from '../services/searchHistoryService'
 
 class userController {
   // Danh sách người dùng
@@ -248,6 +250,52 @@ class userController {
     const data = await userService.fetchFriendOfUser(friend_id)
 
     sendResponseSuccess(res, data)
+  }
+
+  // Lịch sử người dùng tìm kiếm
+  async fetchAllSearchHistory(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+
+      const data = await searchHistoryService.fetchAllSearchHistory(user_id)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  // Thêm mới lịch sử tìm kiếm
+  async addNewSearchHistory(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const searchHistoryData: CreateSearchHistory = req.body
+
+      const data = await searchHistoryService.addNewSearchHistory(user_id, searchHistoryData)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  // Xóa lịch sử tìm kiếm
+  async deleteSearchHistory(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const { target_id } = req.params
+
+      const data = await searchHistoryService.deleteSearchHistory(user_id, target_id)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  // Xóa tất cả lịch sử tìm kiếm
+  async clearSearchHistory(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+
+      const data = await searchHistoryService.clearSearchHistory(user_id)
+
+      sendResponseSuccess(res, data)
+    }
   }
 }
 
