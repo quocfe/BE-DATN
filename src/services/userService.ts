@@ -7,10 +7,11 @@ import { Op } from 'sequelize'
 import { deleteImageOrVideoByPublicId, getPublicIdFromUrl } from '../utils/cloudinary'
 import { compareValue } from '../utils/bcrypt'
 import { hashSync } from 'bcryptjs'
+import { User } from '../types/user.type'
 
 class userService {
   // Danh sách người dùng
-  async fetchAllUsers(user_id: string) {
+  async fetchAllUsers(user_id: string, _page: string | undefined, _limit: string | undefined) {
     const status = ['Đã chấp nhận', 'Chờ chấp nhận', 'Đã chặn']
     const friends = await models.Friendship.findAll({
       where: {
@@ -39,26 +40,66 @@ class userService {
       return friend.user_id === user_id ? friend.friend_id : friend.user_id
     })
 
-    const users = await models.User.findAll({
-      where: {
-        user_id: {
-          [Op.ne]: user_id,
-          [Op.notIn]: friendUserIds
-        }
-      },
-      attributes: ['user_id', 'first_name', 'last_name'],
-      include: [
-        {
-          model: models.Profile,
-          attributes: ['profile_picture', 'cover_photo']
-        }
-      ]
+    const whereCondition = {
+      user_id: {
+        [Op.ne]: user_id,
+        [Op.notIn]: friendUserIds
+      }
+    }
+    const attributes = ['user_id', 'first_name', 'last_name']
+    const include = [
+      {
+        model: models.Profile,
+        attributes: ['profile_picture', 'cover_photo']
+      }
+    ]
+
+    const totalUserCount = await models.User.count({
+      where: whereCondition,
+      include
     })
+
+    let users: User[] = []
+
+    if (_page && _limit) {
+      const page = parseInt(_page)
+      const limit = parseInt(_limit)
+      const offset = (page - 1) * limit
+
+      users = await models.User.findAll({
+        where: whereCondition,
+        attributes,
+        include,
+        offset,
+        limit
+      })
+    } else if (_limit) {
+      const limit = parseInt(_limit)
+
+      users = await models.User.findAll({
+        where: whereCondition,
+        attributes,
+        include,
+        limit
+      })
+    } else {
+      users = await models.User.findAll({
+        where: whereCondition,
+        attributes,
+        include
+      })
+    }
+
+    const pages = _limit ? Math.ceil(totalUserCount / parseInt(_limit)) : 1
 
     return {
       message: 'Danh sách người dùng',
       data: {
-        users
+        users,
+        page: _page,
+        limit: _limit,
+        totalUserCount,
+        pages
       }
     }
   }
