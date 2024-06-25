@@ -102,12 +102,6 @@ export default {
           status: 'Đã chấp nhận'
         },
         {
-          friendship_id: 'fi9a0b1c2-f703-4b16-847d-f61bae05va9q',
-          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
-          friend_id: 'vegeta-22345-f678-9abc-def01234-dbz',
-          status: 'Đã chấp nhận'
-        },
-        {
           friendship_id: 'fl0a1b2c3-f703-4b16-847d-f61bae05wa0r',
           user_id: 'vegeta-22345-f678-9abc-def01234-dbz',
           friend_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
@@ -117,12 +111,6 @@ export default {
           friendship_id: 'f9a0b1c2-f703-4b16-847d-f61bae05va9q',
           user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
           friend_id: 'vegeta-22345-f678-9abc-def01234-dbz',
-          status: 'Đã chấp nhận'
-        },
-        {
-          friendship_id: 'f0a1b2c3-f703-4b16-847d-f61bae05wa0r',
-          user_id: 'vegeta-22345-f678-9abc-def01234-dbz',
-          friend_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
           status: 'Đã chấp nhận'
         },
         {

@@ -53,6 +53,7 @@ class authController {
     sendResponseSuccess(res, data)
   }
 
+  // Tạo mới mã xác thực
   async newAuthCodeEmail(req: Request, res: Response) {
     const { email } = req.params
 
@@ -61,6 +62,7 @@ class authController {
     sendResponseSuccess(res, data)
   }
 
+  // Đăng nhập admin
   async loginAdmin(req: Request, res: Response) {
     const loginData: LoginInput = req.body
     const data = await authService.loginAdmin(loginData)

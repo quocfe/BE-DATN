@@ -24,7 +24,7 @@ router.post('/verify/:email/:code', tryCatch(authController.verifyEmail))
 
 router.post('/new_auth_code_email/:email', tryCatch(authController.newAuthCodeEmail))
 
-router.get('/search_all/:name', Middleware.verifyToken, tryCatch(userController.searchUserOrFanpage))
+router.get('/search_all/:name', Middleware.verifyToken, tryCatch(userController.searchUserOrFanpages))
 
 router.post(
   '/admin/login',
