@@ -3,17 +3,21 @@ import models from '../db/models'
 import { StatusCodes } from 'http-status-codes'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
-import { Op } from 'sequelize'
+import { FindAttributeOptions, Includeable, Op, WhereOptions } from 'sequelize'
 import { deleteImageOrVideoByPublicId, getPublicIdFromUrl } from '../utils/cloudinary'
 import { compareValue } from '../utils/bcrypt'
 import { hashSync } from 'bcryptjs'
-import { User } from '../types/user.type'
+import { UserAttributes } from '../db/models/User'
 
 class userService {
   // Danh sách người dùng
   async fetchAllUsers(user_id: string, _page: string | undefined, _limit: string | undefined) {
+    const page = _page ? +_page : undefined
+    const limit = _limit ? +_limit : undefined
+    const offset = page && limit ? (page - 1) * limit : undefined
     const status = ['Đã chấp nhận', 'Chờ chấp nhận', 'Đã chặn']
-    const friends = await models.Friendship.findAll({
+
+    const userRelationships = await models.Friendship.findAll({
       where: {
         [Op.or]: [
           {
@@ -36,69 +40,47 @@ class userService {
       }
     })
 
-    const friendUserIds: string[] = friends.map((friend) => {
-      return friend.user_id === user_id ? friend.friend_id : friend.user_id
+    const relationshipUserIds: string[] = userRelationships.map((friendship) => {
+      return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
     })
 
-    const whereCondition = {
+    const userExclusionCondition: WhereOptions<UserAttributes> | undefined = {
       user_id: {
         [Op.ne]: user_id,
-        [Op.notIn]: friendUserIds
+        [Op.notIn]: relationshipUserIds
       }
     }
-    const attributes = ['user_id', 'first_name', 'last_name']
-    const include = [
+
+    const userAttributes: FindAttributeOptions | undefined = ['user_id', 'first_name', 'last_name']
+
+    const userIncludeOptions: Includeable | Includeable[] | undefined = [
       {
         model: models.Profile,
         attributes: ['profile_picture', 'cover_photo']
       }
     ]
 
-    const totalUserCount = await models.User.count({
-      where: whereCondition,
-      include
+    const total = await models.User.count({
+      where: userExclusionCondition
     })
 
-    let users: User[] = []
+    const users = await models.User.findAll({
+      where: userExclusionCondition,
+      attributes: userAttributes,
+      include: userIncludeOptions,
+      offset,
+      limit
+    })
 
-    if (_page && _limit) {
-      const page = parseInt(_page)
-      const limit = parseInt(_limit)
-      const offset = (page - 1) * limit
-
-      users = await models.User.findAll({
-        where: whereCondition,
-        attributes,
-        include,
-        offset,
-        limit
-      })
-    } else if (_limit) {
-      const limit = parseInt(_limit)
-
-      users = await models.User.findAll({
-        where: whereCondition,
-        attributes,
-        include,
-        limit
-      })
-    } else {
-      users = await models.User.findAll({
-        where: whereCondition,
-        attributes,
-        include
-      })
-    }
-
-    const pages = _limit ? Math.ceil(totalUserCount / parseInt(_limit)) : 1
+    const pages = limit ? Math.ceil(total / limit) : 1
 
     return {
       message: 'Danh sách người dùng',
       data: {
         users,
-        page: _page,
-        limit: _limit,
-        totalUserCount,
+        page,
+        limit,
+        total,
         pages
       }
     }
@@ -125,11 +107,11 @@ class userService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng này không tồn tại!')
     }
 
-    let relationship
+    let userRelationship
 
     // Kiểm tra xem mối quan hệ với người dùng này là gì
     if (user_id && friend_id !== user_id) {
-      relationship = await models.Friendship.findOne({
+      userRelationship = await models.Friendship.findOne({
         attributes: ['user_id', 'friend_id', 'status'],
         where: {
           [Op.or]: [
@@ -150,7 +132,7 @@ class userService {
       message: 'Lấy thông tin người dùng thành công.',
       data: {
         user,
-        relationship
+        relationship: userRelationship
       }
     }
   }
@@ -264,35 +246,41 @@ class userService {
   }
 
   // Danh sách lời mời kết bạn đã gửi
-  async fetchAllSentFriendRequest(user_id: string) {
-    const user = await models.User.findByPk(user_id, {
-      attributes: [],
-      include: [
-        {
-          model: models.User,
-          through: {
-            attributes: [],
-            where: {
-              status: 'Chờ chấp nhận'
-            }
-          },
-          as: 'Friends',
-          attributes: ['user_id', 'last_name', 'first_name'],
-          include: [
-            {
-              model: models.Profile,
-              attributes: ['profile_picture', 'cover_photo']
-            }
-          ]
-        }
-      ]
+  async fetchAllSentFriendRequest(user_id: string, _page: string | undefined, _limit: string | undefined) {
+    const page = _page ? +_page : undefined
+    const limit = _limit ? +_limit : undefined
+    const offset = page && limit ? (page - 1) * limit : undefined
+
+    const sentFriendRequests = await models.Friendship.findAll({
+      where: {
+        user_id,
+        status: 'Chờ chấp nhận'
+      }
     })
 
-    const friends = user?.Friends
+    const sentFriendRequestIds = sentFriendRequests.map((friendship) => {
+      return friendship.friend_id
+    })
+
+    const friends = await models.User.findAll({
+      where: { user_id: sentFriendRequestIds },
+      attributes: ['user_id', 'first_name', 'last_name'],
+      include: [
+        {
+          model: models.Profile,
+          attributes: ['profile_picture', 'cover_photo']
+        }
+      ],
+      limit,
+      offset
+    })
+
+    const total = sentFriendRequestIds.length
+    const pages = limit ? Math.ceil(total / limit) : 1
 
     return {
       message: 'Danh sách lời mời kết bạn đã gửi',
-      data: { friends }
+      data: { friends, page, limit, total, pages }
     }
   }
 
@@ -304,15 +292,15 @@ class userService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng không tồn tại!')
     }
 
-    const friend = await models.Friendship.findOne({
+    const friendshipRecord = await models.Friendship.findOne({
       where: { user_id, friend_id }
     })
 
-    if (!friend) {
+    if (!friendshipRecord) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại mối quan hệ với người này')
     }
 
-    if (friend.status === 'Đã chấp nhận') {
+    if (friendshipRecord.status === 'Đã chấp nhận') {
       await models.Friendship.destroy({
         where: {
           [Op.or]: [
@@ -321,8 +309,8 @@ class userService {
           ]
         }
       })
-    } else if (friend.user_id === user_id && friend.status === 'Chờ chấp nhận') {
-      await friend.destroy()
+    } else if (friendshipRecord.user_id === user_id && friendshipRecord.status === 'Chờ chấp nhận') {
+      await friendshipRecord.destroy()
     } else {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Chưa gửi lời mời kết bạn đến người dùng này!')
     }
@@ -334,21 +322,25 @@ class userService {
   }
 
   // Danh sách người dùng đã gửi kết bạn tới tôi
-  async fetchAllReceivedFriendRequest(user_id: string) {
-    const friendRquests = await models.Friendship.findAll({
+  async fetchAllReceivedFriendRequest(user_id: string, _page: string | undefined, _limit: string | undefined) {
+    const page = _page ? +_page : undefined
+    const limit = _limit ? +_limit : undefined
+    const offset = page && limit ? (page - 1) * limit : undefined
+
+    const receivedFriendRequests = await models.Friendship.findAll({
       where: {
         friend_id: user_id,
         status: 'Chờ chấp nhận'
       }
     })
 
-    const listFriendIds = friendRquests.map((user) => {
-      return user.user_id
+    const receivedFriendRequestIds = receivedFriendRequests.map((friendship) => {
+      return friendship.user_id
     })
 
     const friends = await models.User.findAll({
       where: {
-        user_id: listFriendIds
+        user_id: receivedFriendRequestIds
       },
       attributes: ['user_id', 'last_name', 'first_name'],
       include: [
@@ -356,13 +348,20 @@ class userService {
           model: models.Profile,
           attributes: ['profile_picture', 'cover_photo']
         }
-      ]
+      ],
+      limit,
+      offset
     })
+
+    const total = receivedFriendRequestIds.length
+    const pages = limit ? Math.ceil(total / limit) : 1
 
     return {
       message: 'Danh sách người dùng đã gửi kết bạn tới tôi',
       data: {
-        friends
+        friends,
+        total,
+        pages
       }
     }
   }
@@ -375,22 +374,22 @@ class userService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng không tồn tại!')
     }
 
-    const friend = await models.Friendship.findOne({
+    const friendRequest = await models.Friendship.findOne({
       where: {
         user_id: friend_id,
         friend_id: user_id
       }
     })
 
-    if (!friend) {
+    if (!friendRequest) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại lời mời kết bạn người dùng này!')
     }
 
-    if (friend.status === 'Đã chấp nhận') {
+    if (friendRequest.status === 'Đã chấp nhận') {
       throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Hiện đang là bạn bè với người dùng này!')
     }
 
-    await friend.update({ status: 'Đã chấp nhận' })
+    await friendRequest.update({ status: 'Đã chấp nhận' })
     await models.Friendship.create({ user_id, friend_id, status: 'Đã chấp nhận' })
 
     return {
@@ -400,50 +399,63 @@ class userService {
   }
 
   // Lấy danh sách bạn bè
-  async fetchFriendOfUser(user_id: string) {
-    const user = await models.User.findByPk(user_id, {
-      attributes: [],
-      include: [
-        {
-          model: models.User,
-          through: {
-            attributes: [],
-            where: {
-              status: 'Đã chấp nhận'
-            }
+  async fetchFriendOfUser(user_id: string, _page: string | undefined, _limit: string | undefined) {
+    const page = _page ? +_page : undefined
+    const limit = _limit ? +_limit : undefined
+    const offset = page && limit ? (page - 1) * limit : undefined
+
+    const acceptedFriendships = await models.Friendship.findAll({
+      where: {
+        [Op.or]: [
+          {
+            friend_id: user_id
           },
-          as: 'Friends',
-          attributes: ['user_id', 'last_name', 'first_name'],
-          include: [
-            {
-              model: models.Profile,
-              attributes: ['profile_picture', 'cover_photo']
-            }
-          ]
-        }
-      ]
+          {
+            user_id
+          }
+        ],
+        status: 'Đã chấp nhận'
+      }
     })
 
-    if (!user) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng này không tồn tại')
-    }
+    const friendIds = [
+      ...new Set(
+        acceptedFriendships.map((friendship) => {
+          return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
+        })
+      )
+    ].filter((id) => id !== user_id)
 
-    const friends = user.Friends
+    const total = friendIds.length
+    const pages = limit ? Math.ceil(total / limit) : 1
+
+    const friends = await models.User.findAll({
+      where: { user_id: friendIds },
+      attributes: ['user_id', 'last_name', 'first_name'],
+      include: [
+        {
+          model: models.Profile,
+          attributes: ['profile_picture', 'cover_photo']
+        }
+      ],
+      limit,
+      offset
+    })
 
     return {
       message: 'Danh sách bạn bè',
-      data: { friends: friends }
+      data: { friends, page, pages, limit, total }
     }
   }
 
   // Tìm kiếm người dùng hoặc fanpage
-  async searchUserOrFanpage(user_id: string, name: string) {
+  async searchUserOrFanpages(user_id: string, name: string) {
     const friendships = await models.Friendship.findAll()
 
-    const blocks = friendships.filter((f) => f.status === 'Đã chặn')
+    const blockedFriendships = friendships.filter((f) => f.status === 'Đã chặn')
 
     // acc: accumulator - biến tích lũy
-    const blockedUserIds = blocks.reduce((acc: string[], block) => {
+    const blockedUserIds = blockedFriendships.reduce((acc: string[], block) => {
       if (block.user_id === user_id) {
         acc.push(block.friend_id)
       } else if (block.friend_id === user_id) {
@@ -454,7 +466,7 @@ class userService {
 
     const searchName = name ? name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() : ''
 
-    const listUserSearch = await models.User.findAll({
+    const searchResults = await models.User.findAll({
       attributes: ['user_id', 'last_name', 'first_name'],
       where: {
         [Op.and]: [
@@ -485,7 +497,7 @@ class userService {
       ]
     })
 
-    const userSearchWithStatus = listUserSearch.map((user) => {
+    const userSearchWithStatus = searchResults.map((user) => {
       // kiểm tra mối quan hệ giữa người dùng được tìm kiếm và người dùng đang tìm kiếm
       const record = friendships.find(
         (f) =>
@@ -528,33 +540,26 @@ class userService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng không tồn tại!')
     }
 
-    // Promise song song
-    const [friend, existFriendRequest] = await Promise.all([
+    const [currentFriendship, reverseFriendship] = await Promise.all([
       models.Friendship.findOne({ where: { user_id, friend_id } }),
       models.Friendship.findOne({ where: { user_id: friend_id, friend_id: user_id } })
     ])
 
-    // A
-    if (friend) {
-      if (friend.status === 'Đã chấp nhận' || friend.status === 'Chờ chấp nhận') {
-        await friend.update({ status: 'Đã chặn' })
-      } else if (friend.status === 'Đã chặn') {
+    if (currentFriendship) {
+      if (currentFriendship.status === 'Đã chấp nhận' || currentFriendship.status === 'Chờ chấp nhận') {
+        await currentFriendship.update({ status: 'Đã chặn' })
+      } else if (currentFriendship.status === 'Đã chặn') {
         throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Người dùng này đã bị chặn!')
-      }
-    }
-
-    // B
-    if (existFriendRequest) {
-      if (existFriendRequest.status === 'Đã chặn') {
-        throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy người dùng này!')
       } else {
-        await existFriendRequest.destroy()
-        await models.Friendship.create({ user_id, friend_id, status: 'Đã chặn' })
+        await currentFriendship.update({ status: 'Đã chặn' })
       }
+    } else {
+      await models.Friendship.create({ user_id, friend_id, status: 'Đã chặn' })
     }
 
-    if (!friend && !existFriendRequest) {
-      await models.Friendship.create({ user_id, friend_id, status: 'Đã chặn' })
+    // Xóa bản ghi từ B đến A nếu trạng thái là 'Đã chấp nhận'
+    if (reverseFriendship && reverseFriendship.status === 'Đã chấp nhận') {
+      await reverseFriendship.destroy()
     }
 
     return {
@@ -571,7 +576,7 @@ class userService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Người dùng không tồn tại!')
     }
 
-    const existBlockUser = await models.Friendship.findOne({
+    const blockFromUser = await models.Friendship.findOne({
       where: {
         user_id,
         friend_id,
@@ -579,11 +584,11 @@ class userService {
       }
     })
 
-    if (!existBlockUser) {
+    if (!blockFromUser) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Hiện đang không chặn người dùng này!')
     }
 
-    await existBlockUser.destroy()
+    await blockFromUser.destroy()
 
     return {
       message: 'Hủy chặn người dùng thành công!',
@@ -593,7 +598,7 @@ class userService {
 
   // Danh sách chặn người dùng
   async fetchAllListBlockUser(user_id: string) {
-    const user = await models.User.findByPk(user_id, {
+    const blockedUserRecords = await models.User.findByPk(user_id, {
       attributes: [],
       include: [
         {
@@ -616,12 +621,12 @@ class userService {
       ]
     })
 
-    const blockedUser = user?.Friends
+    const blockedUsersList = blockedUserRecords?.Friends ?? []
 
     return {
       message: 'Danh sách chặn người dùng',
       data: {
-        friends: blockedUser
+        friends: blockedUsersList
       }
     }
   }
