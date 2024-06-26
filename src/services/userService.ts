@@ -8,6 +8,7 @@ import { deleteImageOrVideoByPublicId, getPublicIdFromUrl } from '../utils/cloud
 import { compareValue } from '../utils/bcrypt'
 import { hashSync } from 'bcryptjs'
 import { UserAttributes } from '../db/models/User'
+import { RELATIONSHIP } from '../constants/relationshipStatus'
 
 class userService {
   // Danh sách người dùng
@@ -15,7 +16,7 @@ class userService {
     const page = _page ? +_page : undefined
     const limit = _limit ? +_limit : undefined
     const offset = page && limit ? (page - 1) * limit : undefined
-    const status = ['Đã chấp nhận', 'Chờ chấp nhận', 'Đã chặn']
+    const status = [RELATIONSHIP.FRIEND, RELATIONSHIP.BLOCKED]
 
     const userRelationships = await models.Friendship.findAll({
       where: {
@@ -40,9 +41,13 @@ class userService {
       }
     })
 
-    const relationshipUserIds: string[] = userRelationships.map((friendship) => {
-      return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
-    })
+    const relationshipUserIds: string[] = [
+      ...new Set(
+        userRelationships.map((friendship) => {
+          return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
+        })
+      )
+    ]
 
     const userExclusionCondition: WhereOptions<UserAttributes> | undefined = {
       user_id: {
@@ -214,19 +219,19 @@ class userService {
       where: {
         user_id: friend_id,
         friend_id: user_id,
-        [Op.or]: [{ status: ['Chờ chấp nhận', 'Đã chặn'] }]
+        [Op.or]: [{ status: [RELATIONSHIP.PENDING_FRIEND_REQUEST, RELATIONSHIP.BLOCKED] }]
       }
     })
 
     if (receivedRequest) {
-      if (receivedRequest.status === 'Chờ chấp nhận') {
+      if (receivedRequest.status === RELATIONSHIP.PENDING_FRIEND_REQUEST) {
         throw new CustomErrorHandler(
           StatusCodes.CONFLICT,
           'Người này đã gửi kết bạn tới bạn, vui lòng kiểm tra và chấp nhận lời mời kết bạn của họ!'
         )
       }
 
-      if (receivedRequest.status === 'Đã chặn') {
+      if (receivedRequest.status === RELATIONSHIP.BLOCKED) {
         throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Bạn với người dùng này đã chặn trên hệ thống!')
       }
     }
@@ -238,10 +243,7 @@ class userService {
 
     return {
       message: 'Gửi lời mới kết bạn thành công',
-      data: {
-        user_id,
-        friend_id
-      }
+      data: {}
     }
   }
 
@@ -254,7 +256,7 @@ class userService {
     const sentFriendRequests = await models.Friendship.findAll({
       where: {
         user_id,
-        status: 'Chờ chấp nhận'
+        status: RELATIONSHIP.PENDING_FRIEND_REQUEST
       }
     })
 
@@ -280,7 +282,7 @@ class userService {
 
     return {
       message: 'Danh sách lời mời kết bạn đã gửi',
-      data: { friends, page, limit, total, pages }
+      data: { friends, page, limit, pages, total }
     }
   }
 
@@ -300,16 +302,19 @@ class userService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại mối quan hệ với người này')
     }
 
-    if (friendshipRecord.status === 'Đã chấp nhận') {
+    if (friendshipRecord.status === RELATIONSHIP.FRIEND) {
       await models.Friendship.destroy({
         where: {
           [Op.or]: [
-            { user_id, friend_id, status: 'Đã chấp nhận' },
-            { user_id: friend_id, friend_id: user_id, status: 'Đã chấp nhận' }
+            { user_id, friend_id, status: RELATIONSHIP.FRIEND },
+            { user_id: friend_id, friend_id: user_id, status: RELATIONSHIP.FRIEND }
           ]
         }
       })
-    } else if (friendshipRecord.user_id === user_id && friendshipRecord.status === 'Chờ chấp nhận') {
+    } else if (
+      friendshipRecord.user_id === user_id &&
+      friendshipRecord.status === RELATIONSHIP.PENDING_FRIEND_REQUEST
+    ) {
       await friendshipRecord.destroy()
     } else {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Chưa gửi lời mời kết bạn đến người dùng này!')
@@ -330,7 +335,7 @@ class userService {
     const receivedFriendRequests = await models.Friendship.findAll({
       where: {
         friend_id: user_id,
-        status: 'Chờ chấp nhận'
+        status: RELATIONSHIP.PENDING_FRIEND_REQUEST
       }
     })
 
@@ -360,8 +365,10 @@ class userService {
       message: 'Danh sách người dùng đã gửi kết bạn tới tôi',
       data: {
         friends,
-        total,
-        pages
+        page,
+        limit,
+        pages,
+        total
       }
     }
   }
@@ -385,12 +392,12 @@ class userService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại lời mời kết bạn người dùng này!')
     }
 
-    if (friendRequest.status === 'Đã chấp nhận') {
+    if (friendRequest.status === RELATIONSHIP.FRIEND) {
       throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Hiện đang là bạn bè với người dùng này!')
     }
 
-    await friendRequest.update({ status: 'Đã chấp nhận' })
-    await models.Friendship.create({ user_id, friend_id, status: 'Đã chấp nhận' })
+    await friendRequest.update({ status: RELATIONSHIP.FRIEND })
+    await models.Friendship.create({ user_id, friend_id, status: RELATIONSHIP.FRIEND })
 
     return {
       message: 'Chấp nhận lời mời kết bạn thành công',
@@ -414,7 +421,7 @@ class userService {
             user_id
           }
         ],
-        status: 'Đã chấp nhận'
+        status: RELATIONSHIP.FRIEND
       }
     })
 
@@ -452,7 +459,7 @@ class userService {
   async searchUserOrFanpages(user_id: string, name: string) {
     const friendships = await models.Friendship.findAll()
 
-    const blockedFriendships = friendships.filter((f) => f.status === 'Đã chặn')
+    const blockedFriendships = friendships.filter((f) => f.status === RELATIONSHIP.BLOCKED)
 
     // acc: accumulator - biến tích lũy
     const blockedUserIds = blockedFriendships.reduce((acc: string[], block) => {
@@ -509,11 +516,11 @@ class userService {
 
       if (record) {
         status =
-          record.status === 'Chờ chấp nhận'
+          record.status === RELATIONSHIP.PENDING_FRIEND_REQUEST
             ? record.user_id === user_id
-              ? 'Đang chờ phản hồi'
-              : 'Chờ chấp nhận'
-            : 'Bạn bè'
+              ? RELATIONSHIP.WAITING_FOR_RESPONSE
+              : RELATIONSHIP.PENDING_FRIEND_REQUEST
+            : RELATIONSHIP.FRIEND
       } else {
         status = user.user_id === user_id ? 'Tôi' : 'Chưa kết bạn'
       }
@@ -546,19 +553,21 @@ class userService {
     ])
 
     if (currentFriendship) {
-      if (currentFriendship.status === 'Đã chấp nhận' || currentFriendship.status === 'Chờ chấp nhận') {
-        await currentFriendship.update({ status: 'Đã chặn' })
-      } else if (currentFriendship.status === 'Đã chặn') {
+      if (
+        currentFriendship.status === RELATIONSHIP.FRIEND ||
+        currentFriendship.status === RELATIONSHIP.PENDING_FRIEND_REQUEST
+      ) {
+        await currentFriendship.update({ status: RELATIONSHIP.BLOCKED })
+      } else if (currentFriendship.status === RELATIONSHIP.BLOCKED) {
         throw new CustomErrorHandler(StatusCodes.CONFLICT, 'Người dùng này đã bị chặn!')
       } else {
-        await currentFriendship.update({ status: 'Đã chặn' })
+        await currentFriendship.update({ status: RELATIONSHIP.BLOCKED })
       }
     } else {
-      await models.Friendship.create({ user_id, friend_id, status: 'Đã chặn' })
+      await models.Friendship.create({ user_id, friend_id, status: RELATIONSHIP.BLOCKED })
     }
 
-    // Xóa bản ghi từ B đến A nếu trạng thái là 'Đã chấp nhận'
-    if (reverseFriendship && reverseFriendship.status === 'Đã chấp nhận') {
+    if (reverseFriendship && reverseFriendship.status === RELATIONSHIP.FRIEND) {
       await reverseFriendship.destroy()
     }
 
@@ -580,7 +589,7 @@ class userService {
       where: {
         user_id,
         friend_id,
-        status: 'Đã chặn'
+        status: RELATIONSHIP.BLOCKED
       }
     })
 
@@ -606,7 +615,7 @@ class userService {
           through: {
             attributes: [],
             where: {
-              status: 'Đã chặn'
+              status: RELATIONSHIP.BLOCKED
             }
           },
           as: 'Friends',
@@ -640,7 +649,7 @@ class userService {
       include: [
         {
           model: models.User,
-          through: { attributes: [], where: { status: 'Đã chấp nhận' } },
+          through: { attributes: [], where: { status: RELATIONSHIP.FRIEND } },
           as: 'Friends',
           attributes: ['user_id', 'first_name', 'last_name'],
           where: {

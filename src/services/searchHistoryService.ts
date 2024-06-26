@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import models from '../db/models'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { CreateSearchHistory } from '../types/searchHistory.type'
+import { RELATIONSHIP } from '../constants/relationshipStatus'
 
 class searchHistoryService {
   // Lịch sử người dùng tìm kiếm
@@ -48,11 +49,11 @@ class searchHistoryService {
 
       if (record) {
         status =
-          record.status === 'Chờ chấp nhận'
+          record.status === RELATIONSHIP.PENDING_FRIEND_REQUEST
             ? record.user_id === user_id
-              ? 'Đang chờ phản hồi'
-              : 'Chờ chấp nhận'
-            : 'Bạn bè'
+              ? RELATIONSHIP.WAITING_FOR_RESPONSE
+              : RELATIONSHIP.PENDING_FRIEND_REQUEST
+            : RELATIONSHIP.FRIEND
       } else {
         status = user.user_id === user_id ? 'Tôi' : 'Chưa kết bạn'
       }
