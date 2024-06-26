@@ -15,7 +15,6 @@ class userService {
     const page = _page ? +_page : undefined
     const limit = _limit ? +_limit : undefined
     const offset = page && limit ? (page - 1) * limit : undefined
-
     const status = ['Đã chấp nhận', 'Chờ chấp nhận', 'Đã chặn']
 
     const userRelationships = await models.Friendship.findAll({
