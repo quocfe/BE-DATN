@@ -44,16 +44,17 @@ class searchHistoryService {
           (f.friend_id === user.user_id && f.user_id === user_id)
       )
 
-      let status = 'Chưa kết bạn'
+      let status = ''
 
       if (record) {
-        if (record.status === 'Chờ chấp nhận') {
-          status = 'Chưa kết bạn + Chờ chấp nhận'
-        } else {
-          status = 'Bạn bè'
-        }
-      } else if (!record && user.user_id === user_id) {
-        status = 'Tôi'
+        status =
+          record.status === 'Chờ chấp nhận'
+            ? record.user_id === user_id
+              ? 'Đang chờ phản hồi'
+              : 'Chờ chấp nhận'
+            : 'Bạn bè'
+      } else {
+        status = user.user_id === user_id ? 'Tôi' : 'Chưa kết bạn'
       }
 
       return {
