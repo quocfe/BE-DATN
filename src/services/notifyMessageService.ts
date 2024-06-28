@@ -38,7 +38,9 @@ class notifyMessageService {
   }
 
   async getAllNotify(userLoggin: string) {
-    const data = await models.NotifyGroupMessage.findAll()
+    const data = await models.NotifyGroupMessage.findAll({
+      order: ['createdAt']
+    })
     return {
       message: 'get all notification ok',
       data

@@ -75,7 +75,7 @@ GroupMessage.init(
     }
   },
   {
-    timestamps: true,
+    timestamps: false,
     sequelize: db,
     underscored: false,
     modelName: 'GroupMessage',

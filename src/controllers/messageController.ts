@@ -11,7 +11,8 @@ class messageController {
   async getConversation(req: Request, res: Response) {
     if (req.user) {
       const { user_id: userLoggin } = req.user
-      const data = await messageService.getConversation(userLoggin)
+      const { page = 1, limit = 10 } = req.query
+      const data = await messageService.getConversation(userLoggin, +page, +limit)
 
       sendResponseSuccess(res, data)
     }
@@ -51,11 +52,13 @@ class messageController {
   }
 
   async getMembersGroup(req: Request, res: Response) {
-    const { id } = req.params
+    if (req.user) {
+      const { id } = req.params
+      const { user_id: userLoggin } = req.user
+      const data = await messageService.getMembersGroup(id, userLoggin)
 
-    const data = await messageService.getMembersGroup(id)
-
-    sendResponseSuccess(res, data)
+      sendResponseSuccess(res, data)
+    }
   }
 
   async addMembersToGroup(req: Request, res: Response) {
@@ -70,18 +73,26 @@ class messageController {
     if (req.user) {
       const { user_id: sender } = req.user
       const { id: receiver } = req.params
+      const { page, limit } = req.query
 
-      const data = await messageService.getOneToOneMessage(receiver, sender)
-      res.status(200).json(data)
+      if (page && limit) {
+        const data = await messageService.getOneToOneMessage(receiver, sender, +page, +limit)
+        res.status(200).json(data)
+      } else {
+        const data = await messageService.getOneToOneMessage(receiver, sender)
+        res.status(200).json(data)
+      }
     }
   }
 
   async getGroupMessage(req: Request, res: Response) {
     if (req.user) {
       const { id } = req.params
-      console.log('group_id', id)
-      const data = await messageService.getGroupMessage(id)
-      res.status(200).json(data)
+      const { page, limit } = req.query
+      if (page && limit) {
+        const data = await messageService.getGroupMessage(id, +page, +limit)
+        res.status(200).json(data)
+      }
     }
   }
 

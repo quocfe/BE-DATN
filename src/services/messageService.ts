@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import { Model, Op, Sequelize } from 'sequelize'
 import models from '../db/models'
-import { MessageAttributes } from '../db/models/Message'
+import Message, { MessageAttributes } from '../db/models/Message'
 import { CreateGroupMessageInput } from '../types/groupMessage.type'
 import { CreateMemberGroupInput } from '../types/memberGroup.type'
 import { MessageInput, MessageMediaInput, ReplyMessageInput } from '../types/message.type'
@@ -33,7 +33,7 @@ class messageService {
 
   // fn check exist groupMessage
 
-  async getConversation(userLoggin: string) {
+  async getConversation(userLoggin: string, page: number, limit: number) {
     // lấy MemberGroup data từ loggin user
     const MemberGroupData = await models.MemberGroup.findAll({ where: { user_id: userLoggin } })
 
@@ -41,11 +41,16 @@ class messageService {
     const groupMessageIds = MemberGroupData.map((item) => item.group_message_id)
 
     // Fetch GroupMessage data
-    const GroupMessageData = await models.GroupMessage.findAll({
+    const offset = (page - 1) * limit
+
+    const groupMessages = await models.GroupMessage.findAndCountAll({
       where: { group_message_id: groupMessageIds },
-      order: [['updatedAt', 'DESC']]
+      order: [['updatedAt', 'DESC']],
+      offset,
+      limit
     })
 
+    const totalPage = Math.ceil(groupMessages.count / limit)
     // Fetch all MemberGroup and Message data
     const [AllMemberGroup, MessageData] = await Promise.all([
       models.MemberGroup.findAll(),
@@ -90,9 +95,9 @@ class messageService {
 
     // Create group messages with messages
     const data = await Promise.all(
-      GroupMessageData.map(async (groupMessage) => {
+      groupMessages.rows.map(async (groupMessage) => {
         // const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
-        const messages = await this.getMessage(groupMessage.group_message_id)
+        const messages = await this.getMessage(groupMessage.group_message_id, 1, 10)
         const messageStatusTrue = messages.filter((m) => m.status === true)
         const message = messageStatusTrue[messageStatusTrue.length - 1]
         const filterMessage = {
@@ -126,7 +131,14 @@ class messageService {
 
     return {
       message: 'lấy thông tin conversation ok',
-      data
+      data: {
+        data,
+        pagination: {
+          totalPage,
+          page: page,
+          limit: limit
+        }
+      }
     }
   }
 
@@ -249,11 +261,22 @@ class messageService {
     }
   }
 
-  async getMembersGroup(id: string) {
+  async getMembersGroup(id: string, userLoggin: string) {
     const checkGroup = await models.GroupMessage.findByPk(id)
 
     if (!checkGroup) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group message khog ton tai')
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group message không tồn tại')
+    }
+
+    const checkMember = await models.MemberGroup.findOne({
+      where: {
+        group_message_id: id,
+        user_id: userLoggin
+      }
+    })
+
+    if (!checkMember) {
+      throw new CustomErrorHandler(StatusCodes.FORBIDDEN, 'Bạn không phải là thành viên nhóm')
     }
 
     const dataMembers = await models.MemberGroup.findAll({
@@ -264,13 +287,28 @@ class messageService {
 
     const data = await Promise.all(
       dataMembers.map(async (member) => {
+        const group = await models.GroupMessage.findOne({
+          where: {
+            type: 1
+          },
+          include: [
+            {
+              model: models.MemberGroup,
+              where: {
+                [Op.and]: [{ user_id: member.user_id }, { user_id: { [Op.ne]: userLoggin } }]
+              }
+            }
+          ]
+        })
+
         const avatar = await this.getThubmail(member.user_id)
         const fullname = await this.getFullName(member.user_id)
         return {
           user_id: member.user_id,
           role: member.role,
           avatar,
-          fullname
+          fullname,
+          group_message_id: group?.group_message_id
         }
       })
     )
@@ -281,19 +319,34 @@ class messageService {
     }
   }
 
-  async getMessage(id: string) {
+  async getMessage(id: string, page?: number, limit?: number) {
     const checkGroup = await models.GroupMessage.findByPk(id)
 
     if (!checkGroup) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group message not found!')
     }
+    let messages: Message[] = []
+    if (page && limit) {
+      const offset = (page - 1) * limit
+      messages = await models.Message.findAll({
+        where: {
+          group_message_id: id
+        },
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit
+      })
+    } else {
+      messages = await models.Message.findAll({
+        where: {
+          group_message_id: id
+        },
+        order: [['createdAt', 'DESC']]
+      })
+    }
 
-    const messages = await models.Message.findAll({
-      where: {
-        group_message_id: id
-      },
-      order: [['createdAt', 'ASC']]
-    })
+    const tempMesssages = [...messages]
+    const reversedMessages = tempMesssages.reverse()
     const reactData = await models.ReactMessage.findAll()
     const recallData = await models.RecallMessage.findAll()
 
@@ -302,10 +355,10 @@ class messageService {
     }
 
     const data = await Promise.all(
-      messages.map(async (message) => {
+      reversedMessages.map(async (message) => {
         const reactions = reactData.filter((react) => react.message_id === message.message_id)
         const recalls = recallData.filter((recall) => recall.message_id === message.message_id)
-        const replyMessage = getReplyMessages(messages, message.parent_id)
+        const replyMessage = getReplyMessages(reversedMessages, message.parent_id)
         const recallInReply = recallData.filter((recall) => recall.message_id === replyMessage?.message_id)
 
         const thumbnail = await this.getThubmail(message.createdBy)
@@ -350,7 +403,7 @@ class messageService {
     return data
   }
 
-  async getOneToOneMessage(receiver: string, sender: string) {
+  async getOneToOneMessage(receiver: string, sender: string, page?: number, limit?: number) {
     // Lấy tất cả groupId mà receiver tham gia
     const groupsWithReceiver = await models.MemberGroup.findAll({
       where: { user_id: receiver },
@@ -379,7 +432,7 @@ class messageService {
     const groupIdCheck = filteredGroupIds.map((filter) => filter.group_message_id)
 
     if (groupIdCheck[0]) {
-      const messages = await this.getMessage(groupIdCheck[0])
+      const messages = await this.getMessage(groupIdCheck[0], page, limit)
       const info = {
         group_id: receiver,
         avatar: await this.getThubmail(receiver),
@@ -408,12 +461,12 @@ class messageService {
     }
   }
 
-  async getGroupMessage(id: string) {
+  async getGroupMessage(id: string, page?: number, limit?: number) {
     const checkGroupExists = await models.GroupMessage.findByPk(id)
     // return checkGroupExists
     if (checkGroupExists) {
       if (checkGroupExists?.type === 2) {
-        const messages = await this.getMessage(checkGroupExists.group_message_id)
+        const messages = await this.getMessage(checkGroupExists.group_message_id, page, limit)
         const info = {
           group_id: checkGroupExists.group_message_id,
           avatar: checkGroupExists.group_thumbnail,
@@ -448,6 +501,9 @@ class messageService {
     if (checkGroup) {
       const data = { ...messageData, createdBy: sender }
       await models.Message.create(data)
+      await checkGroup.update({
+        updatedAt: new Date()
+      })
       const dataNotify = {
         type: 1,
         group_message_id: messageData.group_message_id,
@@ -677,7 +733,7 @@ class messageService {
   }
 
   async searchMessage(query: string, conversationId: string) {
-    const conversation = await this.getMessage(conversationId)
+    const conversation = await this.getMessage(conversationId, 1, 10)
     const message = conversation.filter((item) => {
       return item.body.includes(query)
     })
