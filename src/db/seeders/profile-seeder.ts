@@ -187,7 +187,7 @@ export default {
           date_of_birth: null,
           biography: '',
           profile_picture:
-            'https://res.cloudinary.com/dswainylr/image/upload/v1718502886/default/trend-avatar-vo-danh-1_mbuagm.jpg',
+            'https://img.asmedia.epimg.net/resizer/v2/L726G3JR35DGLG6JBDOS4MAPQ4.jpg?auth=dad1e99790069012ff7798d8442f8dc34f2a5c78bd18bb61151178c0c960e965&width=1472&height=1104&smart=true',
           cover_photo:
             'https://res.cloudinary.com/dswainylr/image/upload/v1718502953/default/beautiful-magical-misty-mountains-reflection-river-ultra-hd-wallpaper-4k-sr10012420-1706505766369-cover_ryhwfy.webp',
           home_town: '',
@@ -202,8 +202,7 @@ export default {
           phone_number: null,
           date_of_birth: null,
           biography: '',
-          profile_picture:
-            'https://res.cloudinary.com/dswainylr/image/upload/v1718502886/default/trend-avatar-vo-danh-1_mbuagm.jpg',
+          profile_picture: 'https://miro.medium.com/v2/resize:fit:636/1*Z14pvsjLwMRE0KV2HhU_LA.png',
           cover_photo:
             'https://res.cloudinary.com/dswainylr/image/upload/v1718502953/default/beautiful-magical-misty-mountains-reflection-river-ultra-hd-wallpaper-4k-sr10012420-1706505766369-cover_ryhwfy.webp',
           home_town: '',
@@ -218,8 +217,7 @@ export default {
           phone_number: null,
           date_of_birth: null,
           biography: '',
-          profile_picture:
-            'https://res.cloudinary.com/dswainylr/image/upload/v1718502886/default/trend-avatar-vo-danh-1_mbuagm.jpg',
+          profile_picture: 'https://i.pinimg.com/736x/25/de/da/25deda5c58fa63ef6686c560bf81107f.jpg',
           cover_photo:
             'https://res.cloudinary.com/dswainylr/image/upload/v1718502953/default/beautiful-magical-misty-mountains-reflection-river-ultra-hd-wallpaper-4k-sr10012420-1706505766369-cover_ryhwfy.webp',
           home_town: '',
@@ -234,8 +232,7 @@ export default {
           phone_number: null,
           date_of_birth: null,
           biography: '',
-          profile_picture:
-            'https://res.cloudinary.com/dswainylr/image/upload/v1718502886/default/trend-avatar-vo-danh-1_mbuagm.jpg',
+          profile_picture: 'https://avatarfiles.alphacoders.com/229/thumb-350-229939.webp',
           cover_photo:
             'https://res.cloudinary.com/dswainylr/image/upload/v1718502953/default/beautiful-magical-misty-mountains-reflection-river-ultra-hd-wallpaper-4k-sr10012420-1706505766369-cover_ryhwfy.webp',
           home_town: '',
@@ -250,8 +247,7 @@ export default {
           phone_number: null,
           date_of_birth: null,
           biography: '',
-          profile_picture:
-            'https://res.cloudinary.com/dswainylr/image/upload/v1718502886/default/trend-avatar-vo-danh-1_mbuagm.jpg',
+          profile_picture: 'https://i.pinimg.com/736x/5d/9b/35/5d9b35fb682fc2167eb3a80d5262b111.jpg',
           cover_photo:
             'https://res.cloudinary.com/dswainylr/image/upload/v1718502953/default/beautiful-magical-misty-mountains-reflection-river-ultra-hd-wallpaper-4k-sr10012420-1706505766369-cover_ryhwfy.webp',
           home_town: '',
@@ -411,7 +407,7 @@ export default {
           date_of_birth: null,
           biography: '',
           profile_picture:
-            'https://res.cloudinary.com/dswainylr/image/upload/v1718502886/default/trend-avatar-vo-danh-1_mbuagm.jpg',
+            'https://preview.redd.it/where-do-you-think-gaara-would-be-if-he-stayed-evil-what-v0-1mc4ko3vkdmc1.jpeg?auto=webp&s=dcbab387f9a94ab3cd66e2d7601040b215b03b31',
           cover_photo:
             'https://res.cloudinary.com/dswainylr/image/upload/v1718502953/default/beautiful-magical-misty-mountains-reflection-river-ultra-hd-wallpaper-4k-sr10012420-1706505766369-cover_ryhwfy.webp',
           home_town: '',

@@ -11,12 +11,22 @@ import { UserAttributes } from '../db/models/User'
 import { RELATIONSHIP } from '../constants/relationshipStatus'
 
 class userService {
+  private userUtils = {
+    // Lấy danh sách bạn bè
+    async getFriends(user_id: string) {
+      return await models.Friendship.findAll({
+        where: {
+          [Op.or]: [{ friend_id: user_id }, { user_id: user_id }],
+          status: RELATIONSHIP.FRIEND
+        }
+      })
+    }
+  }
+
   // Danh sách người dùng
-  async fetchAllUsers(user_id: string, _page: string | undefined, _limit: string | undefined) {
-    const page = _page ? +_page : undefined
-    const limit = _limit ? +_limit : undefined
+  async fetchAllUsers(user_id: string, page: number | undefined, limit: number | undefined) {
     const offset = page && limit ? (page - 1) * limit : undefined
-    const status = [RELATIONSHIP.FRIEND, RELATIONSHIP.BLOCKED]
+    const status = [RELATIONSHIP.FRIEND, RELATIONSHIP.BLOCKED, RELATIONSHIP.PENDING_FRIEND_REQUEST]
 
     const userRelationships = await models.Friendship.findAll({
       where: {
@@ -41,7 +51,18 @@ class userService {
       }
     })
 
-    const relationshipUserIds: string[] = [
+    // Danh sách bạn bè của tôi -> find bạn chung
+    const acceptedFriendships = await this.userUtils.getFriends(user_id)
+
+    const friendIds = [
+      ...new Set(
+        acceptedFriendships.map((friendship) => {
+          return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
+        })
+      )
+    ].filter((id) => id !== user_id)
+
+    const relationshipUserIds = [
       ...new Set(
         userRelationships.map((friendship) => {
           return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
@@ -60,6 +81,23 @@ class userService {
 
     const userIncludeOptions: Includeable | Includeable[] | undefined = [
       {
+        model: models.User,
+        as: 'UserFriends',
+        attributes: userAttributes,
+        through: {
+          attributes: [],
+          where: {
+            user_id: friendIds
+          }
+        },
+        include: [
+          {
+            model: models.Profile,
+            attributes: ['profile_picture', 'cover_photo']
+          }
+        ]
+      },
+      {
         model: models.Profile,
         attributes: ['profile_picture', 'cover_photo']
       }
@@ -69,6 +107,8 @@ class userService {
       where: userExclusionCondition
     })
 
+    const pages = limit ? Math.ceil(total / limit) : 1
+
     const users = await models.User.findAll({
       where: userExclusionCondition,
       attributes: userAttributes,
@@ -77,12 +117,20 @@ class userService {
       limit
     })
 
-    const pages = limit ? Math.ceil(total / limit) : 1
+    const userWithCommonFriends = users.map((user) => {
+      return {
+        user_id: user.user_id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        Profile: user.Profile,
+        CommonFriends: user.UserFriends
+      }
+    })
 
     return {
       message: 'Danh sách người dùng',
       data: {
-        users,
+        users: userWithCommonFriends,
         page,
         limit,
         total,
@@ -248,9 +296,7 @@ class userService {
   }
 
   // Danh sách lời mời kết bạn đã gửi
-  async fetchAllSentFriendRequest(user_id: string, _page: string | undefined, _limit: string | undefined) {
-    const page = _page ? +_page : undefined
-    const limit = _limit ? +_limit : undefined
+  async fetchAllSentFriendRequest(user_id: string, page: number | undefined, limit: number | undefined) {
     const offset = page && limit ? (page - 1) * limit : undefined
 
     const sentFriendRequests = await models.Friendship.findAll({
@@ -264,10 +310,38 @@ class userService {
       return friendship.friend_id
     })
 
+    // Danh sách bạn bè của tôi -> find bạn chung
+    const acceptedFriendships = await this.userUtils.getFriends(user_id)
+
+    const friendIds = [
+      ...new Set(
+        acceptedFriendships.map((friendship) => {
+          return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
+        })
+      )
+    ].filter((id) => id !== user_id)
+
     const friends = await models.User.findAll({
       where: { user_id: sentFriendRequestIds },
       attributes: ['user_id', 'first_name', 'last_name'],
       include: [
+        {
+          model: models.User,
+          as: 'UserFriends',
+          attributes: ['user_id', 'first_name', 'last_name'],
+          through: {
+            attributes: [],
+            where: {
+              user_id: friendIds
+            }
+          },
+          include: [
+            {
+              model: models.Profile,
+              attributes: ['profile_picture', 'cover_photo']
+            }
+          ]
+        },
         {
           model: models.Profile,
           attributes: ['profile_picture', 'cover_photo']
@@ -280,9 +354,19 @@ class userService {
     const total = sentFriendRequestIds.length
     const pages = limit ? Math.ceil(total / limit) : 1
 
+    const userWithCommonFriends = friends.map((user) => {
+      return {
+        user_id: user.user_id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        Profile: user.Profile,
+        CommonFriends: user.UserFriends
+      }
+    })
+
     return {
       message: 'Danh sách lời mời kết bạn đã gửi',
-      data: { friends, page, limit, pages, total }
+      data: { friends: userWithCommonFriends, page, limit, pages, total }
     }
   }
 
@@ -327,9 +411,7 @@ class userService {
   }
 
   // Danh sách người dùng đã gửi kết bạn tới tôi
-  async fetchAllReceivedFriendRequest(user_id: string, _page: string | undefined, _limit: string | undefined) {
-    const page = _page ? +_page : undefined
-    const limit = _limit ? +_limit : undefined
+  async fetchAllReceivedFriendRequest(user_id: string, page: number | undefined, limit: number | undefined) {
     const offset = page && limit ? (page - 1) * limit : undefined
 
     const receivedFriendRequests = await models.Friendship.findAll({
@@ -343,12 +425,40 @@ class userService {
       return friendship.user_id
     })
 
+    // Danh sách bạn bè của tôi -> find bạn chung
+    const acceptedFriendships = await this.userUtils.getFriends(user_id)
+
+    const friendIds = [
+      ...new Set(
+        acceptedFriendships.map((friendship) => {
+          return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
+        })
+      )
+    ].filter((id) => id !== user_id)
+
     const friends = await models.User.findAll({
       where: {
         user_id: receivedFriendRequestIds
       },
       attributes: ['user_id', 'last_name', 'first_name'],
       include: [
+        {
+          model: models.User,
+          as: 'UserFriends',
+          attributes: ['user_id', 'last_name', 'first_name'],
+          through: {
+            attributes: [],
+            where: {
+              user_id: friendIds
+            }
+          },
+          include: [
+            {
+              model: models.Profile,
+              attributes: ['profile_picture', 'cover_photo']
+            }
+          ]
+        },
         {
           model: models.Profile,
           attributes: ['profile_picture', 'cover_photo']
@@ -361,10 +471,20 @@ class userService {
     const total = receivedFriendRequestIds.length
     const pages = limit ? Math.ceil(total / limit) : 1
 
+    const userWithCommonFriends = friends.map((user) => {
+      return {
+        user_id: user.user_id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        Profile: user.Profile,
+        CommonFriends: user.UserFriends
+      }
+    })
+
     return {
       message: 'Danh sách người dùng đã gửi kết bạn tới tôi',
       data: {
-        friends,
+        friends: userWithCommonFriends,
         page,
         limit,
         pages,
@@ -406,24 +526,10 @@ class userService {
   }
 
   // Lấy danh sách bạn bè
-  async fetchFriendOfUser(user_id: string, _page: string | undefined, _limit: string | undefined) {
-    const page = _page ? +_page : undefined
-    const limit = _limit ? +_limit : undefined
+  async fetchFriendOfUser(user_id: string, page: number | undefined, limit: number | undefined) {
     const offset = page && limit ? (page - 1) * limit : undefined
 
-    const acceptedFriendships = await models.Friendship.findAll({
-      where: {
-        [Op.or]: [
-          {
-            friend_id: user_id
-          },
-          {
-            user_id
-          }
-        ],
-        status: RELATIONSHIP.FRIEND
-      }
-    })
+    const acceptedFriendships = await this.userUtils.getFriends(user_id)
 
     const friendIds = [
       ...new Set(
@@ -436,22 +542,49 @@ class userService {
     const total = friendIds.length
     const pages = limit ? Math.ceil(total / limit) : 1
 
+    const userAttributes: FindAttributeOptions | undefined = ['user_id', 'last_name', 'first_name']
+
     const friends = await models.User.findAll({
       where: { user_id: friendIds },
-      attributes: ['user_id', 'last_name', 'first_name'],
+      attributes: userAttributes,
       include: [
         {
           model: models.Profile,
           attributes: ['profile_picture', 'cover_photo']
+        },
+        {
+          model: models.User,
+          as: 'UserFriends',
+          attributes: userAttributes,
+          through: {
+            attributes: [],
+            where: { user_id: friendIds }
+          },
+          include: [
+            {
+              model: models.Profile,
+              attributes: ['profile_picture', 'cover_photo']
+            }
+          ]
         }
       ],
       limit,
       offset
     })
 
+    const newFriends = friends.map((friend) => {
+      return {
+        user_id: friend.user_id,
+        first_name: friend.first_name,
+        last_name: friend.last_name,
+        Profile: friend.Profile,
+        CommonFriends: friend.UserFriends
+      }
+    })
+
     return {
       message: 'Danh sách bạn bè',
-      data: { friends, page, pages, limit, total }
+      data: { friends: newFriends, page, pages, limit, total }
     }
   }
 

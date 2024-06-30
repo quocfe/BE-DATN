@@ -53,7 +53,7 @@ class searchHistoryService {
             ? record.user_id === user_id
               ? RELATIONSHIP.WAITING_FOR_RESPONSE
               : RELATIONSHIP.PENDING_FRIEND_REQUEST
-            : RELATIONSHIP.FRIEND
+            : 'Bạn bè'
       } else {
         status = user.user_id === user_id ? 'Tôi' : 'Chưa kết bạn'
       }
