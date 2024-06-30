@@ -18,12 +18,6 @@ export default {
           status: 'Đã chấp nhận'
         },
         {
-          friendship_id: 'a01a3c73-f703-4b16-847d-f61bae05pao1',
-          user_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
-          friend_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
-          status: 'Chờ chấp nhận'
-        },
-        {
           friendship_id: 'yuaz3c73-f703-4b16-847d-f61bae05n81m',
           user_id: 'sanji-22c73-f703-4b16-847d-f61bae05-onepiece',
           friend_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
@@ -603,6 +597,162 @@ export default {
           friendship_id: 'pao12u12c3d4e5-f703-4b16-847d-f61bae05zl5f',
           user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
           friend_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'brook12u12c3d4e5-f703-4b16-847d-f61bae05zl5f',
+          user_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          friend_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'zoro12u12c3d4e5-f703-4b16-847d-f61bae05zl5f',
+          user_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'luffy12u12c3d4e5-f703-4b16-847d-f61bae05zl5f',
+          user_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          friend_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'brluf12u12c3d4e5-f703-4b16-847d-f61bae05zl5f',
+          user_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'brolluf12u12c3d4e5-f703-4b16-847d-f61bae05zl5f',
+          user_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          friend_id: 'franky-82345-f678-9abc-def01234-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'a1uolluf12u12c3d4e5-f703-4b16-847d-f61bae05zl5f',
+          user_id: 'franky-82345-f678-9abc-def01234-onepiece',
+          friend_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'i1oa2c3d4e5-f703-4b16-847d-f61bae05zl5f',
+          user_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          friend_id: 'goku-12345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'gk1i1oa2af703-4b16-847d-f61bae05zl5f',
+          user_id: 'goku-12345-f678-9abc-def01234-dbz',
+          friend_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'gak92c3d4e5-f703-4b16-847d-f61bae05zl5f',
+          user_id: 'goku-12345-f678-9abc-def01234-dbz',
+          friend_id: 'chopper-62345-f678-9abc-def01234-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'chpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'chopper-62345-f678-9abc-def01234-onepiece',
+          friend_id: 'goku-12345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'gohan-32345-f678-9abc-def01234-dbz',
+          friend_id: 'bulma-52345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'ai1-j1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'bulma-52345-f678-9abc-def01234-dbz',
+          friend_id: 'gohan-32345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '31cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'gohan-32345-f678-9abc-def01234-dbz',
+          friend_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '3i-cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'gohan-32345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '32cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'goku-12345-f678-9abc-def01234-dbz',
+          friend_id: 'vegeta-22345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '33cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'vegeta-22345-f678-9abc-def01234-dbz',
+          friend_id: 'goku-12345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '34cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'vegeta-22345-f678-9abc-def01234-dbz',
+          friend_id: 'trunks-42345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '35cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'trunks-42345-f678-9abc-def01234-dbz',
+          friend_id: 'vegeta-22345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '36cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'trunks-42345-f678-9abc-def01234-dbz',
+          friend_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '38cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'trunks-42345-f678-9abc-def01234-dbz',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '39cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '40cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'brook-92345-f678-9abc-def01234-onepiece',
+          friend_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '41cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '42cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '43cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'chopper-62345-f678-9abc-def01234-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: '44cgj1-hpo193-4b16-847d-f61bae05zl5f',
+          user_id: 'chopper-62345-f678-9abc-def01234-onepiece',
+          friend_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
           status: 'Đã chấp nhận'
         }
       ],

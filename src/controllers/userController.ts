@@ -14,8 +14,8 @@ class userController {
       const { _page, _limit } = req.query
       const user_id = req.user.user_id
 
-      const page = typeof _page === 'string' ? _page : undefined
-      const limit = typeof _limit === 'string' ? _limit : undefined
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
 
       const data = await userService.fetchAllUsers(user_id, page, limit)
 
@@ -78,8 +78,8 @@ class userController {
       const { _page, _limit } = req.query
       const user_id = req.user.user_id
 
-      const page = typeof _page === 'string' ? _page : undefined
-      const limit = typeof _limit === 'string' ? _limit : undefined
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
 
       const data = await userService.fetchFriendOfUser(user_id, page, limit)
 
@@ -105,8 +105,8 @@ class userController {
       const { _page, _limit } = req.query
       const user_id = req.user.user_id
 
-      const page = typeof _page === 'string' ? _page : undefined
-      const limit = typeof _limit === 'string' ? _limit : undefined
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
 
       const data = await userService.fetchAllSentFriendRequest(user_id, page, limit)
 
@@ -132,8 +132,8 @@ class userController {
       const { _page, _limit } = req.query
       const user_id = req.user.user_id
 
-      const page = typeof _page === 'string' ? _page : undefined
-      const limit = typeof _limit === 'string' ? _limit : undefined
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
 
       const data = await userService.fetchAllReceivedFriendRequest(user_id, page, limit)
 
@@ -233,8 +233,8 @@ class userController {
     const { _page, _limit } = req.query
     const { friend_id } = req.params
 
-    const page = typeof _page === 'string' ? _page : undefined
-    const limit = typeof _limit === 'string' ? _limit : undefined
+    const page = typeof _page === 'string' ? +_page : undefined
+    const limit = typeof _limit === 'string' ? +_limit : undefined
 
     const data = await userService.fetchFriendOfUser(friend_id, page, limit)
 

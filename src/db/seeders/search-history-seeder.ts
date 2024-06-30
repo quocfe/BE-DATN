@@ -38,7 +38,7 @@ export default {
         {
           search_history_id: 'piq28as-ja-22c73-f703-4b16-847d-f61bae05-piods1',
           user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
-          target_id: 'robin-22c73-f703-4b16-847d-f61bae05-onepiece',
+          target_id: 'gaara-62345-f678-9abc-def01234-naruto',
           search_type: 'user'
         },
         {
