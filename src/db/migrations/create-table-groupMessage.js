@@ -27,7 +27,11 @@ module.exports = {
       },
       createdBy: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        references: {
+          model: 'Users',
+          key: 'user_id'
+        }
       },
       createdAt: {
         allowNull: false,

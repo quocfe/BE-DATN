@@ -48,6 +48,15 @@ const userRelationships = () => {
     foreignKey: 'friend_id',
     onDelete: 'CASCADE'
   })
+
+  User.hasMany(GroupMessage, {
+    foreignKey: 'user_id',
+    as: 'createdBy'
+  })
+
+  User.hasMany(MemberGroup, {
+    foreignKey: 'user_id'
+  })
 }
 
 const profileRelationships = () => {

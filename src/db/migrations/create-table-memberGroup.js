@@ -11,7 +11,11 @@ module.exports = {
       },
       user_id: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        references: {
+          model: 'Users',
+          key: 'user_id'
+        }
       },
       group_message_id: {
         allowNull: true,
