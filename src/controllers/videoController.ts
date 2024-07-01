@@ -14,7 +14,13 @@ const getVideos = async (req: Request, res: Response) => {
         {
           model: models.User,
           as: 'user',
-          attributes: ['user_id', 'first_name', 'last_name'] // Specify which user attributes to include
+          attributes: ['user_id', 'first_name', 'last_name'], // Specify which user attributes to include
+          include: [
+            {
+              model: models.Profile,
+              attributes: ['cover_photo']
+            }
+          ]
         }
       ]
     })
@@ -147,7 +153,7 @@ const destroyVideo = async (req: Request, res: Response) => {
 const getVideo = async (req: Request, res: Response) => {
   try {
     const { public_id } = req.params
-
+console.log('get resource');
     const result = await cloudinaryGetResource(public_id)
     return sendResponseSuccess(res, {
       message: 'Tải bài viết thành công.',

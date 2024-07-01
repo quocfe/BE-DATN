@@ -1,5 +1,5 @@
 const cloudinary = require('cloudinary').v2
-import { CloudinaryStorage } from 'multer-storage-cloudinary'
+// import { CloudinaryStorage } from 'multer-storage-cloudinary'
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -7,8 +7,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
-const storage = new CloudinaryStorage({
-  cloudinary
-})
+// const storage = new CloudinaryStorage({
+//   cloudinary
+// })
 
 export default cloudinary
