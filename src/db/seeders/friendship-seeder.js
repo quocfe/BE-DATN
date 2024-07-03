@@ -77,6 +77,30 @@ module.exports = {
           user_id: 'robin-22c73-f703-4b16-847d-f61bae05-onepiece',
           friend_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
           status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'sdafsdfsd-f703-4b16-847d-f61bae05oaiuq123adasd',
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          friend_id: 'akainu-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'sdafsdfsd-f703-4b16-847d-f61bae05oaiuq123adasd123',
+          user_id: 'akainu-22c73-f703-4b16-847d-f61bae05-onepiece',
+          friend_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'sdafsdfsd-f703-4b16-847d-f61bae05oaiuq123adasdfdfd',
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          friend_id: 'sanji-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
+        },
+        {
+          friendship_id: 'sdafsdfsd-f703-4b16ưerwe-847d-f61bae05oaiuq123adasd',
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          friend_id: 'sanji-22c73-f703-4b16-847d-f61bae05-onepiece',
+          status: 'Đã chấp nhận'
         }
       ],
       {}

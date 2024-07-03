@@ -15,6 +15,7 @@ const ReactMessageMigration = require('./create-table-reactMessage')
 const SeenMessageMigration = require('./create-table-seenMessage')
 const RecallMessageMigration = require('./create-table-recallMessage')
 const NotifyGroupMessageMigration = require('./create-table-notifyGroupMessage')
+const DeleteGroupMessageMigration = require('./create-table-deleteGroupMessage')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -47,9 +48,13 @@ module.exports = {
     await RecallMessageMigration.up(queryInterface, Sequelize)
     // NotifyGroupMessage
     await NotifyGroupMessageMigration.up(queryInterface, Sequelize)
+    // DeleteGroupMessage
+    await DeleteGroupMessageMigration.up(queryInterface, Sequelize)
   },
 
   async down(queryInterface, Sequelize) {
+    // DeleteGroupMessage
+    await DeleteGroupMessageMigration.up(queryInterface, Sequelize)
     // NotifyGroupMessage
     await NotifyGroupMessageMigration.up(queryInterface, Sequelize)
     // SeenMessageMigration

@@ -11,6 +11,7 @@ import Role from './Role'
 import Account from './Account'
 import RecallMessage from './RecallMessage'
 import NotifyGroupMessage from './NotifyGroupMessage'
+import DeleteGroupMessage from './DeleteGroupMessage'
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
@@ -49,10 +50,7 @@ const userRelationships = () => {
     onDelete: 'CASCADE'
   })
 
-  User.hasMany(GroupMessage, {
-    foreignKey: 'user_id',
-    as: 'createdBy'
-  })
+  User.hasMany(GroupMessage, { foreignKey: 'createdBy', as: 'GroupsMessage' })
 
   User.hasMany(MemberGroup, {
     foreignKey: 'user_id'
@@ -78,7 +76,8 @@ const groupMessageRelationships = () => {
   GroupMessage.hasMany(Message, { foreignKey: 'group_message_id', onDelete: 'cascade' })
   GroupMessage.hasMany(MemberGroup, { foreignKey: 'group_message_id', onDelete: 'cascade' })
   GroupMessage.hasMany(NotifyGroupMessage, { foreignKey: 'group_message_id', onDelete: 'cascade' })
-  GroupMessage.belongsTo(User, { foreignKey: 'createdBy' })
+  GroupMessage.hasMany(DeleteGroupMessage, { foreignKey: 'group_message_id', onDelete: 'cascade' })
+  GroupMessage.belongsTo(User, { foreignKey: 'createdBy', as: 'Creator' })
 }
 
 const memberGroup = () => {
@@ -88,6 +87,10 @@ const memberGroup = () => {
 
 const notifyGroupMessage = () => {
   NotifyGroupMessage.belongsTo(GroupMessage, { foreignKey: 'group_message_id' })
+}
+
+const deleteGroupMessage = () => {
+  DeleteGroupMessage.belongsTo(GroupMessage, { foreignKey: 'group_message_id' })
 }
 
 const messageRelationships = () => {
@@ -135,6 +138,7 @@ const models = {
   SeenMessage,
   RecallMessage,
   NotifyGroupMessage,
+  DeleteGroupMessage,
   Role,
   Account
 }

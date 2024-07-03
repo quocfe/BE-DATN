@@ -28,11 +28,16 @@ class messageSocketService {
           group_message_id
         }
       })
+
       memmbersId.forEach(async (member) => {
         const receiver = getReceiverSocketId(member.user_id)
 
         if (receiver) {
           io.to(receiver).emit('newMessage', receiver)
+          await models.DeleteGroupMessage.update(
+            { status: false },
+            { where: { group_message_id, deletedBy: member.user_id } }
+          )
           // const seenMessage = await models.SeenMessage.create({
           //   message_id: messageSocket.message_id,
           //   user_id: member.user_id,

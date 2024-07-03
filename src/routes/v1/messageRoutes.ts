@@ -3,6 +3,7 @@ import Middleware from '../../middleware'
 import { tryCatch } from '../../utils/response'
 import messageController from '../../controllers/messageController'
 import uploadCloud from '../../middleware/uploader'
+import deleteConversationController from '../../controllers/deleteConversationController'
 
 const router = Router()
 
@@ -12,6 +13,7 @@ router.get('/conversation', Middleware.verifyToken, tryCatch(messageController.g
 router.get('/search/:conversationId/:query', Middleware.verifyToken, tryCatch(messageController.searchMessage))
 router.get('/getrecallmessage', Middleware.verifyToken, tryCatch(messageController.getRecallMessage))
 router.get('/getmembersgroup/:id', Middleware.verifyToken, tryCatch(messageController.getMembersGroup))
+router.get('/getlistfriendssuggest/:id', Middleware.verifyToken, tryCatch(messageController.getListFriendsSuggest))
 //  ------------------- //
 router.post('/sendmessage', Middleware.verifyToken, tryCatch(messageController.sendMessage))
 router.post(
@@ -29,6 +31,15 @@ router.post('/changeimagegroup', Middleware.verifyToken, tryCatch(messageControl
 router.post('/changegroupname', Middleware.verifyToken, tryCatch(messageController.changeGroupName))
 
 //  ------------------- //
-router.delete('/deleteconversation/:id', Middleware.verifyToken, tryCatch(messageController.deteleConversation))
+router.delete(
+  '/deleteconversation/:id',
+  Middleware.verifyToken,
+  tryCatch(deleteConversationController.deteleConversation)
+)
+router.delete(
+  '/leaveanddeleteusergroup/:user_id/:group_id',
+  Middleware.verifyToken,
+  tryCatch(messageController.leaveAndDeleteUserGroup)
+)
 
 export default router

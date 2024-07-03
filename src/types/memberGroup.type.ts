@@ -1,7 +1,7 @@
 import { MemberGroupAttributes } from '../db/models/MemberGroup'
 
 interface MemberGroup extends MemberGroupAttributes {
-  listUser: string
+  list_user: string
 }
 
-export type CreateMemberGroupInput = Pick<MemberGroup, 'listUser' | 'group_message_id'>
+export type CreateMemberGroupInput = Pick<MemberGroup, 'list_user' | 'group_message_id'>

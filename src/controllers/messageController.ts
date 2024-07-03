@@ -89,8 +89,9 @@ class messageController {
     if (req.user) {
       const { id } = req.params
       const { page, limit } = req.query
+      const { user_id: sender } = req.user
       if (page && limit) {
-        const data = await messageService.getGroupMessage(id, +page, +limit)
+        const data = await messageService.getGroupMessage(id, sender, +page, +limit)
         res.status(200).json(data)
       }
     }
@@ -178,10 +179,28 @@ class messageController {
   async searchMessage(req: Request, res: Response) {
     if (req.user) {
       const { query, conversationId } = req.params
-      const data = await messageService.searchMessage(query, conversationId)
+      const { user_id: userLoggin } = req.user
+      const data = await messageService.searchMessage(query, conversationId, userLoggin)
       //test send react message
 
       sendResponseSuccess(res, data)
+    }
+  }
+
+  async getListFriendsSuggest(req: Request, res: Response) {
+    if (req.user) {
+      const { user_id: userLoggin } = req.user
+      const { id: group_id } = req.params
+      const data = await messageService.getListFriendsSuggest(group_id, userLoggin)
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  async leaveAndDeleteUserGroup(req: Request, res: Response) {
+    if (req.user) {
+      const { user_id, group_id } = req.params
+      const data = await messageService.leaveAndDeleteUserGroup(group_id, user_id)
+      res.status(200).json(data)
     }
   }
 }

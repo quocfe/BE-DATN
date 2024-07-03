@@ -9,6 +9,8 @@ import { ReactMessageInput } from '../types/reactMessage.type'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import messageSocketService from './messageSocketService'
 import notifyMessageService from './notifyMessageService'
+import userService from './userService'
+import deleteConversationService from './deleteConversationService'
 
 class messageService {
   // fn get Thubmail
@@ -39,12 +41,24 @@ class messageService {
 
     // groupMessageIds
     const groupMessageIds = MemberGroupData.map((item) => item.group_message_id)
+    // id group in table delete
+
+    const groupMessageIdsNodelete = await models.DeleteGroupMessage.findAll({
+      where: {
+        deletedBy: userLoggin,
+        status: true
+      }
+    })
+
+    const filteredGroupMessageIds = groupMessageIds.filter((item1: any) => {
+      return !groupMessageIdsNodelete.some((item2) => item1 === item2.group_message_id)
+    })
 
     // Fetch GroupMessage data
     const offset = (page - 1) * limit
 
     const groupMessages = await models.GroupMessage.findAndCountAll({
-      where: { group_message_id: groupMessageIds },
+      where: { group_message_id: filteredGroupMessageIds },
       order: [['updatedAt', 'DESC']],
       offset,
       limit
@@ -97,7 +111,7 @@ class messageService {
     const data = await Promise.all(
       groupMessages.rows.map(async (groupMessage) => {
         // const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
-        const messages = await this.getMessage(groupMessage.group_message_id, 1, 10)
+        const messages = await this.getMessage(groupMessage.group_message_id, 1, 10, userLoggin)
         const messageStatusTrue = messages.filter((m) => m.status === true)
         const message = messageStatusTrue[messageStatusTrue.length - 1]
         const filterMessage = {
@@ -218,8 +232,22 @@ class messageService {
   }
 
   async addMembersToGroup(memberGroupData: CreateMemberGroupInput) {
-    const users: string[] = JSON.parse(memberGroupData.listUser)
+    const users: string[] = JSON.parse(memberGroupData.list_user)
     const checkGroup = await models.GroupMessage.findByPk(memberGroupData.group_message_id)
+
+    await Promise.all(
+      users.map(async (user: string) => {
+        const checkUser = await models.DeleteGroupMessage.findOne({
+          where: {
+            group_message_id: memberGroupData.group_message_id,
+            deletedBy: user
+          }
+        })
+        if (checkUser) {
+          await deleteConversationService.updateDeleteConversation(checkUser.delete_group_message_id)
+        }
+      })
+    )
 
     if (!checkGroup) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group not found!')
@@ -319,28 +347,41 @@ class messageService {
     }
   }
 
-  async getMessage(id: string, page?: number, limit?: number) {
+  async getMessage(id: string, page?: number, limit?: number, sender?: string) {
     const checkGroup = await models.GroupMessage.findByPk(id)
 
     if (!checkGroup) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group message not found!')
     }
+
+    // kiểm tra user xóa đoạn chat
+
+    const checkDeleteGroup = await models.DeleteGroupMessage.findOne({
+      where: {
+        group_message_id: id,
+        deletedBy: sender
+      }
+    })
+
+    const whereConditions: any = {
+      group_message_id: id
+    }
+    if (checkDeleteGroup) {
+      whereConditions.createdAt = { [Op.gt]: checkDeleteGroup.deletedAt }
+    }
+
     let messages: Message[] = []
     if (page && limit) {
       const offset = (page - 1) * limit
       messages = await models.Message.findAll({
-        where: {
-          group_message_id: id
-        },
+        where: whereConditions,
         order: [['createdAt', 'DESC']],
         offset,
         limit
       })
     } else {
       messages = await models.Message.findAll({
-        where: {
-          group_message_id: id
-        },
+        where: whereConditions,
         order: [['createdAt', 'DESC']]
       })
     }
@@ -350,17 +391,22 @@ class messageService {
     const reactData = await models.ReactMessage.findAll()
     const recallData = await models.RecallMessage.findAll()
 
-    const getReplyMessages = (messages: MessageAttributes[], parent_id: string) => {
-      return messages.find((message: MessageAttributes) => message.message_id === parent_id)
+    const getReplyMessages = async (parent_id: string) => {
+      const dataGetReply = await models.Message.findAll({
+        where: whereConditions,
+        order: [['createdAt', 'DESC']]
+      })
+      return dataGetReply.find((message: MessageAttributes) => message.message_id === parent_id)
     }
 
     const data = await Promise.all(
       reversedMessages.map(async (message) => {
         const reactions = reactData.filter((react) => react.message_id === message.message_id)
         const recalls = recallData.filter((recall) => recall.message_id === message.message_id)
-        const replyMessage = getReplyMessages(reversedMessages, message.parent_id)
-        const recallInReply = recallData.filter((recall) => recall.message_id === replyMessage?.message_id)
-
+        const replyMessage = message.parent_id && (await getReplyMessages(message.parent_id))
+        const recallInReply =
+          replyMessage && recallData.filter((recall) => recall.message_id === replyMessage?.message_id)
+        // console.log('replyMessage', replyMessage)
         const thumbnail = await this.getThubmail(message.createdBy)
         const user = await models.User.findOne({
           where: {
@@ -373,22 +419,24 @@ class messageService {
         if (replyMessage) {
           const userOld = await models.User.findOne({
             where: {
-              user_id: replyMessage.createdBy
+              user_id: replyMessage?.createdBy
             }
           })
           reply_user = `${userOld?.first_name} ${userOld?.last_name}`
         }
+        let replyMessageData = {}
+        if (replyMessage)
+          replyMessageData = {
+            body: replyMessage?.body,
+            sub_body: replyMessage?.sub_body,
+            createdBy: replyMessage?.createdBy,
+            type: replyMessage?.type,
+            status: replyMessage?.status,
+            message_id: replyMessage?.message_id,
+            reply_user: reply_user,
+            recallInReply
+          }
 
-        const replyMessageData = {
-          body: replyMessage?.body,
-          sub_body: replyMessage?.sub_body,
-          createdBy: replyMessage?.createdBy,
-          type: replyMessage?.type,
-          status: replyMessage?.status,
-          message_id: replyMessage?.message_id,
-          reply_user: reply_user,
-          recallInReply
-        }
         return {
           ...message.get({ plain: true }),
           reactions,
@@ -432,7 +480,7 @@ class messageService {
     const groupIdCheck = filteredGroupIds.map((filter) => filter.group_message_id)
 
     if (groupIdCheck[0]) {
-      const messages = await this.getMessage(groupIdCheck[0], page, limit)
+      const messages = await this.getMessage(groupIdCheck[0], page, limit, sender)
       const info = {
         group_id: receiver,
         avatar: await this.getThubmail(receiver),
@@ -461,12 +509,12 @@ class messageService {
     }
   }
 
-  async getGroupMessage(id: string, page?: number, limit?: number) {
+  async getGroupMessage(id: string, sender: string, page?: number, limit?: number) {
     const checkGroupExists = await models.GroupMessage.findByPk(id)
     // return checkGroupExists
     if (checkGroupExists) {
       if (checkGroupExists?.type === 2) {
-        const messages = await this.getMessage(checkGroupExists.group_message_id, page, limit)
+        const messages = await this.getMessage(checkGroupExists.group_message_id, page, limit, sender)
         const info = {
           group_id: checkGroupExists.group_message_id,
           avatar: checkGroupExists.group_thumbnail,
@@ -732,8 +780,8 @@ class messageService {
     }
   }
 
-  async searchMessage(query: string, conversationId: string) {
-    const conversation = await this.getMessage(conversationId, 1, 10)
+  async searchMessage(query: string, conversationId: string, userLoggin: string) {
+    const conversation = await this.getMessage(conversationId, 0, 0, userLoggin)
     const message = conversation.filter((item) => {
       return item.body.includes(query)
     })
@@ -810,6 +858,49 @@ class messageService {
     return {
       message: 'thay đổi tên ok',
       data
+    }
+  }
+
+  async getListFriendsSuggest(group_id: string, user_loggin: string) {
+    const listMemberGroup = await models.MemberGroup.findAll({
+      where: {
+        group_message_id: group_id
+      }
+    })
+    const listAllFriend = await userService.fetchFriendOfUser(user_loggin)
+    const data = listAllFriend.data.friends.filter((item) => {
+      return !listMemberGroup.some((group) => group.user_id === item.user_id)
+    })
+
+    return {
+      message: 'lấy list friend suggest ok',
+      data
+    }
+  }
+
+  async leaveAndDeleteUserGroup(group_id: string, user_id: string) {
+    const checkMember = await models.MemberGroup.findOne({
+      where: {
+        [Op.and]: {
+          group_message_id: group_id,
+          user_id: user_id
+        }
+      }
+    })
+
+    if (!checkMember) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy thành viên nhóm')
+    }
+
+    // tự rời nhóm
+    if (checkMember.role === true) {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Chọn nhóm trưởng trước khi rời')
+    } else {
+      await checkMember.destroy()
+      await deleteConversationService.deteleConversation(group_id, user_id)
+    }
+    return {
+      message: 'xóa hoặc rời nhóm ok'
     }
   }
 }
