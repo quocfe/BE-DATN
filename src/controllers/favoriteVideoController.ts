@@ -4,6 +4,53 @@ import { UserOutput } from '../types/user.type'
 import models from '../db/models'
 import db from '../connection'
 
+const getFavoriteVideo = async (req: Request, res: Response) => {
+  try {
+    const user = req.user as UserOutput
+
+    const favorites = await models.FavoriteVideos.findAll({
+      where: {
+        user_id: user.user_id
+      },
+      attributes: {
+        exclude: ['user_id', 'video_id', 'updatedAt'] // Exclude the updatedAt attribute
+      },
+      include: [
+        {
+          model: models.Video,
+          as: 'video',
+          attributes: {
+            exclude: ['category_video_id', 'updatedAt'] // Exclude the updatedAt attribute
+          },
+          include: [
+            {
+              model: models.User,
+              as: 'user',
+              attributes: ['user_id', 'first_name', 'last_name'], // Specify which user attributes to include
+              include: [
+                {
+                  model: models.Profile,
+                  attributes: ['cover_photo']
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+
+    return sendResponseSuccess(res, {
+      message: 'Lấy danh sách thành công.',
+      data: favorites
+    })
+  } catch (error: any) {
+    return res.status(500).json({
+      message: 'Có lỗi xảy ra',
+      error: error.message
+    })
+  }
+}
+
 const createFavoriteVideo = async (req: Request, res: Response) => {
   const { video_id } = req.params
   const user = req.user as UserOutput
@@ -77,4 +124,4 @@ const getFavoriteVideoItem = async (req: Request, res: Response) => {
   }
 }
 
-export { createFavoriteVideo, getFavoriteVideoItem }
+export { createFavoriteVideo, getFavoriteVideoItem, getFavoriteVideo }

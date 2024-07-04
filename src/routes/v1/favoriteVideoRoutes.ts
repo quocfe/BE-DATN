@@ -1,8 +1,10 @@
 import { Router } from 'express'
 import middleware from '../../middleware'
-import { createFavoriteVideo, getFavoriteVideoItem } from '../../controllers/favoriteVideoController'
+import { createFavoriteVideo, getFavoriteVideo, getFavoriteVideoItem } from '../../controllers/favoriteVideoController'
 
 const favoriteVideoRoute = Router()
+
+favoriteVideoRoute.get('/', middleware.verifyToken, getFavoriteVideo)
 
 favoriteVideoRoute.patch('/:video_id', middleware.verifyToken, createFavoriteVideo)
 
