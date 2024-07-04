@@ -11,6 +11,7 @@ const VideoMigration = require('./create-table-video')
 const CommnetVideoMigration = require('./create-table-comment-video')
 const FriendShipMigration = require('./create-table-friendship')
 const LikeVideoMigration = require('./create-table-like-video')
+const FavoriteVideoMigration = require('./create-table-favorite-video')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -34,6 +35,8 @@ module.exports = {
     await LikeVideoMigration.up(queryInterface, Sequelize)
     // Friendship
     await FriendShipMigration.up(queryInterface, Sequelize)
+    // Favorite Video
+    await FavoriteVideoMigration.up(queryInterface, Sequelize)
   },
 
   async down(queryInterface, Sequelize) {
@@ -57,5 +60,7 @@ module.exports = {
     await AccountMigration.down(queryInterface, Sequelize)
     // Role
     await RoleMigration.down(queryInterface, Sequelize)
+    // Favorite Video
+    await FavoriteVideoMigration.down(queryInterface, Sequelize)
   }
 }

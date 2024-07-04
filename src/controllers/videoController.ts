@@ -10,6 +10,9 @@ import db from '../connection'
 const getVideos = async (req: Request, res: Response) => {
   try {
     const videos = await models.Video.findAll({
+      attributes: {
+        exclude: ['updatedAt', 'category_video_id'] // Exclude the updatedAt attribute
+      },
       include: [
         {
           model: models.User,
@@ -152,7 +155,7 @@ const destroyVideo = async (req: Request, res: Response) => {
 const getVideo = async (req: Request, res: Response) => {
   try {
     const { public_id } = req.params
-console.log('get resource');
+
     const result = await cloudinaryGetResource(public_id)
     return sendResponseSuccess(res, {
       message: 'Tải bài viết thành công.',

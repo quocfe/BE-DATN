@@ -6,6 +6,7 @@ import interestRoutes from './interestRoutes'
 import videoRouter from './videoRoutes'
 import likeVideoRoute from './likeVideoRoutes'
 import commentVideoRoute from './commentVideoRoutes'
+import favoriteVideoRoute from './favoriteVideoRoutes'
 
 const router = Router()
 
@@ -15,5 +16,6 @@ router.use(API_V1.interest, interestRoutes)
 router.use(API_V1.videos, videoRouter)
 router.use(API_V1.likeVideo, likeVideoRoute)
 router.use(API_V1.commentVideo, commentVideoRoute)
+router.use(API_V1.favoriteVideo, favoriteVideoRoute)
 
 export default router
