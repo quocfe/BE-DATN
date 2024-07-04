@@ -128,6 +128,7 @@ const cloudinaryGetResource = (public_id: string) => {
     cloudinary.api.resource(
       public_id,
       {
+        image_metadata: true,
         resource_type: 'video'
       },
       (error: any, result: any) => {
