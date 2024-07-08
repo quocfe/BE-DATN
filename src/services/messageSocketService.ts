@@ -85,7 +85,6 @@ class messageSocketService {
       memmbersId.forEach(async (member) => {
         const receiver = getReceiverSocketId(member.user_id)
         if (receiver) {
-          console.log('socket new image')
           io.to(receiver).emit('newGroupImage', data)
         }
       })
@@ -113,7 +112,7 @@ class messageSocketService {
     }
   }
 
-  async emitIsTyping(group_message_id: string, user_id?: string) {
+  async emitIsTyping(group_message_id: string, user_id?: string, userLoggin?: string) {
     if (group_message_id) {
       const memmbersId = await models.MemberGroup.findAll({
         where: {
@@ -122,10 +121,15 @@ class messageSocketService {
       })
       memmbersId.forEach(async (member) => {
         const receiver = getReceiverSocketId(member.user_id)
+        const sender = getReceiverSocketId(userLoggin || '')
         const user = await models.User.findByPk(user_id)
         const fullname = user?.first_name + ' ' + user?.last_name
-        if (receiver) {
-          io.to(receiver).emit('isTyping', fullname)
+        const data = {
+          group_message_id,
+          fullname
+        }
+        if (receiver != sender) {
+          io.to(receiver).emit('isTyping', data)
         }
       })
     }
@@ -170,6 +174,29 @@ class messageSocketService {
     const sender = getReceiverSocketId(sendeID)
     if (sender) {
       io.to(sender).emit('deleteNotifyMessage')
+    }
+  }
+  async emitCurdMemberGroup(group_message_id: string) {
+    if (group_message_id) {
+      const memmbersId = await models.MemberGroup.findAll({
+        where: {
+          group_message_id
+        }
+      })
+
+      memmbersId.forEach(async (member) => {
+        const receiver = getReceiverSocketId(member.user_id)
+
+        if (receiver) {
+          io.to(receiver).emit('deleteOrLeaveGroup', receiver)
+          await models.DeleteGroupMessage.update(
+            { status: false },
+            { where: { group_message_id, deletedBy: member.user_id } }
+          )
+        }
+      })
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitNewMessage')
     }
   }
 }

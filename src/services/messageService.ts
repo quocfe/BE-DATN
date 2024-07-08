@@ -35,7 +35,7 @@ class messageService {
 
   // fn check exist groupMessage
 
-  async getConversation(userLoggin: string, page: number, limit: number) {
+  async getConversation(userLoggin: string, page: number, limit: number, search?: boolean) {
     // lấy MemberGroup data từ loggin user
     const MemberGroupData = await models.MemberGroup.findAll({ where: { user_id: userLoggin } })
 
@@ -43,11 +43,21 @@ class messageService {
     const groupMessageIds = MemberGroupData.map((item) => item.group_message_id)
     // id group in table delete
 
-    const groupMessageIdsNodelete = await models.DeleteGroupMessage.findAll({
-      where: {
+    let whereConditions
+
+    if (search) {
+      whereConditions = {
+        deletedBy: userLoggin
+      }
+    } else {
+      whereConditions = {
         deletedBy: userLoggin,
         status: true
       }
+    }
+
+    const groupMessageIdsNodelete = await models.DeleteGroupMessage.findAll({
+      where: whereConditions
     })
 
     const filteredGroupMessageIds = groupMessageIds.filter((item1: any) => {
@@ -112,7 +122,7 @@ class messageService {
       groupMessages.rows.map(async (groupMessage) => {
         // const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
         const messages = await this.getMessage(groupMessage.group_message_id, 1, 10, userLoggin)
-        const messageStatusTrue = messages.filter((m) => m.status === true)
+        const messageStatusTrue = messages.data.filter((m) => m.status === true)
         const message = messageStatusTrue[messageStatusTrue.length - 1]
         const filterMessage = {
           message_id: message?.message_id,
@@ -193,7 +203,7 @@ class messageService {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Một hoặc nhiều người dùng không tồn tại')
     }
 
-    // Tạo tên nhóm nếu chưa có
+    // Tạo tên nhóm nếu chưa có ( lấy tên user cọng lại)
     if (!group_name) {
       const userPromises = countUser.map(async (userId) => await models.User.findByPk(userId))
       const usersData = await Promise.all(userPromises)
@@ -211,7 +221,16 @@ class messageService {
 
     // Tạo nhóm mới
     const newGroup = await models.GroupMessage.create(dataGroupName)
-
+    // ------bắn thông báo trong message------ //
+    const user_login = await this.getFullName(userLoggin)
+    const dataMessageTypeZero = {
+      createdBy: userLoggin,
+      type: 0,
+      group_message_id: newGroup.group_message_id,
+      body: `${user_login} đã tạo nhóm.`,
+      receiver: newGroup.group_message_id
+    }
+    await this.sendMessage(dataMessageTypeZero, userLoggin)
     // Thêm thành viên vào nhóm
     await Promise.all(
       countUser.map(async (user_id: string) => {
@@ -220,8 +239,19 @@ class messageService {
           group_message_id: newGroup.group_message_id,
           role: user_id === userLoggin ? true : false
         })
+        const user_name = await this.getFullName(user_id)
+        const dataMessageTypeZero = {
+          createdBy: userLoggin,
+          type: 0,
+          group_message_id: newGroup.group_message_id,
+          body: `${user_name} đã được thêm vào nhóm.`,
+          receiver: newGroup.group_message_id
+        }
+        if (user_id != userLoggin) await this.sendMessage(dataMessageTypeZero, user_id)
       })
     )
+
+    // ========= //
 
     return {
       message: 'Tạo nhóm thành công',
@@ -235,6 +265,7 @@ class messageService {
     const users: string[] = JSON.parse(memberGroupData.list_user)
     const checkGroup = await models.GroupMessage.findByPk(memberGroupData.group_message_id)
 
+    // cập nhật lại deteleGroup
     await Promise.all(
       users.map(async (user: string) => {
         const checkUser = await models.DeleteGroupMessage.findOne({
@@ -258,6 +289,7 @@ class messageService {
         group_message_id: memberGroupData.group_message_id
       }
     })
+
     const newMembers = users.filter((user: string) => !existingMembers.some((member) => member.user_id === user))
     if (newMembers.length === 0) {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'All members already exist!')
@@ -269,7 +301,8 @@ class messageService {
           where: {
             user_id: {
               [Op.eq]: user
-            }
+            },
+            group_message_id: memberGroupData.group_message_id
           }
         })
         if (checkUser) {
@@ -280,6 +313,16 @@ class messageService {
           group_message_id: memberGroupData.group_message_id,
           role: false
         })
+        const user_name = await this.getFullName(user)
+        const dataMessageTypeZero = {
+          createdBy: user,
+          type: 0,
+          group_message_id: memberGroupData.group_message_id,
+          body: `${user_name} đã được thêm vào nhóm`,
+          receiver: memberGroupData.group_message_id
+        }
+        await this.sendMessage(dataMessageTypeZero, user)
+        await messageSocketService.emitCurdMemberGroup(memberGroupData.group_message_id)
       })
     )
 
@@ -371,14 +414,17 @@ class messageService {
     }
 
     let messages: Message[] = []
+    let totalPage
     if (page && limit) {
       const offset = (page - 1) * limit
-      messages = await models.Message.findAll({
+      const tepm = await models.Message.findAndCountAll({
         where: whereConditions,
         order: [['createdAt', 'DESC']],
         offset,
         limit
       })
+      messages = tepm.rows
+      totalPage = Math.ceil(tepm.count / limit)
     } else {
       messages = await models.Message.findAll({
         where: whereConditions,
@@ -448,7 +494,14 @@ class messageService {
       })
     )
 
-    return data
+    return {
+      data,
+      pagination: {
+        totalPage,
+        page: page,
+        limit: limit
+      }
+    }
   }
 
   async getOneToOneMessage(receiver: string, sender: string, page?: number, limit?: number) {
@@ -490,7 +543,8 @@ class messageService {
         message: 'lấy thông tin messsage ok',
         data: {
           info,
-          messages
+          messages: messages.data,
+          pagination: messages.pagination
         }
       }
     } else {
@@ -524,7 +578,8 @@ class messageService {
           message: 'lấy thông tin messsage ok',
           data: {
             info,
-            messages
+            messages: messages.data,
+            pagination: messages.pagination
           }
         }
       } else {
@@ -782,7 +837,7 @@ class messageService {
 
   async searchMessage(query: string, conversationId: string, userLoggin: string) {
     const conversation = await this.getMessage(conversationId, 0, 0, userLoggin)
-    const message = conversation.filter((item) => {
+    const message = conversation.data.filter((item) => {
       return item.body.includes(query)
     })
 
@@ -821,6 +876,14 @@ class messageService {
       type: 2
     }
 
+    const dataMessageTypeZero = {
+      createdBy: user_id,
+      type: 0,
+      group_message_id: data_image.group_message_id,
+      body: `${user_name} đã thay đổi ảnh nhóm`,
+      receiver: data_image.group_message_id
+    }
+    await models.Message.create(dataMessageTypeZero)
     await notifyMessageService.createNotify(dataEmitNewImageNotify, user_id)
     await messageSocketService.emitNotifyMessage(group_id, {}, user_id)
     await messageSocketService.emitNewGroupImage(group_id, data)
@@ -830,7 +893,7 @@ class messageService {
     }
   }
 
-  async changeGroupName(group_id: string, group_name: string) {
+  async changeGroupName(group_id: string, group_name: string, user_id: string) {
     const checkGroup = await models.GroupMessage.findOne({
       where: {
         [Op.and]: {
@@ -844,6 +907,8 @@ class messageService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm')
     }
 
+    const user_name = await this.getFullName(user_id)
+
     await checkGroup.update({
       group_name
     })
@@ -852,7 +917,14 @@ class messageService {
       group_message_id: group_id,
       group_name: group_name
     }
-
+    const dataMessageTypeZero = {
+      createdBy: user_id,
+      type: 0,
+      group_message_id: group_id,
+      body: `${user_name} đã thay đổi tên nhóm`,
+      receiver: group_id
+    }
+    await this.sendMessage(dataMessageTypeZero, user_id)
     await messageSocketService.emitNewGroupName(group_id, data)
 
     return {
@@ -878,7 +950,7 @@ class messageService {
     }
   }
 
-  async leaveAndDeleteUserGroup(group_id: string, user_id: string) {
+  async leaveAndDeleteUserGroup(group_id: string, user_id: string, userLoggin: string) {
     const checkMember = await models.MemberGroup.findOne({
       where: {
         [Op.and]: {
@@ -892,15 +964,104 @@ class messageService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy thành viên nhóm')
     }
 
-    // tự rời nhóm
     if (checkMember.role === true) {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Chọn nhóm trưởng trước khi rời')
     } else {
       await checkMember.destroy()
       await deleteConversationService.deteleConversation(group_id, user_id)
+      const userLogin = await this.getFullName(userLoggin)
+      const userDelete = await this.getFullName(user_id)
+      const dataMessageTypeZero = {
+        createdBy: userLoggin,
+        type: 0,
+        group_message_id: group_id,
+        body: `${user_id === userLoggin ? `${userLogin} đã rời nhóm` : `${userDelete} đã bị xóa khỏi nhóm`} `,
+        receiver: group_id
+      }
+      await this.sendMessage(dataMessageTypeZero, userLoggin)
+      await messageSocketService.emitCurdMemberGroup(group_id)
     }
     return {
       message: 'xóa hoặc rời nhóm ok'
+    }
+  }
+
+  async changeRoleGroup(group_id: string, user_id: string, user_loggin: string) {
+    const [checkUser, checkUserAdmin] = await Promise.all([
+      models.MemberGroup.findOne({
+        where: {
+          group_message_id: group_id,
+          user_id
+        }
+      }),
+      models.MemberGroup.findOne({
+        where: {
+          group_message_id: group_id,
+          user_id: user_loggin
+        }
+      })
+    ])
+
+    if (!checkUser) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy thành viên nhóm')
+    }
+
+    await checkUser.update({ role: true })
+
+    if (!checkUserAdmin) {
+      return {
+        message: 'Không tìm thấy thành viên nhóm '
+      }
+    }
+
+    await checkUserAdmin.update({ role: false })
+
+    return {
+      message: 'đổi rule ok'
+    }
+  }
+
+  async searchFriendAndConversation(user_id: string, keyword: string) {
+    const listFriend = await userService.fetchFriendOfUser(user_id)
+    const listConversation = await this.getConversation(user_id, 1, 10000, true)
+
+    // group_id, group_name, type
+    const listConversationType1 = listConversation.data.data.filter((item: any) => {
+      return item.type === 1
+    })
+    const arr = listFriend.data.friends.filter((friend) => {
+      return !listConversationType1.some((item: any) => item.user_id === friend.user_id)
+    })
+
+    let newArr = arr.map((item) => {
+      return {
+        group_message_id: null,
+        user_id: item.user_id,
+        group_name: item.first_name + ' ' + item.last_name,
+        group_thumbnail: item.Profile.profile_picture,
+        type: 1
+      }
+    })
+
+    let newlistConversation = listConversation.data.data.map((item) => {
+      return {
+        group_message_id: item.group_message_id,
+        group_name: item.group_name,
+        group_thumbnail: item.group_thumbnail,
+        type: 2
+      }
+    })
+
+    const mergeArr = [...newArr, ...newlistConversation]
+
+    // Tạo regex không phân biệt hoa thường
+    const regex = new RegExp(keyword, 'i')
+
+    // Tìm kiếm theo group_name
+    const filteredArr = mergeArr.filter((item) => regex.test(item.group_name))
+
+    return {
+      data: filteredArr
     }
   }
 }

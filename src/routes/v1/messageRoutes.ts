@@ -14,6 +14,7 @@ router.get('/search/:conversationId/:query', Middleware.verifyToken, tryCatch(me
 router.get('/getrecallmessage', Middleware.verifyToken, tryCatch(messageController.getRecallMessage))
 router.get('/getmembersgroup/:id', Middleware.verifyToken, tryCatch(messageController.getMembersGroup))
 router.get('/getlistfriendssuggest/:id', Middleware.verifyToken, tryCatch(messageController.getListFriendsSuggest))
+router.get('/searchfrandgr/:query', Middleware.verifyToken, tryCatch(messageController.searchFriendAndConversation))
 //  ------------------- //
 router.post('/sendmessage', Middleware.verifyToken, tryCatch(messageController.sendMessage))
 router.post(
@@ -29,7 +30,7 @@ router.post('/addmemberstogroup', Middleware.verifyToken, tryCatch(messageContro
 router.post('/recallmessage', Middleware.verifyToken, tryCatch(messageController.recallMessage))
 router.post('/changeimagegroup', Middleware.verifyToken, tryCatch(messageController.changeImageGroup))
 router.post('/changegroupname', Middleware.verifyToken, tryCatch(messageController.changeGroupName))
-
+router.post('/changerolegroup', Middleware.verifyToken, tryCatch(messageController.changeRoleGroup))
 //  ------------------- //
 router.delete(
   '/deleteconversation/:id',

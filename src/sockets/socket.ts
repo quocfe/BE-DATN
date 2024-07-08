@@ -24,11 +24,10 @@ io.on('connection', (socket) => {
   console.log('a user connected socketID', socket.id)
   const user_id = socket.handshake.query.user_id as string
   if (user_id != 'undefined') userSocketMap[user_id] = socket.id
-  console.log('user_id', user_id)
   io.emit('getOnlineUsers', Object.keys(userSocketMap))
   socket.on('isTyping', async (data) => {
-    const { user_id, groupID } = JSON.parse(data)
-    await messageSocketService.emitIsTyping(groupID, user_id)
+    const { user_id: userTyping, groupID } = JSON.parse(data)
+    await messageSocketService.emitIsTyping(groupID, userTyping, user_id)
   })
   socket.on('isNotTyping', async (data) => {
     const { user_id, groupID } = JSON.parse(data)

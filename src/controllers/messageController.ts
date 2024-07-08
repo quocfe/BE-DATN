@@ -28,9 +28,12 @@ class messageController {
   }
 
   async changeGroupName(req: Request, res: Response) {
-    const { group_name, group_id } = req.body
-    const data = await messageService.changeGroupName(group_id, group_name)
-    sendResponseSuccess(res, data)
+    if (req.user) {
+      const { group_name, group_id } = req.body
+      const { user_id: userLoggin } = req.user
+      const data = await messageService.changeGroupName(group_id, group_name, userLoggin)
+      sendResponseSuccess(res, data)
+    }
   }
 
   async deteleConversation(req: Request, res: Response) {
@@ -199,7 +202,28 @@ class messageController {
   async leaveAndDeleteUserGroup(req: Request, res: Response) {
     if (req.user) {
       const { user_id, group_id } = req.params
-      const data = await messageService.leaveAndDeleteUserGroup(group_id, user_id)
+      const { user_id: userLoggin } = req.user
+      const data = await messageService.leaveAndDeleteUserGroup(group_id, user_id, userLoggin)
+      res.status(200).json(data)
+    }
+  }
+
+  async changeRoleGroup(req: Request, res: Response) {
+    if (req.user) {
+      const { user_id, group_id } = req.body
+      const { user_id: userLoggin } = req.user
+      const data = await messageService.changeRoleGroup(group_id, user_id, userLoggin)
+
+      res.status(200).json(data)
+    }
+  }
+
+  async searchFriendAndConversation(req: Request, res: Response) {
+    if (req.user) {
+      const { query } = req.params
+      const { user_id: userLoggin } = req.user
+      const data = await messageService.searchFriendAndConversation(userLoggin, query)
+
       res.status(200).json(data)
     }
   }
