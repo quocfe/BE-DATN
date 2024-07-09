@@ -11,7 +11,7 @@ import models from '../db/models'
 import emailService from './emailService'
 import emailTitles from '../constants/email'
 import { generateExpiration, generateCodeNumbers } from '../utils/utils'
-import userService from './userService'
+import { AccountOuput } from '../types/account.type'
 
 class authService {
   constructor(
@@ -140,6 +140,49 @@ class authService {
         message: 'Refresh token đã hết hạn. Vui lòng đăng nhập lại.',
         errorName: 'EXPIRED_REFRESH_TOKEN'
       })
+    }
+  }
+
+  // Đăng nhập admin
+  async loginAdmin(data: LoginInput) {
+    const { email, password } = data
+
+    const existsAccount = await models.Account.findOne({
+      where: { email }
+    })
+
+    if (!existsAccount) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
+        email: 'Email không tồn tại!'
+      })
+    }
+
+    if (!compareValue(password, existsAccount.password)) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
+        password: 'Mật khẩu không chính xác!'
+      })
+    }
+
+    const account = _.omit(existsAccount.toJSON(), 'password', 'createdAt', 'updatedAt')
+
+    const accountPayload: AccountOuput = {
+      account_id: account.account_id,
+      email: account.email,
+      username: account.username,
+      role_id: account.role_id
+    }
+
+    const access_token = generateToken(accountPayload, this.secretKey, this.expiresAccessToken)
+
+    const refresh_token = generateToken(accountPayload, this.secretKey, this.expiresRefreshToken)
+
+    return {
+      message: 'Đăng nhập thành công',
+      data: {
+        account,
+        access_token: `Bearer ${access_token}`
+      },
+      refresh_token
     }
   }
 }

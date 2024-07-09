@@ -36,6 +36,9 @@ class User extends Model<UserAttributes, UserCreationAttribute> implements UserA
 
   declare Friends: User
   declare UserFriends: User
+  declare Friend: User
+  declare Friends: User[]
+  declare UserFriends: User[]
   declare Profile: Profile
 
   declare addInterest: BelongsToManyAddAssociationMixin<Interest, string>
