@@ -6,6 +6,7 @@ import models from '../db/models'
 import { CreateVideoRequest } from '../types/video.type'
 import { UserOutput } from '../types/user.type'
 import db from '../connection'
+import { col, fn, literal } from 'sequelize'
 
 const UPDATE_STATUS = {
   __VIEW__: '__VIEW__',
@@ -14,9 +15,18 @@ const UPDATE_STATUS = {
 
 const getVideos = async (req: Request, res: Response) => {
   try {
+    const user = req.user as UserOutput
+
     const videos = await models.Video.findAll({
       attributes: {
-        exclude: ['updatedAt', 'category_video_id'] // Exclude the updatedAt attribute
+        exclude: ['updatedAt', 'category_video_id'], // Exclude the updatedAt attribute
+        include: [
+          // Include total_comments as a literal SQL query
+          [
+            literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
+            'total_comments'
+          ]
+        ]
       },
       include: [
         {
@@ -29,6 +39,19 @@ const getVideos = async (req: Request, res: Response) => {
               attributes: ['cover_photo']
             }
           ]
+        },
+        {
+          model: models.LikeVideo,
+          as: 'likes',
+          attributes: [[fn('COUNT', fn('DISTINCT', col('likes.id'))), 'total_likes']]
+        },
+        {
+          model: models.LikeVideo,
+          as: 'isLikes',
+          where: {
+            user_id: user.user_id
+          },
+          required: false
         }
       ]
     })
@@ -92,7 +115,17 @@ const findOneVideo = async (req: Request, res: Response) => {
     const user = req.user as UserOutput
 
     const video = await models.Video.findOne({
-      where: { id: id },
+      where: { id },
+      attributes: {
+        exclude: ['updatedAt', 'category_video_id'], // Exclude the updatedAt attribute
+        include: [
+          // Include total_comments as a literal SQL query
+          [
+            literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
+            'total_comments'
+          ]
+        ]
+      },
       include: [
         {
           model: models.User,
@@ -104,6 +137,19 @@ const findOneVideo = async (req: Request, res: Response) => {
               attributes: ['cover_photo']
             }
           ]
+        },
+        {
+          model: models.LikeVideo,
+          as: 'likes',
+          attributes: [[fn('COUNT', fn('DISTINCT', col('likes.id'))), 'total_likes']]
+        },
+        {
+          model: models.LikeVideo,
+          as: 'isLikes',
+          where: {
+            user_id: user.user_id
+          },
+          required: false
         }
       ]
     })
@@ -114,24 +160,9 @@ const findOneVideo = async (req: Request, res: Response) => {
       })
     }
 
-    const likes = await models.LikeVideo.findAll({
-      where: {
-        comment_id: '',
-        video_id: video.id // Sửa lỗi cú pháp
-      },
-      attributes: [
-        [db.fn('COUNT', db.col('*')), 'like_count'],
-        [db.fn('MAX', db.literal(`CASE WHEN user_id = '${user?.user_id}' THEN 1 ELSE 0 END`)), 'isLike']
-      ],
-      raw: true
-    })
-
-    const videoData = video.toJSON() // Chuyển đổi video thành đối tượng JSON
-    const likesData = likes.length > 0 ? likes[0] : { like_count: 0, isLike: 0 } // Xử lý trường hợp không có likes
-
     return sendResponseSuccess(res, {
       message: 'Tải bài viết thành công.',
-      data: { ...videoData, ...likesData }
+      data: video
     })
   } catch (error: any) {
     res.status(500).json({

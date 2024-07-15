@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { DataTypes, Model, Optional } from 'sequelize'
 import PRIVACY from '../../constants/video'
 import User from './User'
+import LikeVideo from './LikeVideo'
+import CommentVideo from './CommentVideo'
 
 export interface VideoAttributes {
   id: string
@@ -14,6 +16,7 @@ export interface VideoAttributes {
   view: number
   category_video_id: string
   user_id: string
+  duration: number
   // list_like_user_id: Array<string>
   createdAt: Date
   updatedAt: Date
@@ -31,7 +34,7 @@ interface VideoCreationAttribute
     | 'view'
     | 'category_video_id'
     | 'user_id'
-    // | 'list_like_user_id'
+    | 'duration'
     | 'createdAt'
     | 'updatedAt'
   > {}
@@ -46,6 +49,7 @@ class Video extends Model<VideoAttributes, VideoCreationAttribute> implements Vi
   declare view: number
   declare category_video_id: string
   declare user_id: string
+  declare duration: number
   declare list_like_user_id: Array<string>
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
@@ -85,6 +89,11 @@ Video.init(
       type: DataTypes.NUMBER,
       defaultValue: 0
     },
+    duration: {
+      allowNull: false,
+      type: DataTypes.NUMBER,
+      defaultValue: 0
+    },
     category_video_id: {
       allowNull: true,
       type: DataTypes.STRING
@@ -115,7 +124,10 @@ Video.init(
 )
 
 export const videoRelationships = () => {
-  Video.belongsTo(User, { foreignKey: 'user_id', as: 'user' })
+  Video.belongsTo(User, { foreignKey: 'user_id', as: 'user' }),
+    Video.hasMany(LikeVideo, { foreignKey: 'video_id', as: 'likes' })
+  Video.hasMany(LikeVideo, { foreignKey: 'video_id', as: 'isLikes' })
+  Video.hasMany(CommentVideo, { foreignKey: 'video_id', as: 'comments' })
 }
 
 export default Video
