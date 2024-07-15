@@ -7,6 +7,11 @@ import { CreateVideoRequest } from '../types/video.type'
 import { UserOutput } from '../types/user.type'
 import db from '../connection'
 
+const UPDATE_STATUS = {
+  __VIEW__: '__VIEW__',
+  __DATA__: '__DATA__'
+}
+
 const getVideos = async (req: Request, res: Response) => {
   try {
     const videos = await models.Video.findAll({
@@ -181,8 +186,9 @@ const getVideo = async (req: Request, res: Response) => {
 //   } catch (error) {}
 // }
 
-const updateVideoView = async (req: Request, res: Response) => {
+const updateVideo = async (req: Request, res: Response) => {
   try {
+    const { status } = req.query
     const { video_id } = req.params
     const { content } = req.body
 
@@ -196,12 +202,25 @@ const updateVideoView = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Video not found' })
     }
 
+    if (status === UPDATE_STATUS.__VIEW__) {
+      video.update({
+        view: video.view + 1
+      })
+
+      return res.json({ message: 'Video view count updated successfully', video })
+    }
+
     video.update({
-      view: video.view + 1
+      content
     })
 
-    return res.json({ message: 'Video view count updated successfully', video })
-  } catch (error) {}
+    return res.json({ message: 'Video updated successfully', video })
+  } catch (error: any) {
+    res.status(500).json({
+      message: 'Có lỗi xảy ra trong quá trình tải lên hình ảnh',
+      error: error.message
+    })
+  }
 }
 
-export { getVideos, createVideo, destroyVideo, getVideo, findOneVideo, updateVideoView }
+export { getVideos, createVideo, destroyVideo, getVideo, findOneVideo, updateVideo }
