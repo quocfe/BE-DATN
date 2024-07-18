@@ -37,6 +37,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER
       },
+      duration: {
+        allowNull: false,
+        type: Sequelize.FLOAT
+      },
       category_video_id: {
         allowNull: true,
         type: Sequelize.STRING

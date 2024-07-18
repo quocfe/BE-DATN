@@ -8,6 +8,7 @@ import LikeVideo from './LikeVideo'
 import Role from './Role'
 import Account from './Account'
 import FavoriteVideos, { favoriteVideosRelationships } from './FavoriteVideos'
+import VideoReport, { videoReportRelationships } from './VideoReport'
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
@@ -71,8 +72,21 @@ export const setupModelRelationships = () => {
   videoRelationships()
   commentVideoRelationships()
   favoriteVideosRelationships()
+  videoReportRelationships()
 }
 
-const models = { Role, Account, User, Profile, Interest, Friendship, Video, CommentVideo, LikeVideo, FavoriteVideos }
+const models = {
+  Role,
+  Account,
+  User,
+  Profile,
+  Interest,
+  Friendship,
+  Video,
+  CommentVideo,
+  LikeVideo,
+  FavoriteVideos,
+  VideoReport
+}
 
 export default models

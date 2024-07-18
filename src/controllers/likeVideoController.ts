@@ -48,12 +48,13 @@ const getlikeCountVideoItem = async (req: Request, res: Response) => {
         [db.fn('MAX', db.literal(`CASE WHEN user_id = '${user?.user_id}' THEN 1 ELSE 0 END`)), 'isLike']
       ]
     })
-
+    console.log(result)
     return sendResponseSuccess(res, {
       message: 'Thành công',
       data: {
         count: result.count,
-        ...result.rows[0].dataValues
+        likeCount: result.rows.length > 0 ? result.rows[0].dataValues.likeCount : 0,
+        isLike: result.rows.length > 0 ? result.rows[0].dataValues.isLike : 0
       }
     })
   } catch (error: any) {

@@ -8,7 +8,8 @@ const API_V1 = {
   videos: `${V1}/videos`,
   likeVideo: `${V1}/like-video`,
   commentVideo: `${V1}/comment-video`,
-  favoriteVideo: `${V1}/favorite-video`
+  favoriteVideo: `${V1}/favorite-video`,
+  reportVideo: `${V1}/report-video`
 } as const
 
 const API_V2 = {

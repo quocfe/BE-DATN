@@ -6,12 +6,47 @@ import models from '../db/models'
 import { CreateVideoRequest } from '../types/video.type'
 import { UserOutput } from '../types/user.type'
 import db from '../connection'
+import { col, fn, literal, Op } from 'sequelize'
+import PRIVACY from '../constants/video'
+
+const UPDATE_STATUS = {
+  __VIEW__: '__VIEW__',
+  __DATA__: '__DATA__'
+}
 
 const getVideos = async (req: Request, res: Response) => {
   try {
-    const videos = await models.Video.findAll({
+    const user = req.user as UserOutput
+
+    const videos: any = await models.Video.findAll({
+      where: {
+        [Op.or]: [
+          { '$user.user_id$': user.user_id }, // user_id === user.user_id
+          // {
+          //   [Op.and]: [
+          //     { '$user.user_id$': { [Op.ne]: user.user_id } }, // user_id !== user.user_id
+          //     { privacy: 'ALL' }
+          //   ]
+          // }
+          {
+            '$user.user_id$': { [Op.ne]: user.user_id }, // user_id !== user.user_id
+            privacy: PRIVACY.ALL
+          }
+        ]
+      },
       attributes: {
-        exclude: ['updatedAt', 'category_video_id'] // Exclude the updatedAt attribute
+        exclude: ['updatedAt', 'category_video_id'], // Exclude the updatedAt attribute
+        include: [
+          // Include total_comments as a literal SQL query
+          [
+            literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
+            'total_comments'
+          ],
+          [
+            literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `videos`.`id`)'),
+            'total_likes'
+          ]
+        ]
       },
       include: [
         {
@@ -25,7 +60,25 @@ const getVideos = async (req: Request, res: Response) => {
             }
           ]
         }
-      ]
+      ],
+      group: ['videos.id']
+    })
+
+    const videoIds = videos.map((video: any) => video.id)
+    const isLikes = await models.LikeVideo.findAll({
+      where: {
+        video_id: {
+          [Op.in]: videoIds
+        },
+        user_id: user.user_id
+      },
+      attributes: ['video_id']
+    })
+
+    // Thêm thông tin isLikes vào từng video
+    videos.forEach((video: any) => {
+      const liked = isLikes.some((like) => like.video_id === video.id)
+      video.dataValues.isLike = liked
     })
 
     return sendResponseSuccess(res, {
@@ -86,8 +139,22 @@ const findOneVideo = async (req: Request, res: Response) => {
     const { id } = req.params
     const user = req.user as UserOutput
 
-    const video = await models.Video.findOne({
-      where: { id: id },
+    const video: any = await models.Video.findOne({
+      where: { id },
+      attributes: {
+        exclude: ['updatedAt', 'category_video_id'], // Exclude the updatedAt attribute
+        include: [
+          // Include total_comments as a literal SQL query
+          [
+            literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
+            'total_comments'
+          ],
+          [
+            literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `videos`.`id`)'),
+            'total_likes'
+          ]
+        ]
+      },
       include: [
         {
           model: models.User,
@@ -100,8 +167,24 @@ const findOneVideo = async (req: Request, res: Response) => {
             }
           ]
         }
+        // {
+        //   model: models.LikeVideo,
+        //   as: 'likes',
+        //   attributes: [[fn('COUNT', fn('DISTINCT', col('likes.id'))), 'total_likes']]
+        // }
       ]
     })
+
+    const isLikes = await models.LikeVideo.findOne({
+      where: {
+        video_id: video?.id,
+        user_id: user.user_id
+      },
+      attributes: ['video_id']
+    })
+
+    // Thêm thông tin isLikes vào từng video
+    video.dataValues.isLike = Boolean(isLikes)
 
     if (!video) {
       return res.status(404).json({
@@ -109,24 +192,9 @@ const findOneVideo = async (req: Request, res: Response) => {
       })
     }
 
-    const likes = await models.LikeVideo.findAll({
-      where: {
-        comment_id: '',
-        video_id: video.id // Sửa lỗi cú pháp
-      },
-      attributes: [
-        [db.fn('COUNT', db.col('*')), 'like_count'],
-        [db.fn('MAX', db.literal(`CASE WHEN user_id = '${user?.user_id}' THEN 1 ELSE 0 END`)), 'isLike']
-      ],
-      raw: true
-    })
-
-    const videoData = video.toJSON() // Chuyển đổi video thành đối tượng JSON
-    const likesData = likes.length > 0 ? likes[0] : { like_count: 0, isLike: 0 } // Xử lý trường hợp không có likes
-
     return sendResponseSuccess(res, {
       message: 'Tải bài viết thành công.',
-      data: { ...videoData, ...likesData }
+      data: video
     })
   } catch (error: any) {
     res.status(500).json({
@@ -180,8 +248,9 @@ const getVideo = async (req: Request, res: Response) => {
 //   } catch (error) {}
 // }
 
-const updateVideoView = async (req: Request, res: Response) => {
+const updateVideo = async (req: Request, res: Response) => {
   try {
+    const { status } = req.query
     const { video_id } = req.params
     const { content } = req.body
 
@@ -195,12 +264,25 @@ const updateVideoView = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Video not found' })
     }
 
+    if (status === UPDATE_STATUS.__VIEW__) {
+      video.update({
+        view: video.view + 1
+      })
+
+      return res.json({ message: 'Video view count updated successfully', video })
+    }
+
     video.update({
-      view: video.view + 1
+      content
     })
 
-    return res.json({ message: 'Video view count updated successfully', video })
-  } catch (error) {}
+    return res.json({ message: 'Video updated successfully', video })
+  } catch (error: any) {
+    res.status(500).json({
+      message: 'Có lỗi xảy ra trong quá trình tải lên hình ảnh',
+      error: error.message
+    })
+  }
 }
 
-export { getVideos, createVideo, destroyVideo, getVideo, findOneVideo, updateVideoView }
+export { getVideos, createVideo, destroyVideo, getVideo, findOneVideo, updateVideo }
