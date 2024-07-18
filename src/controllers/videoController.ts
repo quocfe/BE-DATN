@@ -6,7 +6,8 @@ import models from '../db/models'
 import { CreateVideoRequest } from '../types/video.type'
 import { UserOutput } from '../types/user.type'
 import db from '../connection'
-import { col, fn, literal } from 'sequelize'
+import { col, fn, literal, Op } from 'sequelize'
+import PRIVACY from '../constants/video'
 
 const UPDATE_STATUS = {
   __VIEW__: '__VIEW__',
@@ -17,7 +18,22 @@ const getVideos = async (req: Request, res: Response) => {
   try {
     const user = req.user as UserOutput
 
-    const videos = await models.Video.findAll({
+    const videos: any = await models.Video.findAll({
+      where: {
+        [Op.or]: [
+          { '$user.user_id$': user.user_id }, // user_id === user.user_id
+          // {
+          //   [Op.and]: [
+          //     { '$user.user_id$': { [Op.ne]: user.user_id } }, // user_id !== user.user_id
+          //     { privacy: 'ALL' }
+          //   ]
+          // }
+          {
+            '$user.user_id$': { [Op.ne]: user.user_id }, // user_id !== user.user_id
+            privacy: PRIVACY.ALL
+          }
+        ]
+      },
       attributes: {
         exclude: ['updatedAt', 'category_video_id'], // Exclude the updatedAt attribute
         include: [
@@ -25,6 +41,10 @@ const getVideos = async (req: Request, res: Response) => {
           [
             literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
             'total_comments'
+          ],
+          [
+            literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `videos`.`id`)'),
+            'total_likes'
           ]
         ]
       },
@@ -39,21 +59,26 @@ const getVideos = async (req: Request, res: Response) => {
               attributes: ['cover_photo']
             }
           ]
-        },
-        {
-          model: models.LikeVideo,
-          as: 'likes',
-          attributes: [[fn('COUNT', fn('DISTINCT', col('likes.id'))), 'total_likes']]
-        },
-        {
-          model: models.LikeVideo,
-          as: 'isLikes',
-          where: {
-            user_id: user.user_id
-          },
-          required: false
         }
-      ]
+      ],
+      group: ['videos.id']
+    })
+
+    const videoIds = videos.map((video: any) => video.id)
+    const isLikes = await models.LikeVideo.findAll({
+      where: {
+        video_id: {
+          [Op.in]: videoIds
+        },
+        user_id: user.user_id
+      },
+      attributes: ['video_id']
+    })
+
+    // Thêm thông tin isLikes vào từng video
+    videos.forEach((video: any) => {
+      const liked = isLikes.some((like) => like.video_id === video.id)
+      video.dataValues.isLike = liked
     })
 
     return sendResponseSuccess(res, {
@@ -114,7 +139,7 @@ const findOneVideo = async (req: Request, res: Response) => {
     const { id } = req.params
     const user = req.user as UserOutput
 
-    const video = await models.Video.findOne({
+    const video: any = await models.Video.findOne({
       where: { id },
       attributes: {
         exclude: ['updatedAt', 'category_video_id'], // Exclude the updatedAt attribute
@@ -123,6 +148,10 @@ const findOneVideo = async (req: Request, res: Response) => {
           [
             literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
             'total_comments'
+          ],
+          [
+            literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `videos`.`id`)'),
+            'total_likes'
           ]
         ]
       },
@@ -137,22 +166,25 @@ const findOneVideo = async (req: Request, res: Response) => {
               attributes: ['cover_photo']
             }
           ]
-        },
-        {
-          model: models.LikeVideo,
-          as: 'likes',
-          attributes: [[fn('COUNT', fn('DISTINCT', col('likes.id'))), 'total_likes']]
-        },
-        {
-          model: models.LikeVideo,
-          as: 'isLikes',
-          where: {
-            user_id: user.user_id
-          },
-          required: false
         }
+        // {
+        //   model: models.LikeVideo,
+        //   as: 'likes',
+        //   attributes: [[fn('COUNT', fn('DISTINCT', col('likes.id'))), 'total_likes']]
+        // }
       ]
     })
+
+    const isLikes = await models.LikeVideo.findOne({
+      where: {
+        video_id: video?.id,
+        user_id: user.user_id
+      },
+      attributes: ['video_id']
+    })
+
+    // Thêm thông tin isLikes vào từng video
+    video.dataValues.isLike = Boolean(isLikes)
 
     if (!video) {
       return res.status(404).json({
