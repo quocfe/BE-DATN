@@ -13,6 +13,7 @@ const FriendShipMigration = require('./create-table-friendship')
 const LikeVideoMigration = require('./create-table-like-video')
 const FavoriteVideoMigration = require('./create-table-favorite-video')
 const VideoReportMigration = require('./create-table-video-report')
+const HashTagsVideo = require('./create-table-hash-tag-video')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -40,6 +41,8 @@ module.exports = {
     await FavoriteVideoMigration.up(queryInterface, Sequelize)
     // Video Report
     await VideoReportMigration.up(queryInterface, Sequelize)
+    // Video Hash tags
+    await HashTagsVideo.up(queryInterface, Sequelize)
   },
 
   async down(queryInterface, Sequelize) {
@@ -67,5 +70,7 @@ module.exports = {
     await FavoriteVideoMigration.down(queryInterface, Sequelize)
     // Video Report
     await VideoReportMigration.down(queryInterface, Sequelize)
+    // Video Hash tags
+    await HashTagsVideo.down(queryInterface, Sequelize)
   }
 }

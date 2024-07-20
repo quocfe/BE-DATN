@@ -41,7 +41,7 @@ videoRouter.get('/:id', middleware.verifyToken, findOneVideo)
 // create
 videoRouter.post('/create', middleware.verifyToken, upload.single('video'), createVideo)
 
-videoRouter.delete('/:public_id', middleware.verifyToken, destroyVideo)
+videoRouter.delete('/:video_id', middleware.verifyToken, destroyVideo)
 
 // getOne
 videoRouter.get('/resource/:public_id', middleware.verifyToken, getVideo)
