@@ -11,7 +11,7 @@ import PRIVACY from '../constants/video'
 
 const UPDATE_STATUS = {
   __VIEW__: '__VIEW__',
-  __DATA__: '__DATA__'
+  __UPDATE__: '__UPDATE__'
 }
 
 const getVideos = async (req: Request, res: Response) => {
@@ -95,7 +95,6 @@ const getVideos = async (req: Request, res: Response) => {
 
 const createVideo = async (req: Request<unknown, unknown, CreateVideoRequest>, res: Response) => {
   const transaction = await db.transaction()
-
   const body = req.body
   const user = req.user as UserOutput
 
@@ -104,18 +103,34 @@ const createVideo = async (req: Request<unknown, unknown, CreateVideoRequest>, r
     return res.status(400).json({ message: 'Video không tồn tại' })
   }
 
-  const uploadFile: UploadApiResponse = await cloudinaryUploadVideo(req.file)
-
+  let uploadFile: UploadApiResponse | null = null
   try {
+    uploadFile = await cloudinaryUploadVideo(req.file)
+
+    // Tạo video mới
     const video = await models.Video.create(
       {
         ...body,
+        content: typeof body.content === 'string' ? body.content : JSON.stringify(body.content),
         url: uploadFile.url,
         public_id: uploadFile.public_id,
         user_id: user.user_id
       },
-      { transaction: transaction }
+      { transaction }
     )
+
+    if (body.hashTags) {
+      for (const tag of JSON.parse(body.hashTags)) {
+        const existingHashTag = await models.HashTagsVideo.findOne({
+          where: { tag },
+          transaction
+        })
+
+        if (!existingHashTag) {
+          await models.HashTagsVideo.create({ tag }, { transaction })
+        }
+      }
+    }
 
     await transaction.commit()
 
@@ -124,7 +139,11 @@ const createVideo = async (req: Request<unknown, unknown, CreateVideoRequest>, r
       data: { ...video, uploadFile }
     })
   } catch (error: any) {
-    await destroyCloudinary(uploadFile.public_id, 'video')
+    // Xóa video từ Cloudinary nếu có lỗi xảy ra
+    if (uploadFile && uploadFile.public_id) {
+      await destroyCloudinary(uploadFile.public_id, 'video')
+    }
+
     await transaction.rollback()
     return res.status(500).json({
       message: 'Có lỗi xảy ra',
@@ -204,15 +223,61 @@ const findOneVideo = async (req: Request, res: Response) => {
   }
 }
 
+// TODO
 const destroyVideo = async (req: Request, res: Response) => {
+  const transaction = await db.transaction()
+
   try {
+<<<<<<< HEAD
     const { public_id } = req.params
     const result = await destroyCloudinary(public_id, 'video')
+=======
+    const { video_id } = req.params
+    const user = req.user as UserOutput
 
-    return res.json({
-      result
+    const video = await models.Video.findOne({
+      where: {
+        id: video_id,
+        user_id: user.user_id
+      },
+      transaction // Thêm transaction vào đây
+    })
+>>>>>>> 0ad5ac43793dfe20d20e2221ba637bc052054711
+
+    if (!video) {
+      await transaction.rollback() // Rollback giao dịch nếu video không tồn tại
+      return res.status(500).json({
+        message: 'Bạn không thể xóa video này',
+        error: null
+      })
+    }
+
+    await models.LikeVideo.destroy({
+      where: {
+        video_id: video_id
+      },
+      transaction // Thêm transaction vào đây
+    })
+
+    await models.CommentVideo.destroy({
+      where: {
+        video_id: video_id
+      },
+      transaction // Thêm transaction vào đây
+    })
+
+    await destroyCloudinary(video.public_id, 'video')
+
+    await video.destroy({ transaction }) // Thêm transaction vào đây
+
+    await transaction.commit() // Commit giao dịch nếu tất cả thao tác thành công
+
+    return sendResponseSuccess(res, {
+      message: 'Xóa video thành công.',
+      data: {}
     })
   } catch (error: any) {
+    await transaction.rollback() // Rollback giao dịch nếu có lỗi xảy ra
     res.status(500).json({
       message: 'Có lỗi xảy ra trong quá trình tải lên hình ảnh',
       error: error.message
@@ -240,19 +305,39 @@ const getVideo = async (req: Request, res: Response) => {
 // const updateVideo = async (req: Request, res: Response) => {
 //   try {
 //     const { video_id } = req.params
-//     const { content } = req.body
+//     const user = req.user as UserOutput
 
-//     const updateData = await models.Video.update({
-//       content
+//     const result = await models.Video.update(
+//       {
+//         ...req.body
+//       },
+//       {
+//         where: { id: video_id, user_id: user.user_id }
+//       }
+//     )
+
+//     if (!result) {
+//       res.status(500).json({
+//         message: 'Dã có lỗi xảy ra'
+//       })
+//     }
+
+//     return sendResponseSuccess(res, {
+//       message: 'Tải bài viết thành công.',
+//       data: result
 //     })
-//   } catch (error) {}
+//   } catch (error: any) {
+//     res.status(500).json({
+//       message: 'Có lỗi xảy ra trong quá trình tải lên hình ảnh',
+//       error: error.message
+//     })
+//   }
 // }
 
 const updateVideo = async (req: Request, res: Response) => {
   try {
     const { status } = req.query
     const { video_id } = req.params
-    const { content } = req.body
 
     const video = await models.Video.findOne({
       where: {
@@ -269,14 +354,36 @@ const updateVideo = async (req: Request, res: Response) => {
         view: video.view + 1
       })
 
-      return res.json({ message: 'Video view count updated successfully', video })
+      return sendResponseSuccess(res, {
+        message: 'Video view count updated successfully',
+        data: video
+      })
     }
+    console.log('req.body.content: ', req.body.content)
+    if (status === UPDATE_STATUS.__UPDATE__) {
+      await video.update({
+        ...req.body,
+        content: typeof req.body.content === 'string' ? req.body.content : JSON.stringify(req.body.content)
+      })
 
-    video.update({
-      content
-    })
+      if (req.body.hashTags) {
+        for (const tag of JSON.parse(req.body.hashTags)) {
+          const existingHashTag = await models.HashTagsVideo.findOne({
+            where: { tag }
+            // transaction
+          })
 
-    return res.json({ message: 'Video updated successfully', video })
+          if (!existingHashTag) {
+            await models.HashTagsVideo.create({ tag })
+          }
+        }
+      }
+      
+      return sendResponseSuccess(res, {
+        message: 'Cập nhật video thành công.',
+        data: video
+      })
+    }
   } catch (error: any) {
     res.status(500).json({
       message: 'Có lỗi xảy ra trong quá trình tải lên hình ảnh',
