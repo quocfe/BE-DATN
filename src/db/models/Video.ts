@@ -9,6 +9,7 @@ import CommentVideo from './CommentVideo'
 export interface VideoAttributes {
   id: string
   content: string
+  contentText: string
   url: string
   public_id: string
   tag: string
@@ -29,6 +30,7 @@ interface VideoCreationAttribute
     | 'content'
     | 'url'
     | 'public_id'
+    | 'contentText'
     | 'tag'
     | 'privacy'
     | 'view'
@@ -42,6 +44,7 @@ interface VideoCreationAttribute
 class Video extends Model<VideoAttributes, VideoCreationAttribute> implements VideoAttributes {
   declare id: string
   declare content: string
+  declare contentText: string
   declare url: string
   declare public_id: string
   declare tag: string
@@ -64,6 +67,10 @@ Video.init(
       defaultValue: () => uuidv4()
     },
     content: {
+      allowNull: true,
+      type: DataTypes.STRING
+    },
+    contentText: {
       allowNull: true,
       type: DataTypes.STRING
     },
