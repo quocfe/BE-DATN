@@ -228,10 +228,6 @@ const destroyVideo = async (req: Request, res: Response) => {
   const transaction = await db.transaction()
 
   try {
-<<<<<<< HEAD
-    const { public_id } = req.params
-    const result = await destroyCloudinary(public_id, 'video')
-=======
     const { video_id } = req.params
     const user = req.user as UserOutput
 
@@ -242,7 +238,6 @@ const destroyVideo = async (req: Request, res: Response) => {
       },
       transaction // Thêm transaction vào đây
     })
->>>>>>> 0ad5ac43793dfe20d20e2221ba637bc052054711
 
     if (!video) {
       await transaction.rollback() // Rollback giao dịch nếu video không tồn tại
