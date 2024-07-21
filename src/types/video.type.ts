@@ -3,4 +3,5 @@ export interface CreateVideoRequest {
   title?: string
   hashTags?: string
   privacy?: string
+  contentText?: string
 }

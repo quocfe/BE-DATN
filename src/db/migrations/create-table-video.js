@@ -13,6 +13,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING
       },
+      contentText: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
       title: {
         allowNull: true,
         type: Sequelize.STRING
