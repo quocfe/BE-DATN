@@ -14,6 +14,7 @@ module.exports = {
           url: 'http://res.cloudinary.com/dizwixa7c/video/upload/v1717088537/uy6fzru9cxhff8b7r154.mp4',
           public_id: 'uy6fzru9cxhff8b7r154',
           tag: '',
+          duration: 0,
           privacy: '',
           view: 0,
           category_video_id: '',
