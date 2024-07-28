@@ -1,9 +1,15 @@
 import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
+import Video, { videoRelationships } from './Video'
+import CommentVideo, { commentVideoRelationships } from './CommentVideo'
 import Friendship from './Friendship'
+import LikeVideo from './LikeVideo'
 import Role from './Role'
 import Account from './Account'
+import FavoriteVideos, { favoriteVideosRelationships } from './FavoriteVideos'
+import VideoReport, { videoReportRelationships } from './VideoReport'
+import HashTagsVideo, { hashTagsVideoRelationships } from './hashTagsVideo'
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
@@ -64,8 +70,26 @@ export const setupModelRelationships = () => {
   userRelationships()
   profileRelationships()
   interestRelationships()
+  videoRelationships()
+  commentVideoRelationships()
+  favoriteVideosRelationships()
+  videoReportRelationships()
+  hashTagsVideoRelationships()
 }
 
-const models = { Role, Account, User, Profile, Interest, Friendship }
+const models = {
+  Role,
+  Account,
+  User,
+  Profile,
+  Interest,
+  Friendship,
+  Video,
+  CommentVideo,
+  LikeVideo,
+  FavoriteVideos,
+  VideoReport,
+  HashTagsVideo
+}
 
 export default models
