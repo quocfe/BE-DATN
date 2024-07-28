@@ -7,6 +7,7 @@ import LikeVideo from './LikeVideo'
 import CommentVideo from './CommentVideo'
 
 export interface VideoAttributes {
+  [x: string]: any
   id: string
   content: string
   contentText: string

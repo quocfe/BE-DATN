@@ -16,6 +16,7 @@ module.exports = {
           tag: '',
           privacy: '',
           view: 0,
+          duration: 0,
           category_video_id: '',
           user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002'
         }
