@@ -4,11 +4,12 @@ import Interest from './Interest'
 import Friendship from './Friendship'
 import Video, { videoRelationships } from './Video'
 import CommentVideo, { commentVideoRelationships } from './CommentVideo'
-import Friendship from './Friendship'
 import LikeVideo from './LikeVideo'
 import Role from './Role'
 import Account from './Account'
 import FavoriteVideos, { favoriteVideosRelationships } from './FavoriteVideos'
+import VideoReport, { videoReportRelationships } from './VideoReport'
+import HashTagsVideo, { hashTagsVideoRelationships } from './hashTagsVideo'
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
@@ -21,7 +22,6 @@ const accountRelationship = () => {
     foreignKey: 'role_id'
   })
 }
->>>>>>> 84b5a9fdec491bc704d8ea65fe6caf13b5436e3a
 
 const userRelationships = () => {
   User.hasOne(Profile, {
@@ -73,12 +73,23 @@ export const setupModelRelationships = () => {
   videoRelationships()
   commentVideoRelationships()
   favoriteVideosRelationships()
+  videoReportRelationships()
+  hashTagsVideoRelationships()
 }
 
-<<<<<<< HEAD
-const models = { User, Profile, Interest, Friendship }
-=======
-const models = { Role, Account, User, Profile, Interest, Friendship, Video, CommentVideo, LikeVideo, FavoriteVideos }
->>>>>>> 84b5a9fdec491bc704d8ea65fe6caf13b5436e3a
+const models = {
+  Role,
+  Account,
+  User,
+  Profile,
+  Interest,
+  Friendship,
+  Video,
+  CommentVideo,
+  LikeVideo,
+  FavoriteVideos,
+  VideoReport,
+  HashTagsVideo
+}
 
 export default models

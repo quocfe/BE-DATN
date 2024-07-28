@@ -13,6 +13,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING
       },
+      contentText: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
       title: {
         allowNull: true,
         type: Sequelize.STRING
@@ -36,6 +40,10 @@ module.exports = {
       view: {
         allowNull: false,
         type: Sequelize.INTEGER
+      },
+      duration: {
+        allowNull: false,
+        type: Sequelize.FLOAT
       },
       category_video_id: {
         allowNull: true,

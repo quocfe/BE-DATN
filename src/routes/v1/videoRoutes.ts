@@ -8,7 +8,7 @@ import {
   findOneVideo,
   getVideo,
   getVideos,
-  updateVideoView
+  updateVideo
 } from '../../controllers/videoController'
 import middleware from '../../middleware'
 
@@ -41,12 +41,12 @@ videoRouter.get('/:id', middleware.verifyToken, findOneVideo)
 // create
 videoRouter.post('/create', middleware.verifyToken, upload.single('video'), createVideo)
 
-videoRouter.delete('/:public_id', middleware.verifyToken, destroyVideo)
+videoRouter.delete('/:video_id', middleware.verifyToken, destroyVideo)
 
 // getOne
 videoRouter.get('/resource/:public_id', middleware.verifyToken, getVideo)
 
 // getOne
-videoRouter.patch('/view/:video_id', middleware.verifyToken, updateVideoView)
+videoRouter.patch('/:video_id', middleware.verifyToken, updateVideo)
 
 export default videoRouter

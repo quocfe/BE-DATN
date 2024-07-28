@@ -7,6 +7,7 @@ import models from '.'
 import LIKE_TYPE from '../../constants/likeVideo'
 
 export interface LikeVideoAttributes {
+  [x: string]: any
   id: string
   user_id: string
   video_id: string

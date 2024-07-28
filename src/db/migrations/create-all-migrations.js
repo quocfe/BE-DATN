@@ -13,6 +13,8 @@ const CommnetVideoMigration = require('./create-table-comment-video')
 const FriendShipMigration = require('./create-table-friendship')
 const LikeVideoMigration = require('./create-table-like-video')
 const FavoriteVideoMigration = require('./create-table-favorite-video')
+const VideoReportMigration = require('./create-table-video-report')
+const HashTagsVideo = require('./create-table-hash-tag-video')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -40,6 +42,10 @@ module.exports = {
     await FriendShipMigration.up(queryInterface, Sequelize)
     // Favorite Video
     await FavoriteVideoMigration.up(queryInterface, Sequelize)
+    // Video Report
+    await VideoReportMigration.up(queryInterface, Sequelize)
+    // Video Hash tags
+    await HashTagsVideo.up(queryInterface, Sequelize)
   },
 
   async down(queryInterface, Sequelize) {
@@ -54,16 +60,20 @@ module.exports = {
     // User
     await UserMigration.down(queryInterface, Sequelize)
     // Video
-    await VideoMigration.up(queryInterface, Sequelize)
+    await VideoMigration.down(queryInterface, Sequelize)
     // Commnet Video
-    await CommnetVideoMigration.up(queryInterface, Sequelize)
+    await CommnetVideoMigration.down(queryInterface, Sequelize)
     //  Like Video
-    await LikeVideoMigration.up(queryInterface, Sequelize)
+    await LikeVideoMigration.down(queryInterface, Sequelize)
     // Account
     await AccountMigration.down(queryInterface, Sequelize)
     // Role
     await RoleMigration.down(queryInterface, Sequelize)
     // Favorite Video
     await FavoriteVideoMigration.down(queryInterface, Sequelize)
+    // Video Report
+    await VideoReportMigration.down(queryInterface, Sequelize)
+    // Video Hash tags
+    await HashTagsVideo.down(queryInterface, Sequelize)
   }
 }
