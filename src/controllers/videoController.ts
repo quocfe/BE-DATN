@@ -8,36 +8,120 @@ import { UserOutput } from '../types/user.type'
 import db from '../connection'
 import { col, fn, literal, Op } from 'sequelize'
 import PRIVACY from '../constants/video'
+import { duration } from 'moment'
 
 const UPDATE_STATUS = {
   __VIEW__: '__VIEW__',
   __UPDATE__: '__UPDATE__'
 }
 
+// const getVideos = async (req: Request, res: Response) => {
+//   try {
+//     const user = req.user as UserOutput
+
+//     const videos: any = await models.Video.findAll({
+//       where: {
+//         [Op.or]: [
+//           // { '$user.user_id$': user?.user_id }, // user_id === user.user_id
+//           // {
+//           //   '$user.user_id$': { [Op.ne]: user?.user_id }, // user_id !== user.user_id
+//           //   privacy: PRIVACY.ALL
+//           // }
+//           { user_id: user?.user_id },
+//           {
+//             user_id: { [Op.ne]: user?.user_id },
+//             privacy: PRIVACY.ALL
+//           }
+//         ]
+//       },
+//       attributes: {
+//         exclude: ['updatedAt', 'category_video_id'], // Exclude the updatedAt attribute
+//         include: [
+//           // Include total_comments as a literal SQL query
+//           [
+//             literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
+//             'total_comments'
+//           ],
+//           [
+//             literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `videos`.`id`)'),
+//             'total_likes'
+//           ]
+//         ]
+//       },
+//       include: [
+//         {
+//           model: models.User,
+//           as: 'user',
+//           attributes: ['user_id', 'first_name', 'last_name'], // Specify which user attributes to include
+//           include: [
+//             {
+//               model: models.Profile,
+//               attributes: ['cover_photo']
+//             }
+//           ]
+//         }
+//       ],
+//       group: ['videos.id']
+//     })
+
+//     const videoIds = videos.map((video: any) => video.id)
+//     const isLikes = await models.LikeVideo.findAll({
+//       where: {
+//         video_id: {
+//           [Op.in]: videoIds
+//         },
+//         user_id: user.user_id
+//       },
+//       attributes: ['video_id']
+//     })
+
+//     // Thêm thông tin isLikes vào từng video
+//     videos.forEach((video: any) => {
+//       const liked = isLikes.some((like) => like.video_id === video.id)
+//       video.dataValues.isLike = liked
+//     })
+
+//     return sendResponseSuccess(res, {
+//       message: 'Lấy danh sách thành công.',
+//       data: videos
+//     })
+//   } catch (error: any) {
+//     return res.status(500).json({
+//       message: 'Dã có lỗi xảy ra',
+//       error: error.message
+//     })
+//   }
+// }
 const getVideos = async (req: Request, res: Response) => {
   try {
     const user = req.user as UserOutput
-
-    const videos: any = await models.Video.findAll({
+    const { page = 1, limit = 1 } = req.query
+    // Đếm tổng số video thỏa mãn điều kiện
+    const totalRecords = await models.Video.count({
       where: {
         [Op.or]: [
-          { '$user.user_id$': user.user_id }, // user_id === user.user_id
-          // {
-          //   [Op.and]: [
-          //     { '$user.user_id$': { [Op.ne]: user.user_id } }, // user_id !== user.user_id
-          //     { privacy: 'ALL' }
-          //   ]
-          // }
+          { user_id: user?.user_id },
           {
-            '$user.user_id$': { [Op.ne]: user.user_id }, // user_id !== user.user_id
+            user_id: { [Op.ne]: user?.user_id },
+            privacy: PRIVACY.ALL
+          }
+        ]
+      }
+    })
+
+    const videos = await models.Video.findAll({
+      where: {
+        [Op.or]: [
+          { user_id: user?.user_id },
+          {
+            user_id: { [Op.ne]: user?.user_id },
             privacy: PRIVACY.ALL
           }
         ]
       },
       attributes: {
-        exclude: ['updatedAt', 'category_video_id'], // Exclude the updatedAt attribute
+        exclude: ['updatedAt', 'category_video_id'],
         include: [
-          // Include total_comments as a literal SQL query
           [
             literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
             'total_comments'
@@ -52,7 +136,7 @@ const getVideos = async (req: Request, res: Response) => {
         {
           model: models.User,
           as: 'user',
-          attributes: ['user_id', 'first_name', 'last_name'], // Specify which user attributes to include
+          attributes: ['user_id', 'first_name', 'last_name'],
           include: [
             {
               model: models.Profile,
@@ -61,10 +145,21 @@ const getVideos = async (req: Request, res: Response) => {
           ]
         }
       ],
-      group: ['videos.id']
-    })
+      group: [
+        'videos.id',
+        'user.user_id',
+        'user.first_name',
+        'user.last_name',
+        'user->Profile.profile_id',
+        'user->Profile.cover_photo'
+      ],
 
-    const videoIds = videos.map((video: any) => video.id)
+      order: [['createdAt', 'DESC']], // Sắp xếp theo createdAt theo thứ tự giảm dần
+      limit: Number(limit), // Số lượng video mỗi trang
+      offset: (Number(page) - 1) * Number(limit) // Vị trí bắt đầu cho mỗi trang
+    })
+    console.log('videos:', videos)
+    const videoIds = videos.map((video) => video.id)
     const isLikes = await models.LikeVideo.findAll({
       where: {
         video_id: {
@@ -75,19 +170,24 @@ const getVideos = async (req: Request, res: Response) => {
       attributes: ['video_id']
     })
 
-    // Thêm thông tin isLikes vào từng video
-    videos.forEach((video: any) => {
+    videos.forEach((video) => {
       const liked = isLikes.some((like) => like.video_id === video.id)
       video.dataValues.isLike = liked
     })
 
     return sendResponseSuccess(res, {
       message: 'Lấy danh sách thành công.',
-      data: videos
+      data: {
+        page: Number(page),
+        limit: Number(limit),
+        total: videos.length,
+        content: videos,
+        totalRecords: totalRecords
+      }
     })
   } catch (error: any) {
     return res.status(500).json({
-      message: 'Dã có lỗi xảy ra',
+      message: 'Đã có lỗi xảy ra',
       error: error.message
     })
   }
@@ -103,10 +203,10 @@ const createVideo = async (req: Request<unknown, unknown, CreateVideoRequest>, r
     return res.status(400).json({ message: 'Video không tồn tại' })
   }
 
-  let uploadFile: UploadApiResponse | null = null
+  let uploadFile: UploadApiResponse | null = null //UploadApiResponse
   try {
     uploadFile = await cloudinaryUploadVideo(req.file)
-
+    console.log('uploadFile: ', uploadFile)
     // Tạo video mới
     const video = await models.Video.create(
       {
@@ -114,7 +214,8 @@ const createVideo = async (req: Request<unknown, unknown, CreateVideoRequest>, r
         content: typeof body.content === 'string' ? body.content : JSON.stringify(body.content),
         url: uploadFile.url,
         public_id: uploadFile.public_id,
-        user_id: user.user_id
+        user_id: user.user_id,
+        duration: uploadFile.duration
       },
       { transaction }
     )
@@ -373,7 +474,7 @@ const updateVideo = async (req: Request, res: Response) => {
           }
         }
       }
-      
+
       return sendResponseSuccess(res, {
         message: 'Cập nhật video thành công.',
         data: video
