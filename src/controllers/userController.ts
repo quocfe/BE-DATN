@@ -56,26 +56,26 @@ class userController {
       if (req.file) {
         const file = req.file
         dataProfileUpdate.profile_picture = file.path
-      const files = req.files as MulterFiles
+        const files = req.files as MulterFiles
 
-      if (req.files) {
-        if (files.profile_picture) {
-          const profilePicture = files.profile_picture[0]
-          dataProfileUpdate.profile_picture = profilePicture.path
+        if (req.files) {
+          if (files.profile_picture) {
+            const profilePicture = files.profile_picture[0]
+            dataProfileUpdate.profile_picture = profilePicture.path
+          }
+
+          if (files.cover_photo) {
+            const coverPhoto = files.cover_photo[0]
+            dataProfileUpdate.cover_photo = coverPhoto.path
+          }
         }
 
-        if (files.cover_photo) {
-          const coverPhoto = files.cover_photo[0]
-          dataProfileUpdate.cover_photo = coverPhoto.path
-        }
->>>>>>> 84b5a9fdec491bc704d8ea65fe6caf13b5436e3a
+        const data = await userService.updateProfile(user_id, dataProfileUpdate)
+
+        sendResponseSuccess(res, data)
+      } else {
+        throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
       }
-
-      const data = await userService.updateProfile(user_id, dataProfileUpdate)
-
-      sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -253,7 +253,6 @@ class userController {
 
     sendResponseSuccess(res, data)
   }
->>>>>>> 84b5a9fdec491bc704d8ea65fe6caf13b5436e3a
 }
 
 export default new userController()

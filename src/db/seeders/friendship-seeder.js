@@ -617,7 +617,6 @@ module.exports = {
           user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
           friend_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
           status: 'Đã chấp nhận'
->>>>>>> 84b5a9fdec491bc704d8ea65fe6caf13b5436e3a
         }
       ],
       {}

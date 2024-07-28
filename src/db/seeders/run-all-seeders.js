@@ -8,10 +8,7 @@ const ProfileSeeder = require('./profile-seeder')
 const InterestSeeder = require('./interest-seeder')
 const UserInterestSeeder = require('./user-interest-seeder')
 const FriendshipSeeder = require('./friendship-seeder')
-<<<<<<< HEAD
-=======
 const VideoSeeder = require('./video-seeder')
->>>>>>> 84b5a9fdec491bc704d8ea65fe6caf13b5436e3a
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -22,10 +19,7 @@ module.exports = {
     await InterestSeeder.up(queryInterface, Sequelize)
     await UserInterestSeeder.up(queryInterface, Sequelize)
     await FriendshipSeeder.up(queryInterface, Sequelize)
-<<<<<<< HEAD
-=======
     await VideoSeeder.up(queryInterface, Sequelize)
->>>>>>> 84b5a9fdec491bc704d8ea65fe6caf13b5436e3a
   },
 
   async down(queryInterface, Sequelize) {
