@@ -2,28 +2,28 @@ import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
 export default {
   async up(queryInterface: QueryInterface) {
-    await queryInterface.createTable('SearchHistories', {
-      search_history_id: {
+    await queryInterface.createTable('PostMediaResources', {
+      media_id: {
         allowNull: false,
         primaryKey: true,
         type: DataTypes.STRING
       },
-      user_id: {
-        allowNull: true,
+      post_id: {
+        allowNull: false,
         type: DataTypes.STRING,
         references: {
-          model: 'Users',
-          key: 'user_id'
+          model: 'Posts',
+          key: 'post_id'
         },
         onDelete: 'CASCADE'
       },
-      target_id: {
+      media_url: {
         allowNull: false,
         type: DataTypes.STRING
       },
-      search_type: {
+      media_type: {
         allowNull: false,
-        type: DataTypes.ENUM('user', 'fanpage')
+        type: DataTypes.ENUM('image', 'video')
       },
       createdAt: {
         allowNull: false,
@@ -39,6 +39,6 @@ export default {
   },
 
   async down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('SearchHistories')
+    await queryInterface.dropTable('PostMediaResources')
   }
 }

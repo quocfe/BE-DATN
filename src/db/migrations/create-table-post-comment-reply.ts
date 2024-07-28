@@ -2,14 +2,31 @@ import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
 export default {
   async up(queryInterface: QueryInterface) {
-    await queryInterface.createTable('SearchHistories', {
-      search_history_id: {
+    await queryInterface.createTable('PostCommentReplies', {
+      comment_reply_id: {
         allowNull: false,
         primaryKey: true,
         type: DataTypes.STRING
       },
-      user_id: {
+      content: {
         allowNull: true,
+        type: DataTypes.STRING
+      },
+      media_url: {
+        allowNull: true,
+        type: DataTypes.STRING
+      },
+      comment_id: {
+        allowNull: false,
+        type: DataTypes.STRING,
+        references: {
+          model: 'PostComments',
+          key: 'comment_id'
+        },
+        onDelete: 'CASCADE'
+      },
+      user_id: {
+        allowNull: false,
         type: DataTypes.STRING,
         references: {
           model: 'Users',
@@ -17,13 +34,14 @@ export default {
         },
         onDelete: 'CASCADE'
       },
-      target_id: {
+      replied_to_user_id: {
         allowNull: false,
-        type: DataTypes.STRING
-      },
-      search_type: {
-        allowNull: false,
-        type: DataTypes.ENUM('user', 'fanpage')
+        type: DataTypes.STRING,
+        references: {
+          model: 'Users',
+          key: 'user_id'
+        },
+        onDelete: 'CASCADE'
       },
       createdAt: {
         allowNull: false,
@@ -39,6 +57,6 @@ export default {
   },
 
   async down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('SearchHistories')
+    await queryInterface.dropTable('PostCommentReplies')
   }
 }

@@ -7,6 +7,13 @@ import InterestMigration from './create-table-interest'
 import UserInterestsMigration from './create-table-user-interests'
 import FriendShipMigration from './create-table-friendship'
 import SearchHistoryMigration from './create-table-search-history'
+import PostMigration from './create-table-post'
+import PostMediaResourceMigration from './create-table-post-media-resource'
+import PostCommentMigration from './create-table-post-comment'
+import PostCommentReplyMigration from './create-table-post-comment-reply'
+import PostReactionMigration from './create-table-post-reaction'
+import PostShareMigration from './create-table-post-share'
+import PostReportMigration from './create-table-post-report'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -18,9 +25,23 @@ export default {
     await UserInterestsMigration.up(queryInterface)
     await FriendShipMigration.up(queryInterface)
     await SearchHistoryMigration.up(queryInterface)
+    await PostMigration.up(queryInterface)
+    await PostMediaResourceMigration.up(queryInterface)
+    await PostCommentMigration.up(queryInterface)
+    await PostCommentReplyMigration.up(queryInterface)
+    await PostReactionMigration.up(queryInterface)
+    await PostShareMigration.up(queryInterface)
+    await PostReportMigration.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
+    await PostShareMigration.down(queryInterface)
+    await PostReportMigration.down(queryInterface)
+    await PostReactionMigration.down(queryInterface)
+    await PostCommentReplyMigration.down(queryInterface)
+    await PostCommentMigration.down(queryInterface)
+    await PostMediaResourceMigration.down(queryInterface)
+    await PostMigration.down(queryInterface)
     await SearchHistoryMigration.down(queryInterface)
     await FriendShipMigration.down(queryInterface)
     await UserInterestsMigration.down(queryInterface)
