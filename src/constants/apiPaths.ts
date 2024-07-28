@@ -3,7 +3,13 @@ const V2 = '/api/v2'
 
 const API_V1 = {
   common: `${V1}`,
-  user: `${V1}/user`
+  user: `${V1}/user`,
+  interest: `${V1}/interest`,
+  videos: `${V1}/videos`,
+  likeVideo: `${V1}/like-video`,
+  commentVideo: `${V1}/comment-video`,
+  favoriteVideo: `${V1}/favorite-video`,
+  reportVideo: `${V1}/report-video`
 } as const
 
 const API_V2 = {
