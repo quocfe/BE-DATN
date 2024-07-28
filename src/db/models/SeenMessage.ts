@@ -6,7 +6,9 @@ export type SeenMessageAttributes = {
   seen_message_id: string
   user_id: string
   message_id: string
-  status: boolean
+  group_message_id: string
+  status: string
+  createdBy: string
   createdAt: Date
   updatedAt: Date
 }
@@ -14,14 +16,23 @@ export type SeenMessageAttributes = {
 interface SeenMessageCreationAttribute
   extends Optional<
     SeenMessageAttributes,
-    'seen_message_id' | 'user_id' | 'message_id' | 'status' | 'createdAt' | 'updatedAt'
+    | 'seen_message_id'
+    | 'user_id'
+    | 'message_id'
+    | 'group_message_id'
+    | 'status'
+    | 'createdBy'
+    | 'createdAt'
+    | 'updatedAt'
   > {}
 
 class SeenMessage extends Model<SeenMessageAttributes, SeenMessageCreationAttribute> implements SeenMessageAttributes {
   declare seen_message_id: string
   declare user_id: string
   declare message_id: string
-  declare status: boolean
+  declare group_message_id: string
+  declare status: string
+  declare createdBy: string
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -42,9 +53,17 @@ SeenMessage.init(
       allowNull: false,
       type: DataTypes.STRING
     },
+    group_message_id: {
+      allowNull: false,
+      type: DataTypes.STRING
+    },
     status: {
       allowNull: false,
-      type: DataTypes.BOOLEAN
+      type: DataTypes.STRING
+    },
+    createdBy: {
+      allowNull: false,
+      type: DataTypes.STRING
     },
     createdAt: {
       allowNull: true,

@@ -13,6 +13,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
+      group_message_id: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
       message_id: {
         allowNull: false,
         type: Sequelize.STRING,
@@ -24,7 +28,11 @@ module.exports = {
       },
       status: {
         allowNull: false,
-        type: Sequelize.BOOLEAN
+        type: Sequelize.STRING
+      },
+      createdBy: {
+        allowNull: false,
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

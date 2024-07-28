@@ -2,6 +2,8 @@ import { StatusCodes } from 'http-status-codes'
 import models from '../db/models'
 import { getReceiverSocketId, io } from '../sockets/socket'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
+import { Op } from 'sequelize'
+import { CallMessage } from '../types/socket.type'
 
 class messageSocketService {
   async emitReactMessage(message_id: string) {
@@ -28,28 +30,28 @@ class messageSocketService {
           group_message_id
         }
       })
+      const group = await models.GroupMessage.findOne({
+        where: {
+          group_message_id
+        }
+      })
 
       memmbersId.forEach(async (member) => {
         const receiver = getReceiverSocketId(member.user_id)
 
         if (receiver) {
-          io.to(receiver).emit('newMessage', receiver)
+          const data = {
+            group_id: group?.group_message_id,
+            id: member.user_id,
+            type: group?.type,
+            avatar: group?.group_thumbnail
+          }
+          io.to(receiver).emit('newMessage', data)
           await models.DeleteGroupMessage.update(
             { status: false },
             { where: { group_message_id, deletedBy: member.user_id } }
           )
-          // const seenMessage = await models.SeenMessage.create({
-          //   message_id: messageSocket.message_id,
-          //   user_id: member.user_id,
-          //   status: false
-          // })
-          // io.to(receiver).emit('notifyMessage', messageSocket.group_message_id)
         } else {
-          // await models.SeenMessage.create({
-          //   message_id: messageSocket.message_id,
-          //   user_id: member.user_id,
-          //   status: false
-          // })
         }
       })
     } else {
@@ -196,7 +198,135 @@ class messageSocketService {
         }
       })
     } else {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitNewMessage')
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitCurdMemberGroup')
+    }
+  }
+
+  async emitSeenedMessage(group_message_id: string) {
+    if (group_message_id) {
+      const memmbersId = await models.MemberGroup.findAll({
+        where: {
+          group_message_id
+        }
+      })
+
+      memmbersId.forEach(async (member) => {
+        const receiver = getReceiverSocketId(member.user_id)
+        if (receiver) {
+          io.to(receiver).emit('seenedMessage')
+        }
+      })
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitSeenedMessage')
+    }
+  }
+
+  async emitInComingCall(data: CallMessage) {
+    if (data.group_message_id) {
+      const memmbersId = await models.MemberGroup.findAll({
+        where: {
+          group_message_id: data.group_message_id,
+          user_id: {
+            [Op.ne]: data.user_id
+          }
+        }
+      })
+
+      memmbersId.forEach(async (member) => {
+        const receiver = getReceiverSocketId(member.user_id)
+
+        if (receiver) {
+          io.to(receiver).emit('inComingCallVideo', data)
+        }
+      })
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitInComingCall')
+    }
+  }
+
+  async emitCancelVideoCall(data: CallMessage) {
+    if (data.group_message_id) {
+      const memmbersId = await models.MemberGroup.findAll({
+        where: {
+          group_message_id: data.group_message_id,
+          user_id: {
+            [Op.ne]: data.user_id
+          }
+        }
+      })
+
+      memmbersId.forEach(async (member) => {
+        const receiver = getReceiverSocketId(member.user_id)
+
+        if (receiver) {
+          io.to(receiver).emit('cancelVideoCall')
+        }
+      })
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitCancelVideoCall')
+    }
+  }
+  async emitCancelInComingVideoCall(data: CallMessage) {
+    // console.log('emitCancelInComingVideoCall', data)
+    if (data.group_message_id) {
+      // const memmbersId = await models.MemberGroup.findAll({
+      //   where: {
+      //     group_message_id: data.group_message_id,
+      //     user_id: {
+      //       [Op.ne]: data.user_id
+      //     }
+      //   }
+      // })
+
+      // memmbersId.forEach(async (member) => {
+      // })
+      const receiver = getReceiverSocketId(data.user_id)
+
+      if (receiver) {
+        io.to(receiver).emit('cancelInComingVideoCall')
+      }
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitCancelInComingVideoCall')
+    }
+  }
+
+  async emitAcceptVideoCall(data: CallMessage) {
+    if (data.group_message_id) {
+      const memmbersId = await models.MemberGroup.findAll({
+        where: {
+          group_message_id: data.group_message_id
+        }
+      })
+
+      memmbersId.forEach(async (member) => {
+        const receiver = getReceiverSocketId(member.user_id)
+
+        if (receiver) {
+          io.to(receiver).emit('acceptVideoCall', data)
+        }
+      })
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitAcceptVideoCall')
+    }
+  }
+
+  async emitEndCall(group_id_query: CallMessage) {
+    if (group_id_query) {
+      const memmbersId = await models.MemberGroup.findAll({
+        where: {
+          group_message_id: group_id_query
+        }
+      })
+
+      memmbersId.forEach(async (member) => {
+        const receiver = getReceiverSocketId(member.user_id)
+
+        if (receiver) {
+          io.to(receiver).emit('endCall')
+        }
+      })
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitEndCall')
     }
   }
 }

@@ -11,6 +11,7 @@ import messageSocketService from './messageSocketService'
 import notifyMessageService from './notifyMessageService'
 import userService from './userService'
 import deleteConversationService from './deleteConversationService'
+import seenMessageService from './seenMessageService'
 
 class messageService {
   // fn get Thubmail
@@ -482,7 +483,9 @@ class messageService {
             reply_user: reply_user,
             recallInReply
           }
+        const parentMessage = reversedMessages.find((msg) => msg.message_id === message.parent_id)
 
+        message.parent_id = parentMessage ? message.parent_id : ''
         return {
           ...message.get({ plain: true }),
           reactions,
@@ -603,7 +606,7 @@ class messageService {
 
     if (checkGroup) {
       const data = { ...messageData, createdBy: sender }
-      await models.Message.create(data)
+      const message = await models.Message.create(data)
       await checkGroup.update({
         updatedAt: new Date()
       })
@@ -612,6 +615,8 @@ class messageService {
         group_message_id: messageData.group_message_id,
         content: 'new message'
       }
+
+      await seenMessageService.createSeenMessage(messageData.group_message_id, message.message_id, sender)
       await notifyMessageService.createNotify(dataNotify, sender)
       await messageSocketService.emitNotifyMessage(messageData.group_message_id, dataNotify, sender)
       await messageSocketService.emitNewMessage(messageData.group_message_id)
@@ -646,6 +651,80 @@ class messageService {
       }
       await notifyMessageService.createNotify(dataNotify, sender)
       await messageSocketService.emitNotifyMessage(newGroupMessage.group_message_id, dataNotify, sender)
+      await messageSocketService.emitNewMessage(newGroupMessage.group_message_id)
+      await messageSocketService.emitNewConversation(newGroupMessage.group_message_id)
+    }
+
+    return {
+      message: 'Gửi tin nhắn thành công!',
+      data: {
+        messageData
+      }
+    }
+  }
+
+  async sendCallMessage(messageData: MessageInput) {
+    const checkGroup = await models.GroupMessage.findByPk(messageData.group_message_id)
+
+    if (checkGroup) {
+      const data = { ...messageData, createdBy: messageData.sender }
+      const message = await models.Message.create(data)
+      await checkGroup.update({
+        updatedAt: new Date()
+      })
+      const dataNotify = {
+        type: 1,
+        group_message_id: messageData.group_message_id,
+        content: 'new message'
+      }
+
+      await seenMessageService.createSeenMessage(
+        messageData.group_message_id,
+        message.message_id,
+        messageData.sender as string
+      )
+      await notifyMessageService.createNotify(dataNotify, messageData.sender)
+      await messageSocketService.emitNotifyMessage(
+        messageData.group_message_id,
+        dataNotify,
+        messageData.sender as string
+      )
+      await messageSocketService.emitNewMessage(messageData.group_message_id)
+    } else {
+      const newGroupMessage = await models.GroupMessage.create({
+        status: true,
+        type: 1,
+        createdBy: messageData.sender as string
+      })
+      const newGroupMessageId = newGroupMessage.group_message_id
+
+      if (!messageData.receiver) {
+        throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận 1')
+      }
+
+      await models.MemberGroup.bulkCreate([
+        { user_id: messageData.sender as string, status: true, group_message_id: newGroupMessageId },
+        { user_id: messageData.receiver, status: true, group_message_id: newGroupMessageId }
+      ])
+
+      const newMessageData = {
+        ...messageData,
+        createdBy: messageData.sender as string,
+        group_message_id: newGroupMessageId
+      }
+      await models.Message.create(newMessageData)
+      //
+      const dataNotify = {
+        type: 1,
+        group_message_id: newGroupMessageId,
+        content: 'new message'
+      }
+      await notifyMessageService.createNotify(dataNotify, messageData.sender as string)
+      await messageSocketService.emitNotifyMessage(
+        newGroupMessage.group_message_id,
+        dataNotify,
+        messageData.sender as string
+      )
       await messageSocketService.emitNewMessage(newGroupMessage.group_message_id)
       await messageSocketService.emitNewConversation(newGroupMessage.group_message_id)
     }

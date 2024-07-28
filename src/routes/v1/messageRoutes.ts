@@ -4,6 +4,7 @@ import { tryCatch } from '../../utils/response'
 import messageController from '../../controllers/messageController'
 import uploadCloud from '../../middleware/uploader'
 import deleteConversationController from '../../controllers/deleteConversationController'
+import seenMessageController from '../../controllers/seenMessageController'
 
 const router = Router()
 
@@ -15,7 +16,10 @@ router.get('/getrecallmessage', Middleware.verifyToken, tryCatch(messageControll
 router.get('/getmembersgroup/:id', Middleware.verifyToken, tryCatch(messageController.getMembersGroup))
 router.get('/getlistfriendssuggest/:id', Middleware.verifyToken, tryCatch(messageController.getListFriendsSuggest))
 router.get('/searchfrandgr/:query', Middleware.verifyToken, tryCatch(messageController.searchFriendAndConversation))
+router.get('/getallseen/:id', Middleware.verifyToken, tryCatch(seenMessageController.getAllSeen))
+router.get('/generateTokenZego/:userId', Middleware.verifyToken, tryCatch(messageController.generateTokenZego))
 //  ------------------- //
+router.post('/sendcallmessage', Middleware.verifyToken, tryCatch(messageController.sendCallMessage))
 router.post('/sendmessage', Middleware.verifyToken, tryCatch(messageController.sendMessage))
 router.post(
   '/sendmessageattach',

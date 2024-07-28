@@ -6,6 +6,7 @@ import { MessageInput, MessageMediaInput, ReplyMessageInput } from '../types/mes
 import { ReactMessageInput, UpdateReactMessageInput } from '../types/reactMessage.type'
 import { sendResponseSuccess } from '../utils/response'
 import { StatusCodes } from 'http-status-codes'
+import { generateToken04 } from '../services/zegoServerAssistant'
 
 class messageController {
   async getConversation(req: Request, res: Response) {
@@ -118,6 +119,14 @@ class messageController {
     }
   }
 
+  async sendCallMessage(req: Request, res: Response) {
+    const messageData: MessageInput = req.body
+
+    const data = await messageService.sendCallMessage(messageData)
+
+    sendResponseSuccess(res, data)
+  }
+
   async sendMessageAttach(req: Request, res: Response) {
     if (req.user) {
       const { user_id: sender } = req.user
@@ -226,6 +235,22 @@ class messageController {
 
       res.status(200).json(data)
     }
+  }
+
+  // tạo token cho zegoCould
+
+  async generateTokenZego(req: Request, res: Response) {
+    const userId = req.params.userId
+    const zegoAppId = process.env.ZEGO_APP_ID
+    const appID = zegoAppId ? parseInt(zegoAppId) : 0
+    const serverSecert = process.env.ZEGO_SERVER_SECRET
+    const effectiveTimeInSeconds = 3600
+    const payload = ''
+    if (appID && serverSecert && userId) {
+      const token = generateToken04(appID, userId, serverSecert, effectiveTimeInSeconds, payload)
+      res.status(200).json(token)
+    }
+    res.status(404).json('appID, serverSecert or userId invalid')
   }
 }
 

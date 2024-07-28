@@ -48,18 +48,18 @@ class notifyMessageService {
   }
 
   async deleteNotify(group_id: string, userLoggin: string) {
-    const options = {
-      where: {
-        group_message_id: group_id,
-        receiver_id: userLoggin
+    if (group_id && userLoggin) {
+      const data = await models.NotifyGroupMessage.destroy({
+        where: {
+          group_message_id: group_id,
+          receiver_id: userLoggin
+        }
+      })
+      await messageSocketService.emitDeleteNotifyMessage(group_id, userLoggin)
+      return {
+        message: 'delete notification ok',
+        data
       }
-    }
-
-    const data = await models.NotifyGroupMessage.destroy(options)
-    await messageSocketService.emitDeleteNotifyMessage(group_id, userLoggin)
-    return {
-      message: 'delete notification ok',
-      data
     }
   }
 }
