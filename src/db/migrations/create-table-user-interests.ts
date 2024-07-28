@@ -15,7 +15,8 @@ export default {
         references: {
           key: 'user_id',
           model: 'Users'
-        }
+        },
+        onDelete: 'CASCADE'
       },
       interest_id: {
         allowNull: true,

@@ -2,11 +2,20 @@ import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
 export default {
   async up(queryInterface: QueryInterface) {
-    await queryInterface.createTable('SearchHistories', {
-      search_history_id: {
+    await queryInterface.createTable('PostReactions', {
+      post_reaction_id: {
         allowNull: false,
         primaryKey: true,
         type: DataTypes.STRING
+      },
+      post_id: {
+        allowNull: true,
+        type: DataTypes.STRING,
+        references: {
+          model: 'Posts',
+          key: 'post_id'
+        },
+        onDelete: 'CASCADE'
       },
       user_id: {
         allowNull: true,
@@ -17,13 +26,9 @@ export default {
         },
         onDelete: 'CASCADE'
       },
-      target_id: {
-        allowNull: false,
-        type: DataTypes.STRING
-      },
-      search_type: {
-        allowNull: false,
-        type: DataTypes.ENUM('user', 'fanpage')
+      type: {
+        allowNull: true,
+        type: DataTypes.ENUM('like', 'love', 'haha', 'sad', 'wow', 'angry')
       },
       createdAt: {
         allowNull: false,
@@ -39,6 +44,6 @@ export default {
   },
 
   async down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('SearchHistories')
+    await queryInterface.dropTable('PostReactions')
   }
 }

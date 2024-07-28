@@ -2,28 +2,37 @@ import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
 export default {
   async up(queryInterface: QueryInterface) {
-    await queryInterface.createTable('SearchHistories', {
-      search_history_id: {
+    await queryInterface.createTable('PostComments', {
+      comment_id: {
         allowNull: false,
         primaryKey: true,
         type: DataTypes.STRING
       },
-      user_id: {
+      content: {
         allowNull: true,
+        type: DataTypes.STRING
+      },
+      media_url: {
+        allowNull: true,
+        type: DataTypes.STRING
+      },
+      post_id: {
+        allowNull: false,
+        type: DataTypes.STRING,
+        references: {
+          model: 'Posts',
+          key: 'post_id'
+        },
+        onDelete: 'CASCADE'
+      },
+      user_id: {
+        allowNull: false,
         type: DataTypes.STRING,
         references: {
           model: 'Users',
           key: 'user_id'
         },
         onDelete: 'CASCADE'
-      },
-      target_id: {
-        allowNull: false,
-        type: DataTypes.STRING
-      },
-      search_type: {
-        allowNull: false,
-        type: DataTypes.ENUM('user', 'fanpage')
       },
       createdAt: {
         allowNull: false,
@@ -39,6 +48,6 @@ export default {
   },
 
   async down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('SearchHistories')
+    await queryInterface.dropTable('PostComments')
   }
 }
