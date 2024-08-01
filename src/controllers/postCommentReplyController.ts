@@ -5,16 +5,20 @@ import postCommentReplyService from '../services/postCommentReplyService'
 
 class postCommentReplyController {
   // Danh sách trả lời bình luận
-  async getAllPostCommentReplies(req: Request, res: Response) {
-    const data = await postCommentReplyService.getAllPostCommentReplies()
+  async getAllPostCommentRepliesByCommentId(req: Request, res: Response) {
+    if (req.user) {
+      const { comment_id } = req.params
 
-    sendResponseSuccess(res, data)
+      const data = await postCommentReplyService.getAllPostCommentRepliesByCommentId(comment_id)
+
+      sendResponseSuccess(res, data)
+    }
   }
 
   // Thêm mới trả lời bình luận
   async addNewPostCommentReply(req: Request, res: Response) {
     if (req.user) {
-      const user_id = req.user.user_id
+      const { user_id } = req.user
       const { comment_id } = req.params
       const dataPostCommentReply: PostCommentReplyInput = req.body
       const file = req.file
@@ -24,6 +28,17 @@ class postCommentReplyController {
       }
 
       const data = await postCommentReplyService.addNewPostCommentReply(comment_id, user_id, dataPostCommentReply)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  // Xóa trả lời bình luận
+  async deletePostCommentReply(req: Request, res: Response) {
+    if (req.user) {
+      const { comment_reply_id } = req.params
+
+      const data = await postCommentReplyService.deletePostCommentReply(comment_reply_id)
 
       sendResponseSuccess(res, data)
     }

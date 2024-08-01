@@ -5,6 +5,8 @@ import postReactionController from '../../controllers/postReactionController'
 
 const router = Router()
 
+router.get('/list/:post_id', Middleware.verifyToken, tryCatch(postReactionController.getAllPostReactions))
+
 router.post('/add/:post_id', Middleware.verifyToken, tryCatch(postReactionController.addNewPostReaction))
 
 router.delete('/delete/:post_id', Middleware.verifyToken, tryCatch(postReactionController.cancelPostReaction))

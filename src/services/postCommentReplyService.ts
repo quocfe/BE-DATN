@@ -5,16 +5,30 @@ import { CustomErrorHandler } from '../utils/ErrorHandling'
 
 class postCommentReplyService {
   // Danh sách trả lời bình luận
-  async getAllPostCommentReplies() {
-    const postCommentReplies = await models.PostCommentReply.findAll({
+  async getAllPostCommentRepliesByCommentId(comment_id: string) {
+    const isCommentExisting = await models.PostComment.findByPk(comment_id)
+
+    if (!isCommentExisting) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại bình luận!')
+    }
+
+    const userAttributes = ['user_id', 'first_name', 'last_name']
+    const includeUserWithProfile = (asAlias: string) => ({
+      model: models.User,
+      as: asAlias,
+      attributes: userAttributes,
+      include: [{ model: models.Profile, attributes: ['profile_picture'] }]
+    })
+
+    const comment_replies = await models.PostCommentReply.findAll({
+      where: { comment_id },
+      include: [includeUserWithProfile('user_reply'), includeUserWithProfile('replied_to_user')],
       order: [['createdAt', 'DESC']]
     })
 
     return {
       message: 'Danh sách trả lời bình luận',
-      data: {
-        comment_replies: postCommentReplies
-      }
+      data: { comment_replies }
     }
   }
 
@@ -46,6 +60,25 @@ class postCommentReplyService {
       message: 'Thêm mới trả lời bình luận thành công',
       data: {
         comment_reply: newCommentReply
+      }
+    }
+  }
+
+  async updatePostCommentReply(comment_reply_id: string, dataPostComment: PostCommentReplyInput) {}
+
+  async deletePostCommentReply(comment_reply_id: string) {
+    const postCommentReply = await models.PostCommentReply.findByPk(comment_reply_id)
+
+    if (!postCommentReply) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại trả lời bình luận')
+    }
+
+    await postCommentReply.destroy()
+
+    return {
+      message: 'Xóa thành công trả lời bình luận',
+      data: {
+        postCommentReply
       }
     }
   }

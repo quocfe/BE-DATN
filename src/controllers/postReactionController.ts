@@ -4,6 +4,17 @@ import postReactionService from '../services/postReactionService'
 import { sendResponseSuccess } from '../utils/response'
 
 class postReactionController {
+  // Lấy danh sách tương tác bài đăng
+  async getAllPostReactions(req: Request, res: Response) {
+    if (req.user) {
+      const { post_id } = req.params
+
+      const data = await postReactionService.getAllPostReactions(post_id)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
   // Thêm mới lượt tương tác
   async addNewPostReaction(req: Request, res: Response) {
     if (req.user) {

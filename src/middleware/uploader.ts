@@ -42,6 +42,6 @@ const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: FileFil
 }
 
 // Khởi tạo multer với cấu hình lưu trữ và bộ lọc
-const uploadCloud = multer({ storage, fileFilter })
+const uploadCloud = multer({ storage, fileFilter, limits: { fileSize: 100 * 1024 * 1024 } })
 
 export default uploadCloud

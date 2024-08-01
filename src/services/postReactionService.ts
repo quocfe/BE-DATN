@@ -4,6 +4,36 @@ import { PostReactionInput } from '../types/postReaction.type'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 
 class postReactionService {
+  async getAllPostReactions(post_id: string) {
+    const isPostExisting = await models.Post.findByPk(post_id)
+
+    if (!isPostExisting) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại bài đăng!')
+    }
+
+    const excludeTimestamps = { exclude: ['updatedAt'] }
+    const userAttributes = ['user_id', 'first_name', 'last_name']
+
+    const includeUserWithProfile = (asAlias: string) => ({
+      model: models.User,
+      as: asAlias,
+      attributes: userAttributes,
+      include: [{ model: models.Profile, attributes: ['profile_picture'] }]
+    })
+
+    const reactions = await models.PostReaction.findAll({
+      where: { post_id },
+      include: [includeUserWithProfile('user_reaction')]
+    })
+
+    return {
+      message: 'Danh sách tương tác bài đăng',
+      data: {
+        reactions
+      }
+    }
+  }
+
   // Thêm mới lượt tương tác
   async addNewPostReaction(post_id: string, user_id: string, dataPostReaction: PostReactionInput) {
     const { type } = dataPostReaction

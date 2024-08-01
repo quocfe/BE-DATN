@@ -104,6 +104,11 @@ class postService {
       whereCondition.user_id = {
         [Op.in]: [user_id, ...friendsAndPendingRequests]
       }
+
+      // Chỉ lấy bài đăng public và friends của bạn bè
+      whereCondition.privary = {
+        [Op.or]: ['friends', 'public']
+      }
     }
 
     const postIds = await models.Post.findAll({

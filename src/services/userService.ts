@@ -844,6 +844,29 @@ class userService {
       data: {}
     }
   }
+
+  // Lấy danh sách hình ảnh & video
+  async getAllMediaResource(user_id: string) {
+    const posts = await models.Post.findAll({
+      where: { user_id }
+    })
+
+    const postIds = await models.Post.findAll({
+      where: { user_id },
+      attributes: ['post_id']
+    }).then((posts) => posts.map((post) => post.post_id))
+
+    const media_resources = await models.PostMediaResource.findAll({
+      where: { post_id: postIds }
+    })
+
+    return {
+      message: 'Danh sách hình ảnh và video',
+      data: {
+        media_resources
+      }
+    }
+  }
 }
 
 export default new userService()

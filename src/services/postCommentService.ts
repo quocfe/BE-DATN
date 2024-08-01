@@ -13,7 +13,6 @@ class postCommentService {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại bài đăng!')
     }
 
-    const excludeTimestamps = { exclude: ['updatedAt'] }
     const userAttributes = ['user_id', 'first_name', 'last_name']
     const includeUserWithProfile = (asAlias: string) => ({
       model: models.User,
@@ -22,16 +21,9 @@ class postCommentService {
       include: [{ model: models.Profile, attributes: ['profile_picture'] }]
     })
 
-    const includeCommentReplies = {
-      model: models.PostCommentReply,
-      as: 'comment_replies',
-      attributes: excludeTimestamps,
-      include: [includeUserWithProfile('user_reply'), includeUserWithProfile('replied_to_user')]
-    }
-
     const comments = await models.PostComment.findAll({
       where: { post_id },
-      include: [includeUserWithProfile('user_comment'), includeCommentReplies],
+      include: [includeUserWithProfile('user_comment')],
       order: [['createdAt', 'DESC']]
     })
 

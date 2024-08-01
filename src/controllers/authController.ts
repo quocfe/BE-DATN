@@ -10,8 +10,10 @@ class authController {
   // Đăng nhập
   async login(req: Request, res: Response) {
     const loginData: LoginInput = req.body
+
     const data = await authService.login(loginData)
     setCookie(res, 'refresh_token', data.refresh_token as string)
+
     sendResponseSuccess(res, _.omit(data, 'refresh_token'))
   }
 
@@ -60,14 +62,6 @@ class authController {
     const data = await emailService.newAuthCodeEmail(email)
 
     sendResponseSuccess(res, data)
-  }
-
-  // Đăng nhập admin
-  async loginAdmin(req: Request, res: Response) {
-    const loginData: LoginInput = req.body
-    const data = await authService.loginAdmin(loginData)
-    setCookie(res, 'refresh_token_admin', data.refresh_token as string)
-    sendResponseSuccess(res, _.omit(data, 'refresh_token'))
   }
 }
 
