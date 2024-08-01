@@ -2,18 +2,14 @@ import { QueryInterface, Sequelize, DataTypes } from 'sequelize'
 
 export default {
   async up(queryInterface: QueryInterface) {
-    await queryInterface.createTable('Permissions', {
-      permission_id: {
+    await queryInterface.createTable('Modules', {
+      module_id: {
         allowNull: false,
         primaryKey: true,
         type: DataTypes.STRING
       },
       name: {
-        allowNull: true,
-        type: DataTypes.STRING
-      },
-      display_name: {
-        allowNull: true,
+        allowNull: false,
         type: DataTypes.STRING
       },
       createdAt: {
@@ -30,6 +26,6 @@ export default {
   },
 
   async down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('Permissions')
+    await queryInterface.dropTable('Modules')
   }
 }

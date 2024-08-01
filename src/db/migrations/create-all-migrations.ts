@@ -14,6 +14,11 @@ import PostCommentReplyMigration from './create-table-post-comment-reply'
 import PostReactionMigration from './create-table-post-reaction'
 import PostShareMigration from './create-table-post-share'
 import PostReportMigration from './create-table-post-report'
+// Role Permissions
+import ModuleMigration from './create-table-module'
+import PermissionMigration from './create-table-permission'
+import AccountModulePermissionMigtation from './create-table-account-module-permission'
+import RoleModulePermissionMigration from './create-table-role-module-permission'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -32,9 +37,17 @@ export default {
     await PostReactionMigration.up(queryInterface)
     await PostShareMigration.up(queryInterface)
     await PostReportMigration.up(queryInterface)
+    await ModuleMigration.up(queryInterface)
+    await PermissionMigration.up(queryInterface)
+    await AccountModulePermissionMigtation.up(queryInterface)
+    await RoleModulePermissionMigration.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
+    await RoleModulePermissionMigration.down(queryInterface)
+    await AccountModulePermissionMigtation.down(queryInterface)
+    await PermissionMigration.down(queryInterface)
+    await ModuleMigration.down(queryInterface)
     await PostShareMigration.down(queryInterface)
     await PostReportMigration.down(queryInterface)
     await PostReactionMigration.down(queryInterface)

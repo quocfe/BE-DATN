@@ -6,24 +6,31 @@ export default {
       'Roles',
       [
         {
-          role_id: 'pi1ja-22c73-f703-4b16-847d-f61bae05-xha1',
+          role_id: 'super-admin',
           name: 'Super Admin',
-          description: 'Quản trị viên cấp cao'
+          description: 'Quản trị viên với quyền truy cập đầy đủ vào tất cả các tính năng và cài đặt của hệ thống.'
         },
         {
-          role_id: 'lao1-22c73-f703-4b16-847d-f61bae05-xbaq',
-          name: 'Content Admin',
-          description: 'Quản trị viên nội dung'
-        },
-        {
-          role_id: 'xu1i-22c73-f703-4b16-847d-f61bae05-ioqm',
+          role_id: 'manager-admin',
           name: 'User Admin',
-          description: 'Quản trị viên người dùng'
+          description:
+            'Quản lý hệ thống với quyền hạn trong nhiều module nhưng không có quyền truy cập đầy đủ như Super Admin.'
         },
         {
-          role_id: 'giup1-22c73-f703-4b16-847d-f61bae05-nxja1',
-          name: 'Video Admin',
-          description: 'Quản trị viên video'
+          role_id: 'viewer-admin',
+          name: 'Viewer Admin',
+          description: 'Người xem với quyền chỉ xem nội dung và báo cáo mà không thể thay đổi dữ liệu.'
+        },
+        {
+          role_id: 'support-admin',
+          name: 'Support Admin',
+          description: 'Vai trò hỗ trợ với quyền xử lý các yêu cầu và hỗ trợ khách hàng.'
+        },
+        {
+          role_id: 'editor-admin',
+          name: 'Editor Admin',
+          description:
+            'Người chỉnh sửa nội dung với quyền tạo, chỉnh sửa và xóa nội dung trong các module được chỉ định.'
         }
       ],
       {}
