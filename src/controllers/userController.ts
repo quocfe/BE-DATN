@@ -286,6 +286,17 @@ class userController {
       sendResponseSuccess(res, data)
     }
   }
+
+  // Lấy danh sách hình ảnh & video
+  async getAllMediaResource(req: Request, res: Response) {
+    if (req.user) {
+      const { user_id } = req.user
+
+      const data = await userService.getAllMediaResource(user_id)
+
+      sendResponseSuccess(res, data)
+    }
+  }
 }
 
 export default new userController()

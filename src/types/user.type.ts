@@ -3,7 +3,11 @@ import { InterestInput } from './interest.type'
 
 export interface User extends UserAttributes {}
 
-export type UserOutput = Pick<User, 'user_id' | 'email'>
+export type UserOutput = {
+  user_id: string
+  email: string
+  role: string
+}
 
 export type Profile = {
   profile_id: string

@@ -8,7 +8,8 @@ const API_V1 = {
   post: `${V1}/post`,
   post_comment: `${V1}/post_comment`,
   post_comment_reply: `${V1}/post_comment_reply`,
-  post_reaction: `${V1}/post_reaction`
+  post_reaction: `${V1}/post_reaction`,
+  role: `${V1}/role`
 } as const
 
 const API_V2 = {

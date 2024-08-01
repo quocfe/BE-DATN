@@ -56,11 +56,25 @@ class Middleware {
   }
 
   // Xác thực vai trò
-  verifyTokenAdminRole(role_id: string) {
+  verifyTokenAdminRole(roles: string[] = []) {
+    if (typeof roles === 'string') {
+      roles = [roles]
+    }
+
     return [
       this.verifyToken,
       (req: Request, res: Response, next: NextFunction) => {
         const user = req.user
+
+        if (user?.role === 'Super Admin') {
+          return next()
+        }
+
+        if (!user?.role || !roles.includes(user?.role)) {
+          return res.status(403).json({ message: 'Forbidden: Bạn không có quyền truy cập!' })
+        }
+
+        next()
       }
     ]
   }

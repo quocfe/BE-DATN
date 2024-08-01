@@ -17,8 +17,8 @@ export default {
         },
         {
           role_id: 'xu1i-22c73-f703-4b16-847d-f61bae05-ioqm',
-          name: 'Sales Admin',
-          description: 'Quản trị viên bán hàng'
+          name: 'User Admin',
+          description: 'Quản trị viên người dùng'
         },
         {
           role_id: 'giup1-22c73-f703-4b16-847d-f61bae05-nxja1',

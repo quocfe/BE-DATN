@@ -20,7 +20,8 @@ const roleRelationships = () => {
 const accountRelationship = () => {
   Account.belongsTo(Role, {
     foreignKey: 'role_id',
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
+    as: 'role'
   })
 }
 
