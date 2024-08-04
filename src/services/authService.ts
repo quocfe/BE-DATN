@@ -1,3 +1,4 @@
+import { Includeable } from 'sequelize'
 import 'dotenv/config'
 import _ from 'lodash'
 import jwt from 'jsonwebtoken'
@@ -12,6 +13,8 @@ import emailService from './emailService'
 import emailTitles from '../constants/email'
 import { generateExpiration, generateCodeNumbers } from '../utils/utils'
 import { AccountOuput } from '../types/account.type'
+import { Modules } from '../types/module.type'
+import { Permission } from '../types/permission.type'
 
 class authService {
   constructor(
@@ -44,7 +47,22 @@ class authService {
         include: [
           {
             model: models.Role,
+            attributes: ['role_id', 'name'],
             as: 'role'
+          },
+          {
+            model: models.Module,
+            through: { attributes: [] },
+            attributes: ['module_id', 'name'],
+            as: 'modules',
+            include: [
+              {
+                model: models.Permission,
+                through: { attributes: [] },
+                attributes: ['permission_id', 'name', 'display_name'],
+                as: 'permissions'
+              }
+            ]
           }
         ]
       })
@@ -68,16 +86,22 @@ class authService {
         email: string
         role?: {
           name: string
+          description: string
         }
+        modules?: Modules
       }
+
+      console.log(admin.modules)
 
       const adminPayload: UserOutput = {
         user_id: admin.account_id,
         email: admin.email,
-        role: admin.role?.name ?? ''
+        role: admin.role,
+        modules: admin.modules
       }
 
       const access_token = generateToken(adminPayload, this.secretKey, this.expiresAccessToken)
+
       const refresh_token = generateToken(adminPayload, this.secretKey, this.expiresRefreshToken)
 
       return {
@@ -102,8 +126,7 @@ class authService {
 
       const userPayload: UserOutput = {
         user_id: user.user_id,
-        email: user.email,
-        role: ''
+        email: user.email
       }
 
       const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)

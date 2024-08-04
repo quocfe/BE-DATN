@@ -1,12 +1,17 @@
 import { UserAttributes } from '../db/models/User'
-import { InterestInput } from './interest.type'
+import { Permission } from './account.type'
+import { Modules } from './module.type'
 
 export interface User extends UserAttributes {}
 
 export type UserOutput = {
   user_id: string
   email: string
-  role: string
+  role?: {
+    name: string
+    description: string
+  }
+  modules?: Modules
 }
 
 export type Profile = {

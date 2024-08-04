@@ -1,41 +1,32 @@
 import db from '../../connection'
 import { v4 as uuidv4 } from 'uuid'
 import { DataTypes, Model, Optional } from 'sequelize'
-import Account from './Account'
 
-export interface RoletAttributes {
-  role_id: string
+export interface ModuleAttributes {
+  module_id: string
   name: string
-  description: string
   createdAt: Date
   updatedAt: Date
 }
 
-interface RoleCreationAttribute extends Optional<RoletAttributes, 'role_id' | 'createdAt' | 'updatedAt'> {}
+interface ModuleCreationAttribute extends Optional<ModuleAttributes, 'module_id' | 'createdAt' | 'updatedAt'> {}
 
-class Role extends Model<RoletAttributes, RoleCreationAttribute> implements RoletAttributes {
-  declare role_id: string
+class Module extends Model<ModuleAttributes, ModuleCreationAttribute> implements ModuleAttributes {
+  declare module_id: string
   declare name: string
-  declare description: string
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
-
-  declare readonly accounts: Account[]
 }
 
-Role.init(
+Module.init(
   {
-    role_id: {
+    module_id: {
       allowNull: false,
       primaryKey: true,
       type: DataTypes.STRING,
       defaultValue: () => uuidv4()
     },
     name: {
-      allowNull: true,
-      type: DataTypes.STRING
-    },
-    description: {
       allowNull: true,
       type: DataTypes.STRING
     },
@@ -52,9 +43,9 @@ Role.init(
     timestamps: true,
     sequelize: db,
     underscored: false,
-    modelName: 'Role',
-    tableName: 'Roles'
+    modelName: 'Module',
+    tableName: 'Modules'
   }
 )
 
-export default Role
+export default Module

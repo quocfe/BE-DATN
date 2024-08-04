@@ -25,6 +25,14 @@ export default {
         allowNull: true,
         type: DataTypes.ENUM('Đang hoạt động', 'Ngừng hoạt động', 'Đóng băng', 'Khóa vĩnh viễn')
       },
+      role_id: {
+        allowNull: false,
+        type: DataTypes.STRING,
+        references: {
+          model: 'Roles',
+          key: 'role_id'
+        }
+      },
       last_login: {
         allowNull: true,
         type: DataTypes.DATE
@@ -44,14 +52,6 @@ export default {
       date_of_birth: {
         allowNull: true,
         type: DataTypes.DATE
-      },
-      role_id: {
-        allowNull: true,
-        type: DataTypes.STRING,
-        references: {
-          model: 'Roles',
-          key: 'role_id'
-        }
       },
       createdAt: {
         allowNull: false,

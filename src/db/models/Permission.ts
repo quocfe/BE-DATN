@@ -1,31 +1,29 @@
 import db from '../../connection'
 import { v4 as uuidv4 } from 'uuid'
 import { DataTypes, Model, Optional } from 'sequelize'
-import Account from './Account'
 
-export interface RoletAttributes {
-  role_id: string
+export interface PermissionAttributes {
+  permission_id: string
   name: string
-  description: string
+  display_name: string
   createdAt: Date
   updatedAt: Date
 }
 
-interface RoleCreationAttribute extends Optional<RoletAttributes, 'role_id' | 'createdAt' | 'updatedAt'> {}
+interface PermissionCreationAttribute
+  extends Optional<PermissionAttributes, 'permission_id' | 'createdAt' | 'updatedAt'> {}
 
-class Role extends Model<RoletAttributes, RoleCreationAttribute> implements RoletAttributes {
-  declare role_id: string
+class Permission extends Model<PermissionAttributes, PermissionCreationAttribute> implements PermissionAttributes {
+  declare permission_id: string
   declare name: string
-  declare description: string
+  declare display_name: string
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
-
-  declare readonly accounts: Account[]
 }
 
-Role.init(
+Permission.init(
   {
-    role_id: {
+    permission_id: {
       allowNull: false,
       primaryKey: true,
       type: DataTypes.STRING,
@@ -35,7 +33,7 @@ Role.init(
       allowNull: true,
       type: DataTypes.STRING
     },
-    description: {
+    display_name: {
       allowNull: true,
       type: DataTypes.STRING
     },
@@ -52,9 +50,9 @@ Role.init(
     timestamps: true,
     sequelize: db,
     underscored: false,
-    modelName: 'Role',
-    tableName: 'Roles'
+    modelName: 'Permission',
+    tableName: 'Permissions'
   }
 )
 
-export default Role
+export default Permission

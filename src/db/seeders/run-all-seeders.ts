@@ -12,6 +12,10 @@ import PostMediaResourceSeeder from './post-media-resource-seeder'
 import PostCommentSeeder from './post-comment-seeder'
 import PostCommentReplySeeder from './post-comment-reply-seeder'
 import PostReactionSeeder from './post-reaction-seeder'
+import ModuleSeeder from './module-seeder'
+import PermissionSeeder from './permission-seeder'
+import RoleModulePermissionSeeder from './role-module-permission-seeders'
+import AccountModulePermissionSeeder from './account-module-permission-seeder'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -28,9 +32,17 @@ export default {
     await PostCommentSeeder.up(queryInterface)
     await PostCommentReplySeeder.up(queryInterface)
     await PostReactionSeeder.up(queryInterface)
+    await ModuleSeeder.up(queryInterface)
+    await PermissionSeeder.up(queryInterface)
+    await RoleModulePermissionSeeder.up(queryInterface)
+    await AccountModulePermissionSeeder.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
+    await AccountModulePermissionSeeder.down(queryInterface)
+    await RoleModulePermissionSeeder.down(queryInterface)
+    await PermissionSeeder.down(queryInterface)
+    await ModuleSeeder.down(queryInterface)
     await PostReactionSeeder.down(queryInterface)
     await PostCommentReplySeeder.down(queryInterface)
     await PostCommentSeeder.down(queryInterface)

@@ -10,18 +10,90 @@ import PostMediaResource from './PostMediaResource'
 import PostComment from './PostComment'
 import PostCommentReply from './PostCommentReply'
 import PostReaction from './PostReaction'
+import Module from './Module'
+import Permission from './Permission'
+import AccountModulePermission from './AccountModulePermission'
+import RoleModulePermission from './RoleModulePermission'
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
-    foreignKey: 'role_id'
+    foreignKey: 'role_id',
+    as: 'accounts'
+  })
+
+  Role.belongsToMany(Module, {
+    through: 'RoleModulePermissions',
+    foreignKey: 'role_id',
+    otherKey: 'module_id',
+    as: 'modules'
+  })
+
+  Role.belongsToMany(Permission, {
+    through: 'RoleModulePermissions',
+    foreignKey: 'role_id',
+    otherKey: 'permission_id'
   })
 }
 
 const accountRelationship = () => {
   Account.belongsTo(Role, {
     foreignKey: 'role_id',
-    onDelete: 'CASCADE',
     as: 'role'
+  })
+
+  Account.belongsToMany(Module, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'account_id',
+    otherKey: 'module_id',
+    as: 'modules'
+  })
+
+  Account.belongsToMany(Permission, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'account_id',
+    otherKey: 'permission_id'
+  })
+}
+
+const moduleRelationships = () => {
+  Module.belongsToMany(Role, {
+    through: 'RoleModulePermissions',
+    foreignKey: 'module_id',
+    otherKey: 'role_id'
+  })
+
+  Module.belongsToMany(Account, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'module_id',
+    otherKey: 'account_id'
+  })
+
+  // Module.belongsToMany(Permission, {
+  //   through: 'RoleModulePermissions',
+  //   foreignKey: 'module_id',
+  //   otherKey: 'permission_id',
+  //   as: 'permissions'
+  // })
+
+  Module.belongsToMany(Permission, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'module_id',
+    otherKey: 'permission_id',
+    as: 'permissions'
+  })
+}
+
+const permissionRelationships = () => {
+  Permission.belongsToMany(Role, {
+    through: 'RoleModulePermissions',
+    foreignKey: 'permission_id',
+    otherKey: 'role_id'
+  })
+
+  Permission.belongsToMany(Account, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'permission_id',
+    otherKey: 'account_id'
   })
 }
 
@@ -204,6 +276,8 @@ export const setupModelRelationships = () => {
   postCommentRelationships()
   postCommentReplyRelationships()
   postReactionRelationships()
+  permissionRelationships()
+  moduleRelationships()
 }
 
 const models = {
@@ -218,7 +292,11 @@ const models = {
   PostMediaResource,
   PostComment,
   PostCommentReply,
-  PostReaction
+  PostReaction,
+  Permission,
+  Module,
+  AccountModulePermission,
+  RoleModulePermission
 }
 
 export default models
