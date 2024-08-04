@@ -92,31 +92,54 @@ const UPDATE_STATUS = {
 //     })
 //   }
 // }
+
 const getVideos = async (req: Request, res: Response) => {
   try {
     const user = req.user as UserOutput
-    const { page = 1, limit = 1 } = req.query
+    const { page = 1, limit = 3, contentText = '' } = req.query
+
+    console.log('contentText: ', contentText)
+
+    const contentTextFilter =
+      contentText && String(contentText).trim() !== ''
+        ? {
+            contentText: {
+              [Op.like]: `%${contentText}%` // Sử dụng Op.like cho tìm kiếm không phân biệt chữ hoa chữ thường
+            }
+          }
+        : {}
+
     // Đếm tổng số video thỏa mãn điều kiện
     const totalRecords = await models.Video.count({
       where: {
-        [Op.or]: [
-          { user_id: user?.user_id },
+        [Op.and]: [
           {
-            user_id: { [Op.ne]: user?.user_id },
-            privacy: PRIVACY.ALL
-          }
+            [Op.or]: [
+              { user_id: user?.user_id },
+              {
+                user_id: { [Op.ne]: user?.user_id },
+                privacy: PRIVACY.ALL
+              }
+            ]
+          },
+          contentTextFilter // Thêm điều kiện lọc contentText
         ]
       }
     })
 
     const videos = await models.Video.findAll({
       where: {
-        [Op.or]: [
-          { user_id: user?.user_id },
+        [Op.and]: [
           {
-            user_id: { [Op.ne]: user?.user_id },
-            privacy: PRIVACY.ALL
-          }
+            [Op.or]: [
+              { user_id: user?.user_id },
+              {
+                user_id: { [Op.ne]: user?.user_id },
+                privacy: PRIVACY.ALL
+              }
+            ]
+          },
+          contentTextFilter // Thêm điều kiện lọc contentText
         ]
       },
       attributes: {
@@ -158,7 +181,7 @@ const getVideos = async (req: Request, res: Response) => {
       limit: Number(limit), // Số lượng video mỗi trang
       offset: (Number(page) - 1) * Number(limit) // Vị trí bắt đầu cho mỗi trang
     })
-    console.log('videos:', videos)
+
     const videoIds = videos.map((video) => video.id)
     const isLikes = await models.LikeVideo.findAll({
       where: {
