@@ -12,6 +12,7 @@ const API_V1 = {
   post_comment_reply: `${V1}/post_comment_reply`,
   post_reaction: `${V1}/post_reaction`,
   role: `${V1}/role`,
+  fanpage: `${V1}/fanpage`,
   permission: `${V1}/permission`,
   account: `${V1}/account`,
   module: `${V1}/module`

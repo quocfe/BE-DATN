@@ -28,6 +28,8 @@ import RecallMessageMigration from './create-table-recallMessage'
 import NotifyGroupMessageMigration from './create-table-notifyGroupMessage'
 import DeleteGroupMessageMigration from './create-table-deleteGroupMessage'
 import ReportMessageMigration from './create-table-reportMessage'
+import FanpageMigration from './create-table-fanpage'
+import FanpageMemberMigration from './create-table-fanpage-member'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -59,6 +61,8 @@ export default {
     await NotifyGroupMessageMigration.up(queryInterface)
     await DeleteGroupMessageMigration.up(queryInterface)
     await ReportMessageMigration.up(queryInterface)
+    await FanpageMigration.up(queryInterface)
+    await FanpageMemberMigration.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
@@ -85,6 +89,8 @@ export default {
     await FriendShipMigration.down(queryInterface)
     await UserInterestsMigration.down(queryInterface)
     await InterestMigration.down(queryInterface)
+    await FanpageMemberMigration.down(queryInterface)
+    await FanpageMigration.down(queryInterface)
     await ProfileMigration.down(queryInterface)
     await UserMigration.down(queryInterface)
     await AccountMigration.down(queryInterface)
