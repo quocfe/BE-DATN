@@ -1,3 +1,4 @@
+import { Includeable } from 'sequelize'
 import 'dotenv/config'
 import _ from 'lodash'
 import jwt from 'jsonwebtoken'
@@ -11,7 +12,9 @@ import models from '../db/models'
 import emailService from './emailService'
 import emailTitles from '../constants/email'
 import { generateExpiration, generateCodeNumbers } from '../utils/utils'
-import userService from './userService'
+import { AccountOuput } from '../types/account.type'
+import { Modules } from '../types/module.type'
+import { Permission } from '../types/permission.type'
 
 class authService {
   constructor(
@@ -24,57 +27,126 @@ class authService {
   async login(data: LoginInput) {
     const { email, password } = data
 
-    const existsUser = await models.User.findOne({
-      where: { email },
-      include: [
-        {
-          model: models.Profile,
-          attributes: { exclude: ['createdAt', 'updatedAt'] }
-        },
-        {
-          model: models.Interest,
-          through: { attributes: [] },
-          attributes: { exclude: ['createdAt', 'updatedAt'] }
-        }
-      ]
-    })
+    const [existsUser, existsAdmin] = await Promise.all([
+      models.User.findOne({
+        where: { email },
+        include: [
+          {
+            model: models.Profile,
+            attributes: { exclude: ['createdAt', 'updatedAt'] }
+          },
+          {
+            model: models.Interest,
+            through: { attributes: [] },
+            attributes: { exclude: ['createdAt', 'updatedAt'] }
+          }
+        ]
+      }),
+      models.Account.findOne({
+        where: { email },
+        include: [
+          {
+            model: models.Role,
+            attributes: ['role_id', 'name'],
+            as: 'role'
+          },
+          {
+            model: models.Module,
+            through: { attributes: [] },
+            attributes: ['module_id', 'name'],
+            as: 'modules',
+            include: [
+              {
+                model: models.Permission,
+                through: { attributes: [] },
+                attributes: ['permission_id', 'name', 'display_name'],
+                as: 'permissions'
+              }
+            ]
+          }
+        ]
+      })
+    ])
 
-    if (!existsUser) {
+    if (!existsUser && !existsAdmin) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
         email: 'Email không tồn tại!'
       })
     }
 
-    if (!compareValue(password, existsUser.password)) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
-        password: 'Mật khẩu không chính xác!'
-      })
+    if (existsAdmin) {
+      if (!compareValue(password, existsAdmin.password)) {
+        throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
+          password: 'Mật khẩu không chính xác!'
+        })
+      }
+
+      const admin = _.omit(existsAdmin.toJSON(), 'password', 'createdAt', 'updatedAt') as {
+        account_id: string
+        email: string
+        role?: {
+          name: string
+          description: string
+        }
+        modules?: Modules
+      }
+
+      console.log(admin.modules)
+
+      const adminPayload: UserOutput = {
+        user_id: admin.account_id,
+        email: admin.email,
+        role: admin.role,
+        modules: admin.modules
+      }
+
+      const access_token = generateToken(adminPayload, this.secretKey, this.expiresAccessToken)
+
+      const refresh_token = generateToken(adminPayload, this.secretKey, this.expiresRefreshToken)
+
+      return {
+        message: 'Đăng nhập thành công',
+        data: {
+          user: admin,
+          access_token: `Bearer ${access_token}`,
+          type: 'admin'
+        },
+        refresh_token
+      }
     }
 
-    if (existsUser.is_auth === false) {
-      throw new CustomErrorHandler(StatusCodes.FORBIDDEN, {
-        email: 'Xác thực email của bạn!'
-      })
+    if (existsUser) {
+      if (!compareValue(password, existsUser.password)) {
+        throw new CustomErrorHandler(StatusCodes.NOT_FOUND, {
+          password: 'Mật khẩu không chính xác!'
+        })
+      }
+
+      const user = _.omit(existsUser.toJSON(), 'password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt')
+
+      const userPayload: UserOutput = {
+        user_id: user.user_id,
+        email: user.email
+      }
+
+      const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
+
+      const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
+
+      return {
+        message: 'Đăng nhập thành công',
+        data: {
+          user,
+          access_token: `Bearer ${access_token}`,
+          type: 'client'
+        },
+        refresh_token
+      }
     }
-
-    const user = _.omit(existsUser.toJSON(), 'password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt')
-
-    const userPayload: UserOutput = {
-      user_id: user.user_id,
-      email: user.email
-    }
-
-    const access_token = generateToken(userPayload, this.secretKey, this.expiresAccessToken)
-
-    const refresh_token = generateToken(userPayload, this.secretKey, this.expiresRefreshToken)
 
     return {
-      message: 'Đăng nhập thành công',
-      data: {
-        user,
-        access_token: `Bearer ${access_token}`
-      },
-      refresh_token
+      message: '',
+      data: {}
     }
   }
 

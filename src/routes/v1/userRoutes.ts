@@ -2,12 +2,19 @@ import { Router } from 'express'
 import userController from '../../controllers/userController'
 import Middleware from '../../middleware'
 import { tryCatch } from '../../utils/response'
+import uploadCloud from '../../middleware/uploader'
 
 const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
 
-router.post('/profile/update', Middleware.verifyToken, tryCatch(userController.updateProfile))
+router.post(
+  '/profile/update',
+  uploadCloud.single('file'),
+  Middleware.verifyToken,
+  uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
+  tryCatch(userController.updateProfile)
+)
 
 router.post('/sender_friend_request/:friend_id', Middleware.verifyToken, tryCatch(userController.sendFriendRequest))
 
@@ -39,6 +46,22 @@ router.get('/friend/list/block', Middleware.verifyToken, tryCatch(userController
 
 router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFriendOfUser))
 
-router.get('/friend/list/search/:name', Middleware.verifyToken, tryCatch(userController.searchUserOrFanpage))
+router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
+
+router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
+router.get('/list', Middleware.verifyToken, tryCatch(userController.fetchAllUsers))
+router.post('/change_password', Middleware.verifyToken, tryCatch(userController.changePassword))
+
+router.get('/friends_of_friends/:friend_id', Middleware.verifyToken, tryCatch(userController.fetchAllFriendsOfFriends))
+
+router.get('/search/histories', Middleware.verifyToken, tryCatch(userController.fetchAllSearchHistory))
+
+router.post('/search/history/add', Middleware.verifyToken, tryCatch(userController.addNewSearchHistory))
+
+router.delete('/search/history/delete/:target_id', Middleware.verifyToken, tryCatch(userController.deleteSearchHistory))
+
+router.delete('/search/history/clear', Middleware.verifyToken, tryCatch(userController.clearSearchHistory))
+
+router.get('/list/media_resource', Middleware.verifyToken, tryCatch(userController.getAllMediaResource))
 
 export default router

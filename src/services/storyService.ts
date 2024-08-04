@@ -17,7 +17,7 @@ class storyService {
   // Lấy danh sách
   async fetchAllStory(user_id: string) {
     // Lấy danh sách bạn bè của người dùng
-    const resFriendOfUser = await userService.fetchFriendOfUser(user_id)
+    const resFriendOfUser = await userService.fetchFriendOfUser(user_id, 1,1000)
     const friends = resFriendOfUser.data.friends as any
     const friendIds = friends.map((friend: any) => friend.user_id)
     // Thêm user_id của người tạo vào danh sách friendIds
@@ -97,7 +97,7 @@ class storyService {
   }
   // Lấy tin đã lưu trữ
   async fetchArchivedStories(user_id: string) {
-    const resFriendOfUser = await userService.fetchFriendOfUser(user_id)
+    const resFriendOfUser = await userService.fetchFriendOfUser(user_id, 1,1000)
     const friends = resFriendOfUser.data.friends as any
     const friendIds = friends.map((friend: any) => friend.user_id)
 

@@ -1,6 +1,12 @@
 // .sequelizerc
 const path = require('path')
 
+require('ts-node/register') // thực thi ts cho nodejs
+require('tsconfig-paths/register') // hỗ trợ đường dẫn
+require('@babel/register')({
+  extensions: ['.js', '.ts']
+}) // biên dịch mã nguồn
+
 module.exports = {
   config: path.resolve('src/config', 'database.js'),
   'models-path': path.resolve('src/db', 'models'),
