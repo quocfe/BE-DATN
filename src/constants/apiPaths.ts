@@ -14,7 +14,12 @@ const API_V1 = {
   role: `${V1}/role`,
   permission: `${V1}/permission`,
   account: `${V1}/account`,
-  module: `${V1}/module`
+  module: `${V1}/module`,
+  videos: `${V1}/videos`,
+  likeVideo: `${V1}/like-video`,
+  commentVideo: `${V1}/comment-video`,
+  favoriteVideo: `${V1}/favorite-video`,
+  reportVideo: `${V1}/report-video`
 } as const
 
 const API_V2 = {

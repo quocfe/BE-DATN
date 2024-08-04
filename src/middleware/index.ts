@@ -40,6 +40,7 @@ class Middleware {
               errorName: 'EXPIRED_TOKEN'
             })
           )
+
         req.user = user as UserOutput
         next()
       })

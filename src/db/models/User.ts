@@ -34,9 +34,9 @@ class User extends Model<UserAttributes, UserCreationAttribute> implements UserA
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 
+  declare Friends: User
+  declare UserFriends: User
   declare Friend: User
-  declare Friends: User[]
-  declare UserFriends: User[]
   declare Profile: Profile
   declare common_friends: string[]
 

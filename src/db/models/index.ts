@@ -2,6 +2,12 @@ import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
 import Friendship from './Friendship'
+import Video, { videoRelationships } from './Video'
+import CommentVideo, { commentVideoRelationships } from './CommentVideo'
+import LikeVideo from './LikeVideo'
+import FavoriteVideos, { favoriteVideosRelationships } from './FavoriteVideos'
+import VideoReport, { videoReportRelationships } from './VideoReport'
+import HashTagsVideo, { hashTagsVideoRelationships } from './hashTagsVideo'
 import GroupMessage from './GroupMessage'
 import MemberGroup from './MemberGroup'
 import ReactMessage from './ReactMessage'
@@ -327,6 +333,11 @@ export const setupModelRelationships = () => {
   userRelationships()
   profileRelationships()
   interestRelationships()
+  videoRelationships()
+  commentVideoRelationships()
+  favoriteVideosRelationships()
+  videoReportRelationships()
+  hashTagsVideoRelationships()
   messageRelationships()
   groupMessageRelationships()
   memberGroup()
@@ -352,6 +363,12 @@ const models = {
   Profile,
   Interest,
   Friendship,
+  Video,
+  CommentVideo,
+  LikeVideo,
+  FavoriteVideos,
+  VideoReport,
+  HashTagsVideo,
   GroupMessage,
   MemberGroup,
   Message,

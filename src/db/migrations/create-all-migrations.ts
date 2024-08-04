@@ -28,6 +28,12 @@ import RecallMessageMigration from './create-table-recallMessage'
 import NotifyGroupMessageMigration from './create-table-notifyGroupMessage'
 import DeleteGroupMessageMigration from './create-table-deleteGroupMessage'
 import ReportMessageMigration from './create-table-reportMessage'
+import VideoMigration from './create-table-video'
+import CommnetVideoMigration from './create-table-comment-video'
+import LikeVideoMigration from './create-table-like-video'
+import FavoriteVideoMigration from './create-table-favorite-video'
+import VideoReportMigration from './create-table-video-report'
+import HashTagsVideo from './create-table-hash-tag-video'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -59,9 +65,22 @@ export default {
     await NotifyGroupMessageMigration.up(queryInterface)
     await DeleteGroupMessageMigration.up(queryInterface)
     await ReportMessageMigration.up(queryInterface)
+    await VideoMigration.up(queryInterface)
+    await CommnetVideoMigration.up(queryInterface)
+    await LikeVideoMigration.up(queryInterface)
+    await FriendShipMigration.up(queryInterface)
+    await FavoriteVideoMigration.up(queryInterface)
+    await VideoReportMigration.up(queryInterface)
+    await HashTagsVideo.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
+     await VideoMigration.down(queryInterface)
+     await CommnetVideoMigration.down(queryInterface)
+     await LikeVideoMigration.down(queryInterface)
+     await FavoriteVideoMigration.down(queryInterface)
+     await VideoReportMigration.down(queryInterface)
+     await HashTagsVideo.down(queryInterface)
     await ReportMessageMigration.down(queryInterface)
     await DeleteGroupMessageMigration.down(queryInterface)
     await NotifyGroupMessageMigration.down(queryInterface)

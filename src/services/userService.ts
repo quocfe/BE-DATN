@@ -95,7 +95,7 @@ class userService {
             model: models.Profile,
             attributes: ['profile_picture', 'cover_photo']
           }
-        ]
+]
       },
       {
         model: models.Profile,
@@ -209,7 +209,7 @@ class userService {
     await profileUser.update(dataProfileUpdate)
 
     const user = await models.User.findByPk(profileUser.user_id, {
-      attributes: { exclude: ['password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt'] },
+attributes: { exclude: ['password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt'] },
       include: [
         {
           model: models.Profile,
@@ -315,7 +315,7 @@ class userService {
 
     const friendIds = [
       ...new Set(
-        acceptedFriendships.map((friendship) => {
+acceptedFriendships.map((friendship) => {
           return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
         })
       )
@@ -413,8 +413,7 @@ class userService {
   // Danh sách người dùng đã gửi kết bạn tới tôi
   async fetchAllReceivedFriendRequest(user_id: string, page: number | undefined, limit: number | undefined) {
     const offset = page && limit ? (page - 1) * limit : undefined
-
-    const receivedFriendRequests = await models.Friendship.findAll({
+const receivedFriendRequests = await models.Friendship.findAll({
       where: {
         friend_id: user_id,
         status: RELATIONSHIP.PENDING_FRIEND_REQUEST
@@ -520,7 +519,7 @@ class userService {
     await models.Friendship.create({ user_id, friend_id, status: RELATIONSHIP.FRIEND })
 
     return {
-      message: 'Chấp nhận lời mời kết bạn thành công',
+message: 'Chấp nhận lời mời kết bạn thành công',
       data: {}
     }
   }
@@ -622,7 +621,7 @@ class userService {
                   [Op.like]: `${searchName}%`
                 }
               }
-            ]
+]
           },
           {
             user_id: { [Op.notIn]: blockedUserIds }
@@ -725,8 +724,7 @@ class userService {
         status: RELATIONSHIP.BLOCKED
       }
     })
-
-    if (!blockFromUser) {
+if (!blockFromUser) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Hiện đang không chặn người dùng này!')
     }
 
@@ -846,7 +844,7 @@ class userService {
 
   // Lấy danh sách hình ảnh & video
   async getAllMediaResource(user_id: string) {
-    const posts = await models.Post.findAll({
+const posts = await models.Post.findAll({
       where: { user_id }
     })
 
