@@ -12,52 +12,40 @@ interface CustomParams extends Options {
   limit: string
 }
 
+// Cấu hình Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_KEY,
-  api_secret: process.env.CLOUDINARY_SECRET
+  api_secret: process.env.CLOUDINARY_SECRET,
+  secure: true // Khuyến khích sử dụng HTTPS
 })
 
+// Cấu hình lưu trữ Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder: 'uploads',
-    resource_type: 'auto', // để upload với những file khác nhau
-    limit: '10mb'
-  } as CustomParams
+  params: (req: Express.Request, file: Express.Multer.File) => {
+    return {
+      folder: 'uploads', // Thay đổi tên thư mục nếu cần
+      resource_type: file.mimetype.startsWith('video/') ? 'video' : 'image' // Phân loại tài nguyên dựa trên MIME type
+    } as CustomParams
+  }
 })
 
+// Bộ lọc tệp để chỉ cho phép định dạng hình ảnh và video cụ thể
 const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-  const allowedMimeTypes = [
-    'image/jpeg',
-    'image/jpg',
-    'image/png',
-    'image/webp',
-    'video/mp4',
-    'video/mpeg',
-    'video/webm',
-    'audio/mp3',
-    'audio/wav',
-    'audio/ogg',
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-powerpoint',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ]
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'video/mp4', 'video/mpeg', 'video/webm']
+
   if (!allowedMimeTypes.includes(file.mimetype)) {
     return cb(
-      new Error(
-        'Chỉ cho phép upload file ảnh, video hoặc âm thanh với định dạng jpeg, png, mp4, mpeg, ogg, webm, mov, mp3, wav, hoặc docx, pptx, xlsx'
-      ) as any,
+      new Error(`Chỉ cho phép upload file ảnh hoặc video với định dạng: ${allowedMimeTypes.join(', ')}`) as any,
       false
     )
   }
-  console.log('File accepted:', file.mimetype)
+
   cb(null, true)
 }
 
-const uploadCloud: Multer = multer({ storage, fileFilter })
+// Khởi tạo multer với cấu hình lưu trữ và bộ lọc
+const uploadCloud = multer({ storage, fileFilter, limits: { fileSize: 100 * 1024 * 1024 } })
 
 export default uploadCloud

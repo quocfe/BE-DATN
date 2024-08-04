@@ -13,22 +13,103 @@ import RecallMessage from './RecallMessage'
 import NotifyGroupMessage from './NotifyGroupMessage'
 import DeleteGroupMessage from './DeleteGroupMessage'
 import ReportMessage from './ReportMessage'
+import SearchHistory from './SearchHistory'
+import Post from './Post'
+import PostMediaResource from './PostMediaResource'
+import PostComment from './PostComment'
+import PostCommentReply from './PostCommentReply'
+import PostReaction from './PostReaction'
+import Module from './Module'
+import Permission from './Permission'
+import AccountModulePermission from './AccountModulePermission'
+import RoleModulePermission from './RoleModulePermission'
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
-    foreignKey: 'role_id'
+    foreignKey: 'role_id',
+    as: 'accounts'
+  })
+
+  Role.belongsToMany(Module, {
+    through: 'RoleModulePermissions',
+    foreignKey: 'role_id',
+    otherKey: 'module_id',
+    as: 'modules'
+  })
+
+  Role.belongsToMany(Permission, {
+    through: 'RoleModulePermissions',
+    foreignKey: 'role_id',
+    otherKey: 'permission_id'
   })
 }
 
 const accountRelationship = () => {
   Account.belongsTo(Role, {
-    foreignKey: 'role_id'
+    foreignKey: 'role_id',
+    as: 'role'
+  })
+
+  Account.belongsToMany(Module, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'account_id',
+    otherKey: 'module_id',
+    as: 'modules'
+  })
+
+  Account.belongsToMany(Permission, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'account_id',
+    otherKey: 'permission_id'
+  })
+}
+
+const moduleRelationships = () => {
+  Module.belongsToMany(Role, {
+    through: 'RoleModulePermissions',
+    foreignKey: 'module_id',
+    otherKey: 'role_id'
+  })
+
+  Module.belongsToMany(Account, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'module_id',
+    otherKey: 'account_id'
+  })
+
+  // Module.belongsToMany(Permission, {
+  //   through: 'RoleModulePermissions',
+  //   foreignKey: 'module_id',
+  //   otherKey: 'permission_id',
+  //   as: 'permissions'
+  // })
+
+  Module.belongsToMany(Permission, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'module_id',
+    otherKey: 'permission_id',
+    as: 'permissions'
+  })
+}
+
+const permissionRelationships = () => {
+  Permission.belongsToMany(Role, {
+    through: 'RoleModulePermissions',
+    foreignKey: 'permission_id',
+    otherKey: 'role_id'
+  })
+
+  Permission.belongsToMany(Account, {
+    through: 'AccountModulePermissions',
+    foreignKey: 'permission_id',
+    otherKey: 'account_id'
   })
 }
 
 const userRelationships = () => {
   User.hasOne(Profile, {
-    foreignKey: 'user_id'
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
   })
 
   User.belongsToMany(Interest, {
@@ -55,6 +136,29 @@ const userRelationships = () => {
 
   User.hasMany(MemberGroup, {
     foreignKey: 'user_id'
+  })
+  User.hasMany(SearchHistory, {
+    foreignKey: 'user_id'
+  })
+
+  User.hasMany(Post, {
+    foreignKey: 'user_id',
+    as: 'posts'
+  })
+
+  User.hasMany(PostComment, {
+    foreignKey: 'user_id',
+    as: 'comments'
+  })
+
+  User.hasMany(PostCommentReply, {
+    foreignKey: 'user_id',
+    as: 'comment_replies'
+  })
+
+  User.hasMany(PostReaction, {
+    foreignKey: 'user_id',
+    as: 'reactions'
   })
 }
 
@@ -116,6 +220,106 @@ const recallMessage = () => {
 const reportMessage = () => {
   ReportMessage.belongsTo(Message, { foreignKey: 'message_id' })
 }
+const searchHistoryRelationships = () => {
+  SearchHistory.belongsTo(User, {
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
+  })
+
+  SearchHistory.belongsTo(User, {
+    foreignKey: 'target_id',
+    onDelete: 'CASCADE'
+  })
+
+  // SearchHistory.belongsTo(Fanpage, {
+  //   foreignKey: 'target_id',
+  //   targetKey: 'fanpage_id',
+  //   onDelete: 'CASCADE'
+  // })
+}
+
+const postRelationships = () => {
+  Post.hasMany(PostMediaResource, {
+    foreignKey: 'post_id',
+    as: 'media_resources'
+  })
+
+  Post.hasMany(PostComment, {
+    foreignKey: 'post_id',
+    as: 'comments'
+  })
+
+  Post.hasMany(PostReaction, {
+    foreignKey: 'post_id',
+    as: 'reactions'
+  })
+
+  Post.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'author'
+  })
+}
+
+const postMediaResourceRelationships = () => {
+  PostMediaResource.belongsTo(Post, {
+    foreignKey: 'post_id',
+    as: 'post',
+    onDelete: 'CASCADE'
+  })
+}
+
+const postCommentRelationships = () => {
+  PostComment.belongsTo(Post, {
+    foreignKey: 'post_id',
+    as: 'post',
+    onDelete: 'CASCADE'
+  })
+
+  PostComment.hasMany(PostCommentReply, {
+    foreignKey: 'comment_id',
+    as: 'comment_replies'
+  })
+
+  PostComment.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user_comment',
+    onDelete: 'CASCADE'
+  })
+}
+
+const postCommentReplyRelationships = () => {
+  PostCommentReply.belongsTo(PostComment, {
+    foreignKey: 'comment_id',
+    as: 'comment',
+    onDelete: 'CASCADE'
+  })
+
+  PostCommentReply.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user_reply',
+    onDelete: 'CASCADE'
+  })
+
+  PostCommentReply.belongsTo(User, {
+    foreignKey: 'replied_to_user_id',
+    as: 'replied_to_user',
+    onDelete: 'CASCADE'
+  })
+}
+
+const postReactionRelationships = () => {
+  PostReaction.belongsTo(Post, {
+    foreignKey: 'post_id',
+    as: 'post',
+    onDelete: 'CASCADE'
+  })
+
+  PostReaction.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user_reaction',
+    onDelete: 'CASCADE'
+  })
+}
 
 export const setupModelRelationships = () => {
   roleRelationships()
@@ -131,9 +335,19 @@ export const setupModelRelationships = () => {
   recallMessage()
   notifyGroupMessage()
   reportMessage()
+  searchHistoryRelationships()
+  postRelationships()
+  postMediaResourceRelationships()
+  postCommentRelationships()
+  postCommentReplyRelationships()
+  postReactionRelationships()
+  permissionRelationships()
+  moduleRelationships()
 }
 
 const models = {
+  Role,
+  Account,
   User,
   Profile,
   Interest,
@@ -147,8 +361,16 @@ const models = {
   NotifyGroupMessage,
   DeleteGroupMessage,
   ReportMessage,
-  Role,
-  Account
+  SearchHistory,
+  Post,
+  PostMediaResource,
+  PostComment,
+  PostCommentReply,
+  PostReaction,
+  Permission,
+  Module,
+  AccountModulePermission,
+  RoleModulePermission
 }
 
 export default models

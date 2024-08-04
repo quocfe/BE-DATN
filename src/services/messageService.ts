@@ -1046,7 +1046,7 @@ class messageService {
         group_message_id: group_id
       }
     })
-    const listAllFriend = await userService.fetchFriendOfUser(user_loggin)
+    const listAllFriend = await userService.fetchFriendOfUser(user_loggin, 1, 1000)
     const data = listAllFriend.data.friends.filter((item) => {
       return !listMemberGroup.some((group) => group.user_id === item.user_id)
     })
@@ -1131,7 +1131,7 @@ class messageService {
   }
 
   async searchFriendAndConversation(user_id: string, keyword: string) {
-    const listFriend = await userService.fetchFriendOfUser(user_id)
+    const listFriend = await userService.fetchFriendOfUser(user_id, 1, 1000)
     const listConversation = await this.getConversation(user_id, 1, 10000, true)
 
     // group_id, group_name, type

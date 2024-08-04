@@ -1,6 +1,7 @@
 import db from '../../connection'
 import { v4 as uuidv4 } from 'uuid'
 import { DataTypes, Model, Optional } from 'sequelize'
+import Account from './Account'
 
 export interface RoletAttributes {
   role_id: string
@@ -18,6 +19,8 @@ class Role extends Model<RoletAttributes, RoleCreationAttribute> implements Role
   declare description: string
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
+
+  declare readonly accounts: Account[]
 }
 
 Role.init(

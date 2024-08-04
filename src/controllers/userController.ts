@@ -1,22 +1,25 @@
 import { NextFunction, Request, Response } from 'express'
 import userService from '../services/userService'
 import { sendResponseSuccess } from '../utils/response'
-import { StatusCodes } from 'http-status-codes'
-import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { ProfileInput } from '../types/profile.type'
 import { MulterFiles } from '../types/multer.type'
 import { ChangePassword } from '../types/user.type'
+import { CreateSearchHistory } from '../types/searchHistory.type'
+import searchHistoryService from '../services/searchHistoryService'
 
 class userController {
   // Danh sách người dùng
   async fetchAllUsers(req: Request, res: Response, next: NextFunction) {
     if (req.user) {
+      const { _page, _limit } = req.query
       const user_id = req.user.user_id
-      const data = await userService.fetchAllUsers(user_id)
+
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
+
+      const data = await userService.fetchAllUsers(user_id, page, limit)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -28,8 +31,6 @@ class userController {
       const data = await userService.getProfile(user_id)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -42,8 +43,6 @@ class userController {
       const data = await userService.getProfile(friend_id, user_id)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -70,21 +69,21 @@ class userController {
       const data = await userService.updateProfile(user_id, dataProfileUpdate)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
   // Lấy danh sách bạn bè
   async fetchFriendOfUser(req: Request, res: Response) {
     if (req.user) {
+      const { _page, _limit } = req.query
       const user_id = req.user.user_id
 
-      const data = await userService.fetchFriendOfUser(user_id)
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
+
+      const data = await userService.fetchFriendOfUser(user_id, page, limit)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -97,21 +96,21 @@ class userController {
       const data = await userService.senderFriendRequest(user_id, friend_id)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
   // Danh sách lời mời kết bạn đã gửi
   async fetchAllSentFriendRequest(req: Request, res: Response) {
     if (req.user) {
+      const { _page, _limit } = req.query
       const user_id = req.user.user_id
 
-      const data = await userService.fetchAllSentFriendRequest(user_id)
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
+
+      const data = await userService.fetchAllSentFriendRequest(user_id, page, limit)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -124,21 +123,21 @@ class userController {
       const data = await userService.cancelFriendRequest(user_id, friend_id)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
   // Danh sách người dùng đã gửi kết bạn tới tôi
   async fetchAllReceivedFriendRequest(req: Request, res: Response) {
     if (req.user) {
+      const { _page, _limit } = req.query
       const user_id = req.user.user_id
 
-      const data = await userService.fetchAllReceivedFriendRequest(user_id)
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
+
+      const data = await userService.fetchAllReceivedFriendRequest(user_id, page, limit)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -151,8 +150,6 @@ class userController {
       const data = await userService.acceptFriendRequest(user_id, friend_id)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -165,8 +162,6 @@ class userController {
       const data = await userService.blockedUser(user_id, friend_id)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -179,22 +174,18 @@ class userController {
       const data = await userService.unblockedUser(user_id, friend_id)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
   // Tìm kiếm người dùng hoặc fanpage
-  async searchUserOrFanpage(req: Request, res: Response) {
+  async searchUserOrFanpages(req: Request, res: Response) {
     if (req.user) {
       const user_id = req.user.user_id
       const { name } = req.params
 
-      const data = await userService.searchUserOrFanpage(user_id, name)
+      const data = await userService.searchUserOrFanpages(user_id, name)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -206,8 +197,6 @@ class userController {
       const data = await userService.fetchAllListBlockUser(user_id)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
   // Tìm kiếm bạn bè
@@ -219,8 +208,6 @@ class userController {
       const data = await userService.searchFriends(user_id, name)
 
       sendResponseSuccess(res, data)
-    } else {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại người dùng!')
     }
   }
 
@@ -242,11 +229,72 @@ class userController {
 
   //  Danh sách bạn bè của bạn bè
   async fetchAllFriendsOfFriends(req: Request, res: Response) {
+    const { _page, _limit } = req.query
     const { friend_id } = req.params
 
-    const data = await userService.fetchFriendOfUser(friend_id)
+    const page = typeof _page === 'string' ? +_page : undefined
+    const limit = typeof _limit === 'string' ? +_limit : undefined
+
+    const data = await userService.fetchFriendOfUser(friend_id, page, limit)
 
     sendResponseSuccess(res, data)
+  }
+
+  // Lịch sử người dùng tìm kiếm
+  async fetchAllSearchHistory(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+
+      const data = await searchHistoryService.fetchAllSearchHistory(user_id)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  // Thêm mới lịch sử tìm kiếm
+  async addNewSearchHistory(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const searchHistoryData: CreateSearchHistory = req.body
+
+      const data = await searchHistoryService.addNewSearchHistory(user_id, searchHistoryData)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  // Xóa lịch sử tìm kiếm
+  async deleteSearchHistory(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+      const { target_id } = req.params
+
+      const data = await searchHistoryService.deleteSearchHistory(user_id, target_id)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  // Xóa tất cả lịch sử tìm kiếm
+  async clearSearchHistory(req: Request, res: Response) {
+    if (req.user) {
+      const user_id = req.user.user_id
+
+      const data = await searchHistoryService.clearSearchHistory(user_id)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  // Lấy danh sách hình ảnh & video
+  async getAllMediaResource(req: Request, res: Response) {
+    if (req.user) {
+      const { user_id } = req.user
+
+      const data = await userService.getAllMediaResource(user_id)
+
+      sendResponseSuccess(res, data)
+    }
   }
 }
 
