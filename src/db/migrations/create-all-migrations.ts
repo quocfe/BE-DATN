@@ -34,6 +34,7 @@ import LikeVideoMigration from './create-table-like-video'
 import FavoriteVideoMigration from './create-table-favorite-video'
 import VideoReportMigration from './create-table-video-report'
 import HashTagsVideo from './create-table-hash-tag-video'
+import StoryMigration from './create-table-story'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -72,6 +73,8 @@ export default {
     await FavoriteVideoMigration.up(queryInterface)
     await VideoReportMigration.up(queryInterface)
     await HashTagsVideo.up(queryInterface)
+    await StoryMigration.up(queryInterface)
+
   },
 
   async down(queryInterface: QueryInterface) {
@@ -108,5 +111,6 @@ export default {
     await UserMigration.down(queryInterface)
     await AccountMigration.down(queryInterface)
     await RoleMigration.down(queryInterface)
+    await StoryMigration.down(queryInterface)
   }
 }

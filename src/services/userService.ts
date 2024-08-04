@@ -585,7 +585,7 @@ message: 'Chấp nhận lời mời kết bạn thành công',
       message: 'Danh sách bạn bè',
       data: { friends: newFriends, page, pages, limit, total }
     }
-  }
+  } 
 
   // Tìm kiếm người dùng hoặc fanpage
   async searchUserOrFanpages(user_id: string, name: string) {

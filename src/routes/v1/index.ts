@@ -19,11 +19,13 @@ import permissionRoutes from './permissionRoutes'
 import accountRoutes from './accountRoutes'
 import moduleRoutes from './moduleRoutes'
 
+import storyRoutes from './storyRoutes'
 const router = Router()
 
 router.use(API_V1.common, commonRoutes)
 router.use(API_V1.user, userRoutes)
 router.use(API_V1.interest, interestRoutes)
+router.use(API_V1.story, storyRoutes)
 router.use(API_V1.videos, videoRouter)
 router.use(API_V1.likeVideo, likeVideoRoute)
 router.use(API_V1.commentVideo, commentVideoRoute)

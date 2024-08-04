@@ -17,7 +17,7 @@ import PermissionSeeder from './permission-seeder'
 import RoleModulePermissionSeeder from './role-module-permission-seeders'
 import AccountModulePermissionSeeder from './account-module-permission-seeder'
 import videoSeeder from './video-seeder'
-
+import storySeeder from './story-seeder'
 export default {
   async up(queryInterface: QueryInterface) {
     await RoleSeeder.up(queryInterface)
@@ -38,6 +38,7 @@ export default {
     await RoleModulePermissionSeeder.up(queryInterface)
     await AccountModulePermissionSeeder.up(queryInterface)
     await videoSeeder.up(queryInterface)
+    await storySeeder.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
@@ -59,5 +60,7 @@ export default {
     await UserSeeder.down(queryInterface)
     await AccountSeeder.down(queryInterface)
     await RoleSeeder.down(queryInterface)
+    await storySeeder.down(queryInterface)
+
   }
 }
