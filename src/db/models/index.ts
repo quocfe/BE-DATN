@@ -2,8 +2,17 @@ import User from './User'
 import Profile from './Profile'
 import Interest from './Interest'
 import Friendship from './Friendship'
+import GroupMessage from './GroupMessage'
+import MemberGroup from './MemberGroup'
+import ReactMessage from './ReactMessage'
+import SeenMessage from './SeenMessage'
+import Message from './Message'
 import Role from './Role'
 import Account from './Account'
+import RecallMessage from './RecallMessage'
+import NotifyGroupMessage from './NotifyGroupMessage'
+import DeleteGroupMessage from './DeleteGroupMessage'
+import ReportMessage from './ReportMessage'
 import SearchHistory from './SearchHistory'
 import Post from './Post'
 import PostMediaResource from './PostMediaResource'
@@ -123,6 +132,11 @@ const userRelationships = () => {
     onDelete: 'CASCADE'
   })
 
+  User.hasMany(GroupMessage, { foreignKey: 'createdBy', as: 'GroupsMessage' })
+
+  User.hasMany(MemberGroup, {
+    foreignKey: 'user_id'
+  })
   User.hasMany(SearchHistory, {
     foreignKey: 'user_id'
   })
@@ -163,6 +177,49 @@ const interestRelationships = () => {
   })
 }
 
+const groupMessageRelationships = () => {
+  GroupMessage.hasMany(Message, { foreignKey: 'group_message_id', onDelete: 'cascade' })
+  GroupMessage.hasMany(MemberGroup, { foreignKey: 'group_message_id', onDelete: 'cascade' })
+  GroupMessage.hasMany(NotifyGroupMessage, { foreignKey: 'group_message_id', onDelete: 'cascade' })
+  GroupMessage.hasMany(DeleteGroupMessage, { foreignKey: 'group_message_id', onDelete: 'cascade' })
+  GroupMessage.belongsTo(User, { foreignKey: 'createdBy', as: 'Creator' })
+}
+
+const memberGroup = () => {
+  MemberGroup.belongsTo(User, { foreignKey: 'user_id' })
+  MemberGroup.belongsTo(GroupMessage, { foreignKey: 'group_message_id' })
+}
+
+const notifyGroupMessage = () => {
+  NotifyGroupMessage.belongsTo(GroupMessage, { foreignKey: 'group_message_id' })
+}
+
+const deleteGroupMessage = () => {
+  DeleteGroupMessage.belongsTo(GroupMessage, { foreignKey: 'group_message_id' })
+}
+
+const messageRelationships = () => {
+  Message.hasMany(ReactMessage, { foreignKey: 'message_id', onDelete: 'cascade' })
+  Message.hasMany(SeenMessage, { foreignKey: 'message_id', onDelete: 'cascade' })
+  Message.hasMany(RecallMessage, { foreignKey: 'message_id', onDelete: 'cascade' })
+  Message.hasMany(ReportMessage, { foreignKey: 'message_id', onDelete: 'cascade' })
+}
+
+const seenMessage = () => {
+  SeenMessage.belongsTo(Message, { foreignKey: 'message_id' })
+}
+
+const reactMessage = () => {
+  ReactMessage.belongsTo(Message, { foreignKey: 'message_id' })
+}
+
+const recallMessage = () => {
+  RecallMessage.belongsTo(Message, { foreignKey: 'message_id' })
+}
+
+const reportMessage = () => {
+  ReportMessage.belongsTo(Message, { foreignKey: 'message_id' })
+}
 const searchHistoryRelationships = () => {
   SearchHistory.belongsTo(User, {
     foreignKey: 'user_id',
@@ -270,6 +327,14 @@ export const setupModelRelationships = () => {
   userRelationships()
   profileRelationships()
   interestRelationships()
+  messageRelationships()
+  groupMessageRelationships()
+  memberGroup()
+  seenMessage()
+  reactMessage()
+  recallMessage()
+  notifyGroupMessage()
+  reportMessage()
   searchHistoryRelationships()
   postRelationships()
   postMediaResourceRelationships()
@@ -287,6 +352,15 @@ const models = {
   Profile,
   Interest,
   Friendship,
+  GroupMessage,
+  MemberGroup,
+  Message,
+  ReactMessage,
+  SeenMessage,
+  RecallMessage,
+  NotifyGroupMessage,
+  DeleteGroupMessage,
+  ReportMessage,
   SearchHistory,
   Post,
   PostMediaResource,

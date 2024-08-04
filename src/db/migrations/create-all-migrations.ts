@@ -19,6 +19,15 @@ import ModuleMigration from './create-table-module'
 import PermissionMigration from './create-table-permission'
 import AccountModulePermissionMigtation from './create-table-account-module-permission'
 import RoleModulePermissionMigration from './create-table-role-module-permission'
+import GroupMessageMigration from './create-table-groupMessage'
+import MemberGroupMigration from './create-table-memberGroup'
+import MessageMigration from './create-table-message'
+import ReactMessageMigration from './create-table-reactMessage'
+import SeenMessageMigration from './create-table-seenMessage'
+import RecallMessageMigration from './create-table-recallMessage'
+import NotifyGroupMessageMigration from './create-table-notifyGroupMessage'
+import DeleteGroupMessageMigration from './create-table-deleteGroupMessage'
+import ReportMessageMigration from './create-table-reportMessage'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -41,9 +50,26 @@ export default {
     await PermissionMigration.up(queryInterface)
     await AccountModulePermissionMigtation.up(queryInterface)
     await RoleModulePermissionMigration.up(queryInterface)
+    await GroupMessageMigration.up(queryInterface)
+    await MemberGroupMigration.up(queryInterface)
+    await MessageMigration.up(queryInterface)
+    await ReactMessageMigration.up(queryInterface)
+    await SeenMessageMigration.up(queryInterface)
+    await RecallMessageMigration.up(queryInterface)
+    await NotifyGroupMessageMigration.up(queryInterface)
+    await DeleteGroupMessageMigration.up(queryInterface)
+    await ReportMessageMigration.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
+    await ReportMessageMigration.down(queryInterface)
+    await DeleteGroupMessageMigration.down(queryInterface)
+    await NotifyGroupMessageMigration.down(queryInterface)
+    await SeenMessageMigration.down(queryInterface)
+    await ReactMessageMigration.down(queryInterface)
+    await MessageMigration.down(queryInterface)
+    await MemberGroupMigration.down(queryInterface)
+    await GroupMessageMigration.down(queryInterface)
     await RoleModulePermissionMigration.down(queryInterface)
     await AccountModulePermissionMigtation.down(queryInterface)
     await PermissionMigration.down(queryInterface)

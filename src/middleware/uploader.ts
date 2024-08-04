@@ -1,11 +1,15 @@
-import 'dotenv/config'
 import { v2 as cloudinary } from 'cloudinary'
 import { CloudinaryStorage, Options } from 'multer-storage-cloudinary'
-import multer, { FileFilterCallback } from 'multer'
+import { FileFilterCallback, Multer } from 'multer'
+import multer from 'multer'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 interface CustomParams extends Options {
   folder: string
-  resource_type?: 'image' | 'video' | 'auto'
+  resource_type: string
+  limit: string
 }
 
 // Cấu hình Cloudinary

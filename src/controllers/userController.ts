@@ -199,7 +199,6 @@ class userController {
       sendResponseSuccess(res, data)
     }
   }
-
   // Tìm kiếm bạn bè
   async searchFriends(req: Request, res: Response) {
     if (req.user) {

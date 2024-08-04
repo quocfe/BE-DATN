@@ -772,7 +772,6 @@ class userService {
       }
     }
   }
-
   // Tìm kiếm bạn bè
   async searchFriends(user_id: string, name: string) {
     const searchName = name ? name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() : ''
