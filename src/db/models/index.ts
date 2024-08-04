@@ -31,6 +31,7 @@ import Module from './Module'
 import Permission from './Permission'
 import AccountModulePermission from './AccountModulePermission'
 import RoleModulePermission from './RoleModulePermission'
+import Fanpage from './Fanpage';
 
 const roleRelationships = () => {
   Role.hasMany(Account, {
@@ -193,6 +194,13 @@ const interestRelationships = () => {
     foreignKey: 'interest_id',
     onDelete: 'CASCADE'
   })
+}
+// FanPage Relationships
+const fanpageRelationships = () => {
+  Fanpage.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+  });
 }
 
 // Notification Relationships
@@ -385,6 +393,7 @@ export const setupModelRelationships = () => {
   postReactionRelationships()
   permissionRelationships()
   moduleRelationships()
+  fanpageRelationships();
   storyRelationships()
 }
 
@@ -394,6 +403,7 @@ const models = {
   User,
   Profile,
   Interest,
+  Fanpage,
   Friendship,
   Video,
   CommentVideo,

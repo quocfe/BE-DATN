@@ -15,6 +15,7 @@ export interface FanpageAttributes {
   is_public: boolean;
   role_id: string;
   user_id: string;
+  image_url?: string; 
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,7 @@ class Fanpage extends Model<FanpageAttributes, FanPageCreationAttributes> implem
   declare is_public: boolean;
   declare role_id: string;
   declare user_id: string;
+  declare image_url?: string;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -85,6 +87,10 @@ Fanpage.init(
     },
     user_id: {
       allowNull: false,
+      type: DataTypes.STRING
+    },
+    image_url: { // thêm thuộc tính image_url
+      allowNull: true,
       type: DataTypes.STRING
     },
     createdAt: {
