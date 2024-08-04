@@ -55,12 +55,47 @@ class Middleware {
     }
   }
 
-  // Xác thực vai trò
-  verifyTokenAdminRole(role_id: string) {
+  // Xác thực vai trò & permissions
+  verifyTokenAdminRole(roles: string[] = [], requiredPermission?: string, requiredModule?: string) {
+    if (typeof roles === 'string') {
+      roles = [roles]
+    }
+
     return [
       this.verifyToken,
       (req: Request, res: Response, next: NextFunction) => {
         const user = req.user
+        console.log(user)
+
+        // Nếu là Super Admin -> next full quyền
+        if (user?.role?.name === 'Super Admin') {
+          return next()
+        }
+
+        // không có vai trò hoặc vai trò không nằm trong list roles được cấp phép
+        if (!user?.role || (roles.length && !roles.includes(user.role.name))) {
+          return res.status(403).json({ message: 'Forbidden: Bạn không có quyền truy cập!' })
+        }
+
+        // Không yêu cầu quyền
+        if (!requiredPermission || !requiredModule) {
+          return next()
+        }
+
+        // Kiểm tra quyền truy cập vào module
+        const hasPermission = user.modules?.some((module) => {
+          return (
+            module.name.toLowerCase() === requiredModule.toLowerCase() &&
+            module.permissions.some((permission) => permission.name.toLowerCase() === requiredPermission.toLowerCase())
+          )
+        })
+
+        if (!hasPermission) {
+          return res.status(403).json({ message: 'Forbidden: Bạn không có quyền truy cập vào module này!' })
+        }
+
+        // Thỏa mãn niềm đam mê
+        next()
       }
     ]
   }

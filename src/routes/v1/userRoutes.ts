@@ -12,8 +12,8 @@ router.get('/profile/:friend_id', Middleware.verifyToken, tryCatch(userControlle
 
 router.post(
   '/profile/update',
-  uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
   Middleware.verifyToken,
+  uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
   tryCatch(userController.updateProfile)
 )
 
@@ -54,5 +54,15 @@ router.get('/list', Middleware.verifyToken, tryCatch(userController.fetchAllUser
 router.post('/change_password', Middleware.verifyToken, tryCatch(userController.changePassword))
 
 router.get('/friends_of_friends/:friend_id', Middleware.verifyToken, tryCatch(userController.fetchAllFriendsOfFriends))
+
+router.get('/search/histories', Middleware.verifyToken, tryCatch(userController.fetchAllSearchHistory))
+
+router.post('/search/history/add', Middleware.verifyToken, tryCatch(userController.addNewSearchHistory))
+
+router.delete('/search/history/delete/:target_id', Middleware.verifyToken, tryCatch(userController.deleteSearchHistory))
+
+router.delete('/search/history/clear', Middleware.verifyToken, tryCatch(userController.clearSearchHistory))
+
+router.get('/list/media_resource', Middleware.verifyToken, tryCatch(userController.getAllMediaResource))
 
 export default router
