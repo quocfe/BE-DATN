@@ -27,10 +27,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
-      music:{
-        allowNull: false,
-        type: Sequelize.STRING
-      },
+     
       story_view:{
         allowNull: true,
         type : Sequelize.STRING
@@ -48,6 +45,10 @@ module.exports = {
       tag:{
         allowNull: false,
         type: Sequelize.STRING
+      },
+      is_archived :{
+        allowNull: false,
+        type: Sequelize.BOOLEAN 
       },
       createdAt: {
         allowNull: false,

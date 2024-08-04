@@ -19,7 +19,7 @@ module.exports = {
     await UserInterestSeeder.up(queryInterface, Sequelize)
     await FriendshipSeeders.up(queryInterface, Sequelize)
     await NotificationSeeder.up(queryInterface, Sequelize)
-    await StorySeeder.up(queryInterface, Sequelize)
+    
   },
 
   async down(queryInterface, Sequelize) {
