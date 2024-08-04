@@ -56,7 +56,6 @@ io.on('connection', (socket) => {
   })
 
   socket.on('cancelVideoCall', async (data) => {
-    console.log('cancelVideoCall', data)
     await messageSocketService.emitCancelVideoCall(data)
     // emit missCall
   })

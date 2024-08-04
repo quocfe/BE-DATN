@@ -9,10 +9,10 @@ export type MessageAttributes = {
   status: boolean
   group_message_id: string
   parent_id: string
-  detelectedBy: string
-  detelectedAt: Date
   createdBy: string
   type: number
+  is_report: boolean
+  report_count: number
   createdAt: Date
   updatedAt: Date
 }
@@ -27,8 +27,6 @@ interface MessageCreationAttribute
     | 'parent_id'
     | 'status'
     | 'createdBy'
-    | 'detelectedBy'
-    | 'detelectedAt'
     | 'type'
     | 'createdAt'
     | 'updatedAt'
@@ -41,10 +39,10 @@ class Message extends Model<MessageAttributes, MessageCreationAttribute> impleme
   declare status: boolean
   declare group_message_id: string
   declare parent_id: string
-  declare detelectedBy: string
-  declare readonly detelectedAt: Date
   declare createdBy: string
   declare type: number
+  declare is_report: boolean
+  declare report_count: number
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -78,14 +76,6 @@ Message.init(
       allowNull: true,
       type: DataTypes.STRING
     },
-    detelectedAt: {
-      allowNull: true,
-      type: DataTypes.DATE
-    },
-    detelectedBy: {
-      allowNull: true,
-      type: DataTypes.STRING
-    },
     createdBy: {
       allowNull: false,
       type: DataTypes.STRING
@@ -94,6 +84,16 @@ Message.init(
       allowNull: false,
       type: DataTypes.INTEGER,
       defaultValue: 1
+    },
+    is_report: {
+      allowNull: true,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    report_count: {
+      allowNull: true,
+      type: DataTypes.INTEGER,
+      defaultValue: 0
     },
     createdAt: {
       allowNull: true,

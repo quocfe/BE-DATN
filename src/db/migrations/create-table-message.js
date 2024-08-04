@@ -34,15 +34,6 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING
       },
-      detelectedBy: {
-        allowNull: true,
-        type: Sequelize.STRING
-      },
-      detelectedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-      },
       createdBy: {
         allowNull: false,
         type: Sequelize.STRING
@@ -50,6 +41,16 @@ module.exports = {
       type: {
         allowNull: false,
         type: Sequelize.INTEGER
+      },
+      is_report: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
+      report_count: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       createdAt: {
         allowNull: false,

@@ -10,7 +10,7 @@ class notifyMessageService {
   async createNotify(input: NotifyGroupMessageInput, sender?: string) {
     const checkGroupId = await models.GroupMessage.findByPk(input.group_message_id)
     if (!checkGroupId) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm')
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm ở createNotify')
     }
     const membersGroup = await models.MemberGroup.findAll({
       where: {
@@ -39,6 +39,9 @@ class notifyMessageService {
 
   async getAllNotify(userLoggin: string) {
     const data = await models.NotifyGroupMessage.findAll({
+      where: {
+        receiver_id: userLoggin
+      },
       order: ['createdAt']
     })
     return {

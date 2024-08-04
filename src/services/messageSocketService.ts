@@ -23,7 +23,7 @@ class messageSocketService {
     }
   }
 
-  async emitNewMessage(group_message_id: string) {
+  async emitNewMessage(group_message_id: string, sender?: string) {
     if (group_message_id) {
       const memmbersId = await models.MemberGroup.findAll({
         where: {
@@ -38,22 +38,26 @@ class messageSocketService {
 
       memmbersId.forEach(async (member) => {
         const receiver = getReceiverSocketId(member.user_id)
-
-        if (receiver) {
+        const senderId = getReceiverSocketId(sender ? sender : '')
+        if (receiver != senderId) {
           const data = {
             group_id: group?.group_message_id,
-            id: member.user_id,
-            type: group?.type,
-            avatar: group?.group_thumbnail
+            id: sender,
+            type: group?.type
           }
           io.to(receiver).emit('newMessage', data)
-          await models.DeleteGroupMessage.update(
-            { status: false },
-            { where: { group_message_id, deletedBy: member.user_id } }
-          )
-        } else {
         }
       })
+
+      await models.DeleteGroupMessage.update(
+        { status: false },
+        {
+          where: {
+            group_message_id,
+            status: true
+          }
+        }
+      )
     } else {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitNewMessage')
     }

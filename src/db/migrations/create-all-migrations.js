@@ -16,6 +16,7 @@ const SeenMessageMigration = require('./create-table-seenMessage')
 const RecallMessageMigration = require('./create-table-recallMessage')
 const NotifyGroupMessageMigration = require('./create-table-notifyGroupMessage')
 const DeleteGroupMessageMigration = require('./create-table-deleteGroupMessage')
+const ReportMessageMigration = require('./create-table-reportMessage')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -50,13 +51,17 @@ module.exports = {
     await NotifyGroupMessageMigration.up(queryInterface, Sequelize)
     // DeleteGroupMessage
     await DeleteGroupMessageMigration.up(queryInterface, Sequelize)
+    // ReportMessage
+    await ReportMessageMigration.up(queryInterface, Sequelize)
   },
 
   async down(queryInterface, Sequelize) {
+    // ReportMessage
+    await ReportMessageMigration.down(queryInterface, Sequelize)
     // DeleteGroupMessage
-    await DeleteGroupMessageMigration.up(queryInterface, Sequelize)
+    await DeleteGroupMessageMigration.down(queryInterface, Sequelize)
     // NotifyGroupMessage
-    await NotifyGroupMessageMigration.up(queryInterface, Sequelize)
+    await NotifyGroupMessageMigration.down(queryInterface, Sequelize)
     // SeenMessageMigration
     await SeenMessageMigration.down(queryInterface, Sequelize)
     // ReactMessageMigration
@@ -78,18 +83,18 @@ module.exports = {
     // User
     await UserMigration.down(queryInterface, Sequelize)
     // GroupMessageMigration
-    await GroupMessageMigration.up(queryInterface, Sequelize)
+    await GroupMessageMigration.down(queryInterface, Sequelize)
     // MemberGroup
-    await MemberGroupMigration.up(queryInterface, Sequelize)
+    await MemberGroupMigration.down(queryInterface, Sequelize)
     // MessageMigration
-    await MessageMigration.up(queryInterface, Sequelize)
+    await MessageMigration.down(queryInterface, Sequelize)
 
     // ReactMessageMigration
-    await ReactMessageMigration.up(queryInterface, Sequelize)
+    await ReactMessageMigration.down(queryInterface, Sequelize)
     // SeenMessageMigration
-    await SeenMessageMigration.up(queryInterface, Sequelize)
+    await SeenMessageMigration.down(queryInterface, Sequelize)
     // ReacllMessageMigration
-    await RecallMessageMigration.up(queryInterface, Sequelize)
+    await RecallMessageMigration.down(queryInterface, Sequelize)
 
     // Account
     await AccountMigration.down(queryInterface, Sequelize)

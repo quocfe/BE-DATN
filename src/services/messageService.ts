@@ -12,6 +12,7 @@ import notifyMessageService from './notifyMessageService'
 import userService from './userService'
 import deleteConversationService from './deleteConversationService'
 import seenMessageService from './seenMessageService'
+import MemberGroup from '../db/models/MemberGroup'
 
 class messageService {
   // fn get Thubmail
@@ -62,7 +63,7 @@ class messageService {
     })
 
     const filteredGroupMessageIds = groupMessageIds.filter((item1: any) => {
-      return !groupMessageIdsNodelete.some((item2) => item1 === item2.group_message_id)
+      return search ? [...item1] : !groupMessageIdsNodelete.some((item2) => item1 === item2.group_message_id)
     })
 
     // Fetch GroupMessage data
@@ -229,7 +230,9 @@ class messageService {
       type: 0,
       group_message_id: newGroup.group_message_id,
       body: `${user_login} đã tạo nhóm.`,
-      receiver: newGroup.group_message_id
+      receiver: newGroup.group_message_id,
+      is_report: false,
+      report_count: 0
     }
     await this.sendMessage(dataMessageTypeZero, userLoggin)
     // Thêm thành viên vào nhóm
@@ -246,7 +249,9 @@ class messageService {
           type: 0,
           group_message_id: newGroup.group_message_id,
           body: `${user_name} đã được thêm vào nhóm.`,
-          receiver: newGroup.group_message_id
+          receiver: newGroup.group_message_id,
+          is_report: false,
+          report_count: 0
         }
         if (user_id != userLoggin) await this.sendMessage(dataMessageTypeZero, user_id)
       })
@@ -320,7 +325,9 @@ class messageService {
           type: 0,
           group_message_id: memberGroupData.group_message_id,
           body: `${user_name} đã được thêm vào nhóm`,
-          receiver: memberGroupData.group_message_id
+          receiver: memberGroupData.group_message_id,
+          is_report: false,
+          report_count: 0
         }
         await this.sendMessage(dataMessageTypeZero, user)
         await messageSocketService.emitCurdMemberGroup(memberGroupData.group_message_id)
@@ -399,12 +406,13 @@ class messageService {
     }
 
     // kiểm tra user xóa đoạn chat
-
     const checkDeleteGroup = await models.DeleteGroupMessage.findOne({
       where: {
         group_message_id: id,
         deletedBy: sender
-      }
+      },
+      order: [['createdAt', 'DESC']],
+      limit: 1
     })
 
     const whereConditions: any = {
@@ -453,7 +461,6 @@ class messageService {
         const replyMessage = message.parent_id && (await getReplyMessages(message.parent_id))
         const recallInReply =
           replyMessage && recallData.filter((recall) => recall.message_id === replyMessage?.message_id)
-        // console.log('replyMessage', replyMessage)
         const thumbnail = await this.getThubmail(message.createdBy)
         const user = await models.User.findOne({
           where: {
@@ -602,24 +609,40 @@ class messageService {
   }
 
   async sendMessage(messageData: MessageInput, sender: string) {
-    const checkGroup = await models.GroupMessage.findByPk(messageData.group_message_id)
+    const groupMessageIds = await models.MemberGroup.findOne({
+      attributes: ['group_message_id'], // Chỉ lấy trường group_message_id
+      where: {
+        [Op.or]: [{ user_id: sender }, { user_id: messageData.receiver }]
+      },
+      group: ['group_message_id'], // Nhóm theo group_message_id
+      having: Sequelize.literal('COUNT(DISTINCT user_id) = 2') // Chỉ lấy group_message_id có đủ 2 user_id khác nhau
+    })
+
+    const group_message_id =
+      messageData.group_message_id != '' ? messageData.group_message_id : (groupMessageIds?.group_message_id as string)
+
+    const checkGroup = await models.GroupMessage.findOne({
+      where: {
+        group_message_id: group_message_id ? group_message_id : ''
+      }
+    })
 
     if (checkGroup) {
-      const data = { ...messageData, createdBy: sender }
+      const data = { ...messageData, createdBy: sender, group_message_id: group_message_id }
       const message = await models.Message.create(data)
       await checkGroup.update({
         updatedAt: new Date()
       })
       const dataNotify = {
         type: 1,
-        group_message_id: messageData.group_message_id,
+        group_message_id: message.group_message_id,
         content: 'new message'
       }
 
-      await seenMessageService.createSeenMessage(messageData.group_message_id, message.message_id, sender)
+      await seenMessageService.createSeenMessage(message.group_message_id, message.message_id, sender)
       await notifyMessageService.createNotify(dataNotify, sender)
-      await messageSocketService.emitNotifyMessage(messageData.group_message_id, dataNotify, sender)
-      await messageSocketService.emitNewMessage(messageData.group_message_id)
+      await messageSocketService.emitNotifyMessage(message.group_message_id, dataNotify, sender)
+      await messageSocketService.emitNewMessage(message.group_message_id, sender)
     } else {
       const newGroupMessage = await models.GroupMessage.create({
         status: true,
@@ -650,9 +673,11 @@ class messageService {
         content: 'new message'
       }
       await notifyMessageService.createNotify(dataNotify, sender)
-      await messageSocketService.emitNotifyMessage(newGroupMessage.group_message_id, dataNotify, sender)
-      await messageSocketService.emitNewMessage(newGroupMessage.group_message_id)
-      await messageSocketService.emitNewConversation(newGroupMessage.group_message_id)
+      if (newGroupMessageId) {
+        await messageSocketService.emitNotifyMessage(newGroupMessageId, dataNotify, sender)
+        await messageSocketService.emitNewMessage(newGroupMessageId, sender)
+        await messageSocketService.emitNewConversation(newGroupMessageId)
+      }
     }
 
     return {
@@ -689,7 +714,7 @@ class messageService {
         dataNotify,
         messageData.sender as string
       )
-      await messageSocketService.emitNewMessage(messageData.group_message_id)
+      await messageSocketService.emitNewMessage(messageData.group_message_id, messageData.sender)
     } else {
       const newGroupMessage = await models.GroupMessage.create({
         status: true,
@@ -725,7 +750,7 @@ class messageService {
         dataNotify,
         messageData.sender as string
       )
-      await messageSocketService.emitNewMessage(newGroupMessage.group_message_id)
+      await messageSocketService.emitNewMessage(messageData.group_message_id, messageData.sender)
       await messageSocketService.emitNewConversation(newGroupMessage.group_message_id)
     }
 
@@ -771,7 +796,7 @@ class messageService {
       await models.Message.create(newmessageMediaData)
       await models.GroupMessage.update({ updatedAt: new Date() }, { where: { group_message_id: newGroupMessageId } })
     }
-    await messageSocketService.emitNewMessage(messageMediaData.group_message_id)
+    await messageSocketService.emitNewMessage(messageMediaData.group_message_id, sender)
 
     return {
       message: 'Gửi tin nhắn thành công!',
@@ -854,7 +879,7 @@ class messageService {
 
     await models.Message.create(data)
 
-    await messageSocketService.emitNewMessage(replyMessageInput.group_message_id)
+    await messageSocketService.emitNewMessage(replyMessageInput.group_message_id, userLoggin)
 
     return {
       message: 'Gửi tin nhán này',
@@ -887,16 +912,15 @@ class messageService {
 
       const username = await this.getFullName(userLoggin)
       const content = `${username} đã thu hồi tin nhắn`
-      const dataEmitNewImageNotify = {
+      const dataEmitNewNotify = {
         group_message_id: message.group_message_id,
         content: content,
         type: 3
       }
 
-      await notifyMessageService.createNotify(dataEmitNewImageNotify, userLoggin)
+      await notifyMessageService.createNotify(dataEmitNewNotify, userLoggin)
       await messageSocketService.emitNotifyMessage(message.group_message_id, {}, userLoggin)
-
-      await messageSocketService.emitNewMessage(message.group_message_id)
+      await messageSocketService.emitNewMessage(message.group_message_id, userLoggin)
     } else {
       if (recall.filter((item) => item.user_id != userLoggin)) {
         await models.RecallMessage.create({
@@ -905,7 +929,7 @@ class messageService {
         })
       }
 
-      await messageSocketService.emitNewMessage(message.group_message_id)
+      await messageSocketService.emitNewMessage(message.group_message_id, userLoggin)
     }
 
     return {
@@ -937,7 +961,7 @@ class messageService {
     })
 
     if (!checkGroup) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm')
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm changeImageGroup')
     }
 
     const data_image = await checkGroup.update({
@@ -960,7 +984,9 @@ class messageService {
       type: 0,
       group_message_id: data_image.group_message_id,
       body: `${user_name} đã thay đổi ảnh nhóm`,
-      receiver: data_image.group_message_id
+      receiver: data_image.group_message_id,
+      is_report: false,
+      report_count: 0
     }
     await models.Message.create(dataMessageTypeZero)
     await notifyMessageService.createNotify(dataEmitNewImageNotify, user_id)
@@ -983,7 +1009,7 @@ class messageService {
     })
 
     if (!checkGroup) {
-      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm')
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy nhóm changeGroupName')
     }
 
     const user_name = await this.getFullName(user_id)
@@ -1001,7 +1027,9 @@ class messageService {
       type: 0,
       group_message_id: group_id,
       body: `${user_name} đã thay đổi tên nhóm`,
-      receiver: group_id
+      receiver: group_id,
+      is_report: false,
+      report_count: 0
     }
     await this.sendMessage(dataMessageTypeZero, user_id)
     await messageSocketService.emitNewGroupName(group_id, data)
@@ -1055,7 +1083,9 @@ class messageService {
         type: 0,
         group_message_id: group_id,
         body: `${user_id === userLoggin ? `${userLogin} đã rời nhóm` : `${userDelete} đã bị xóa khỏi nhóm`} `,
-        receiver: group_id
+        receiver: group_id,
+        is_report: false,
+        report_count: 0
       }
       await this.sendMessage(dataMessageTypeZero, userLoggin)
       await messageSocketService.emitCurdMemberGroup(group_id)
@@ -1108,8 +1138,13 @@ class messageService {
     const listConversationType1 = listConversation.data.data.filter((item: any) => {
       return item.type === 1
     })
+
+    const listConversationType2 = listConversation.data.data.filter((item: any) => {
+      return item.type === 2
+    })
+
     const arr = listFriend.data.friends.filter((friend) => {
-      return !listConversationType1.some((item: any) => item.user_id === friend.user_id)
+      return listConversationType1.some((item: any) => item.user_id === friend.user_id)
     })
 
     let newArr = arr.map((item) => {
@@ -1122,7 +1157,7 @@ class messageService {
       }
     })
 
-    let newlistConversation = listConversation.data.data.map((item) => {
+    let newlistConversation = listConversationType2.map((item) => {
       return {
         group_message_id: item.group_message_id,
         group_name: item.group_name,
