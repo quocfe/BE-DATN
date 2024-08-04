@@ -1,17 +1,16 @@
-'use strict'
+import { Sequelize, QueryInterface, DataTypes } from 'sequelize'
 
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
+export default {
+  async up(queryInterface: QueryInterface) {
     await queryInterface.createTable('NotifyGroupMessages', {
       notify_group_message_id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       group_message_id: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           model: 'GroupMessages',
           key: 'group_message_id'
@@ -20,34 +19,34 @@ module.exports = {
       },
       content: {
         allowNull: false,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       receiver_id: {
         allowNull: false,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       status: {
         allowNull: false,
-        type: Sequelize.BOOLEAN
+        type: DataTypes.BOOLEAN
       },
       type: {
         allowNull: false,
-        type: Sequelize.INTEGER
+        type: DataTypes.INTEGER
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     })
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface: QueryInterface) {
     await queryInterface.dropTable('NotifyGroupMessages')
   }
 }

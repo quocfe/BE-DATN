@@ -1,17 +1,16 @@
-'use strict'
+import { Sequelize, QueryInterface, DataTypes } from 'sequelize'
 
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
+export default {
+  async up(queryInterface: QueryInterface) {
     await queryInterface.createTable('MemberGroups', {
       member_group_id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.STRING
+        type: DataTypes.STRING
       },
       user_id: {
         allowNull: true,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           model: 'Users',
           key: 'user_id'
@@ -19,7 +18,7 @@ module.exports = {
       },
       group_message_id: {
         allowNull: true,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         references: {
           model: 'GroupMessages',
           key: 'group_message_id'
@@ -29,26 +28,26 @@ module.exports = {
 
       role: {
         allowNull: true,
-        type: Sequelize.BOOLEAN
+        type: DataTypes.BOOLEAN
       },
       status: {
         allowNull: true,
-        type: Sequelize.BOOLEAN
+        type: DataTypes.BOOLEAN
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     })
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface: QueryInterface) {
     await queryInterface.dropTable('MemberGroups')
   }
 }
