@@ -5,15 +5,15 @@
   "main": "server.js",
   "scripts": {
     "build": "rimraf dist && npx tsc",
-    "production": "yarn build && node dist/server.js",
+    "production": "yarn build && node dist/src/server.js",
     "start": "ts-node src/server.ts",
     "server": "nodemon src/server.ts",
     "insert:db": "npx sequelize-cli db:create",
     "drop:db": "npx sequelize-cli db:drop",
     "undo:all-migrations": "npx sequelize-cli db:migrate:undo --name create-all-migrations",
-    "create:db": "yarn drop:db && yarn insert:db && npx sequelize-cli db:migrate --to create-all-migrations.js",
-    "undo:all-senders": "npx sequelize-cli db:seed:undo --seed undo-all-seeders.js",
-    "seed:db": "npx sequelize-cli db:seed:undo --seed run-all-seeders.js && npx sequelize-cli db:seed --seed run-all-seeders.js --debug"
+    "create:db": "yarn drop:db && yarn insert:db && npx sequelize-cli db:migrate --to create-all-migrations.ts --debug",
+    "undo:all-senders": "npx sequelize-cli db:seed:undo --seed undo-all-seeders.ts",
+    "seed:db": "npx sequelize-cli db:seed:undo --seed run-all-seeders.ts && npx sequelize-cli db:seed --seed run-all-seeders.ts --debug"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +27,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
     "express-validator": "^7.0.1",
+    "image-dimensions": "^2.3.0",
+    "image-size": "^1.1.1",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "multer": "^1.4.5-lts.1",
@@ -35,9 +37,16 @@
     "nodemailer": "^6.9.13",
     "sequelize": "^6.37.1",
     "socket.io": "^4.7.5",
+    "stream": "^0.0.2",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@babel/cli": "^7.24.7",
+    "@babel/core": "^7.24.7",
+    "@babel/node": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
+    "@babel/register": "^7.24.6",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
@@ -58,6 +67,7 @@
     "rimraf": "^5.0.5",
     "sequelize-cli": "^6.6.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
   },
   "resolutions": {

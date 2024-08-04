@@ -11,7 +11,8 @@ const dbDialect = process.env.DIALECT as Dialect
 const db = new Sequelize(dbName, dbUsername, dbPassword, {
   host: dbHost,
   port: dbPort,
-  dialect: dbDialect
+  dialect: dbDialect,
+  logging: false
 })
 
 export default db
