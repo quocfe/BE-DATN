@@ -7,6 +7,10 @@ import morgan from 'morgan'
 import initialRoutes from './routes/v1'
 import Middleware from './middleware'
 import db from './connection'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
+
 import { Server } from 'socket.io'
 import { setupModelRelationships } from './db/models'
 import useSocketEvents from './sockets/useSocketEvents'
@@ -29,8 +33,8 @@ app.use(express.json())
 app.use(urlencoded({ extended: true }))
 app.use(
   cors({
-    origin: 'http://localhost:8080',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: `http://localhost:8080`,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true
   })
 )

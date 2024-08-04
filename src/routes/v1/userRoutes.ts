@@ -8,10 +8,9 @@ const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
 
-router.get('/profile/:friend_id', Middleware.verifyToken, tryCatch(userController.getProfileByUserId))
-
 router.post(
   '/profile/update',
+  uploadCloud.single('file'),
   Middleware.verifyToken,
   uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
   tryCatch(userController.updateProfile)

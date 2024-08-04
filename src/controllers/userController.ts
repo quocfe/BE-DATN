@@ -92,8 +92,7 @@ class userController {
     if (req.user) {
       const user_id = req.user.user_id
       const { friend_id } = req.params
-
-      const data = await userService.senderFriendRequest(user_id, friend_id)
+const data = await userService.senderFriendRequest(user_id, friend_id)
 
       sendResponseSuccess(res, data)
     }
@@ -200,7 +199,7 @@ class userController {
     }
   }
   // Tìm kiếm bạn bè
-  async searchFriends(req: Request, res: Response) {
+async searchFriends(req: Request, res: Response) {
     if (req.user) {
       const user_id = req.user.user_id
       const { name } = req.params
