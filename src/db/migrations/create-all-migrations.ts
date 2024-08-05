@@ -78,16 +78,15 @@ export default {
     await VideoReportMigration.up(queryInterface)
     await HashTagsVideo.up(queryInterface)
     await StoryMigration.up(queryInterface)
-
   },
 
   async down(queryInterface: QueryInterface) {
-     await VideoMigration.down(queryInterface)
-     await CommnetVideoMigration.down(queryInterface)
-     await LikeVideoMigration.down(queryInterface)
-     await FavoriteVideoMigration.down(queryInterface)
-     await VideoReportMigration.down(queryInterface)
-     await HashTagsVideo.down(queryInterface)
+    await VideoMigration.down(queryInterface)
+    await CommnetVideoMigration.down(queryInterface)
+    await LikeVideoMigration.down(queryInterface)
+    await FavoriteVideoMigration.down(queryInterface)
+    await VideoReportMigration.down(queryInterface)
+    await HashTagsVideo.down(queryInterface)
     await ReportMessageMigration.down(queryInterface)
     await DeleteGroupMessageMigration.down(queryInterface)
     await NotifyGroupMessageMigration.down(queryInterface)
