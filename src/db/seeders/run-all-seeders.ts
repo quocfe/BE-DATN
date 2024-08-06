@@ -3,7 +3,7 @@ import RoleSeeder from './role-seeder'
 import AccountSeeder from './account-seeder'
 import UserSeeder from './user-seeder'
 import ProfileSeeder from './profile-seeder'
-import FanpageSeeder  from './fanpage-seeder'
+import FanpageSeeder from './fanpage-seeder'
 import InterestSeeder from './interest-seeder'
 import UserInterestSeeder from './user-interest-seeder'
 import FriendshipSeeder from './friendship-seeder'
@@ -64,6 +64,5 @@ export default {
     await AccountSeeder.down(queryInterface)
     await RoleSeeder.down(queryInterface)
     await storySeeder.down(queryInterface)
-
   }
 }
