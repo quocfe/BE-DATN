@@ -13,6 +13,7 @@ import userService from './userService'
 import deleteConversationService from './deleteConversationService'
 import seenMessageService from './seenMessageService'
 import MemberGroup from '../db/models/MemberGroup'
+import { User } from '../types/user.type'
 
 class messageService {
   // fn get Thubmail
@@ -38,6 +39,12 @@ class messageService {
   // fn check exist groupMessage
 
   async getConversation(userLoggin: string, page: number, limit: number, search?: boolean) {
+    // danh sách chặn người dùng
+    const listBlockUser = await userService.fetchAllListBlockUser(userLoggin)
+    const listBlockUserArr = listBlockUser.data.friends as User[]
+    const listBlockUserId = listBlockUserArr.map((user) => user.user_id)
+    // danh sách người dùng bị chặn
+    const listBlockedUser = await userService.fetchAllListBlockedUser(userLoggin)
     // lấy MemberGroup data từ loggin user
     const MemberGroupData = await models.MemberGroup.findAll({ where: { user_id: userLoggin } })
 
@@ -147,11 +154,17 @@ class messageService {
             group_name: groupName,
             group_thumbnail: thubmail,
             user_id: user_id,
+            listBlockUser: listBlockUserId,
             messages: filterMessage
           }
         }
 
-        return { ...groupMessage.get({ plain: true }), messages: filterMessage }
+        return {
+          ...groupMessage.get({ plain: true }),
+          list_block_user: listBlockUserId,
+          list_blocked_user: listBlockedUser.data.friends,
+          messages: filterMessage
+        }
       })
     )
 
@@ -343,6 +356,13 @@ class messageService {
   async getMembersGroup(id: string, userLoggin: string) {
     const checkGroup = await models.GroupMessage.findByPk(id)
 
+    // danh sách chặn người dùng
+    const listBlockUser = await userService.fetchAllListBlockUser(userLoggin)
+    const listBlockUserArr = listBlockUser.data.friends as User[]
+    const listBlockUserId = listBlockUserArr.map((user) => user.user_id)
+    // danh sách người dùng bị chặn
+    const listBlockedUser = await userService.fetchAllListBlockedUser(userLoggin)
+    //
     if (!checkGroup) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group message không tồn tại')
     }
@@ -387,7 +407,9 @@ class messageService {
           role: member.role,
           avatar,
           fullname,
-          group_message_id: group?.group_message_id
+          group_message_id: group?.group_message_id,
+          list_block_user: listBlockUserId,
+          list_blocked_user: listBlockedUser.data.friends
         }
       })
     )
@@ -515,6 +537,12 @@ class messageService {
   }
 
   async getOneToOneMessage(receiver: string, sender: string, page?: number, limit?: number) {
+    // danh sách chặn người dùng
+    const listBlockUser = await userService.fetchAllListBlockUser(sender)
+    const listBlockUserArr = listBlockUser.data.friends as User[]
+    const listBlockUserId = listBlockUserArr.map((user) => user.user_id)
+    // danh sách người dùng bị chặn
+    const listBlockedUser = await userService.fetchAllListBlockedUser(sender)
     // Lấy tất cả groupId mà receiver tham gia
     const groupsWithReceiver = await models.MemberGroup.findAll({
       where: { user_id: receiver },
@@ -547,7 +575,9 @@ class messageService {
       const info = {
         group_id: receiver,
         avatar: await this.getThubmail(receiver),
-        group_name: await this.getFullName(receiver)
+        group_name: await this.getFullName(receiver),
+        list_block_user: listBlockUserId,
+        list_blocked_user: listBlockedUser.data.friends
       }
       return {
         message: 'lấy thông tin messsage ok',
@@ -574,6 +604,13 @@ class messageService {
   }
 
   async getGroupMessage(id: string, sender: string, page?: number, limit?: number) {
+    // danh sách chặn người dùng
+    const listBlockUser = await userService.fetchAllListBlockUser(sender)
+    const listBlockUserArr = listBlockUser.data.friends as User[]
+    const listBlockUserId = listBlockUserArr.map((user) => user.user_id)
+    // danh sách người dùng bị chặn
+    const listBlockedUser = await userService.fetchAllListBlockedUser(sender)
+    //
     const checkGroupExists = await models.GroupMessage.findByPk(id)
     // return checkGroupExists
     if (checkGroupExists) {
@@ -582,7 +619,9 @@ class messageService {
         const info = {
           group_id: checkGroupExists.group_message_id,
           avatar: checkGroupExists.group_thumbnail,
-          group_name: checkGroupExists.group_name
+          group_name: checkGroupExists.group_name,
+          list_block_user: listBlockUserId,
+          list_blocked_user: listBlockedUser.data.friends
         }
         return {
           message: 'lấy thông tin messsage ok',
@@ -1047,9 +1086,14 @@ class messageService {
       }
     })
     const listAllFriend = await userService.fetchFriendOfUser(user_loggin, 1, 1000)
-    const data = listAllFriend.data.friends.filter((item) => {
-      return !listMemberGroup.some((group) => group.user_id === item.user_id)
-    })
+    let data
+    if (group_id) {
+      data = listAllFriend.data.friends.filter((item) => {
+        return !listMemberGroup.some((group) => group.user_id === item.user_id)
+      })
+    } else {
+      data = listAllFriend
+    }
 
     return {
       message: 'lấy list friend suggest ok',
@@ -1131,22 +1175,15 @@ class messageService {
   }
 
   async searchFriendAndConversation(user_id: string, keyword: string) {
-    const listFriend = await userService.fetchFriendOfUser(user_id, 1, 1000)
-    const listConversation = await this.getConversation(user_id, 1, 10000, true)
-
+    const listFriend = await userService.fetchFriendOfUser(user_id, 1, 100)
+    const listConversation = await this.getConversation(user_id, 1, 100, true)
     // group_id, group_name, type
     const listConversationType1 = listConversation.data.data.filter((item: any) => {
       return item.type === 1
     })
-
-    const listConversationType2 = listConversation.data.data.filter((item: any) => {
-      return item.type === 2
-    })
-
     const arr = listFriend.data.friends.filter((friend) => {
-      return listConversationType1.some((item: any) => item.user_id === friend.user_id)
+      return !listConversationType1.some((item: any) => item.user_id === friend.user_id)
     })
-
     let newArr = arr.map((item) => {
       return {
         group_message_id: null,
@@ -1156,24 +1193,20 @@ class messageService {
         type: 1
       }
     })
-
-    let newlistConversation = listConversationType2.map((item) => {
+    let newlistConversation = listConversation.data.data.map((item: any) => {
       return {
-        group_message_id: item.group_message_id,
+        group_message_id: item.type === 1 ? null : item.group_message_id,
+        user_id: item.type === 1 ? item.user_id : null,
         group_name: item.group_name,
         group_thumbnail: item.group_thumbnail,
-        type: 2
+        type: item.type
       }
     })
-
     const mergeArr = [...newArr, ...newlistConversation]
-
     // Tạo regex không phân biệt hoa thường
     const regex = new RegExp(keyword, 'i')
-
     // Tìm kiếm theo group_name
     const filteredArr = mergeArr.filter((item) => regex.test(item.group_name))
-
     return {
       data: filteredArr
     }

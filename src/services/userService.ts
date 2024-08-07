@@ -95,7 +95,7 @@ class userService {
             model: models.Profile,
             attributes: ['profile_picture', 'cover_photo']
           }
-]
+        ]
       },
       {
         model: models.Profile,
@@ -209,7 +209,7 @@ class userService {
     await profileUser.update(dataProfileUpdate)
 
     const user = await models.User.findByPk(profileUser.user_id, {
-attributes: { exclude: ['password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt'] },
+      attributes: { exclude: ['password', 'code', 'is_auth', 'expires', 'createdAt', 'updatedAt'] },
       include: [
         {
           model: models.Profile,
@@ -315,7 +315,7 @@ attributes: { exclude: ['password', 'code', 'is_auth', 'expires', 'createdAt', '
 
     const friendIds = [
       ...new Set(
-acceptedFriendships.map((friendship) => {
+        acceptedFriendships.map((friendship) => {
           return friendship.user_id === user_id ? friendship.friend_id : friendship.user_id
         })
       )
@@ -413,7 +413,7 @@ acceptedFriendships.map((friendship) => {
   // Danh sách người dùng đã gửi kết bạn tới tôi
   async fetchAllReceivedFriendRequest(user_id: string, page: number | undefined, limit: number | undefined) {
     const offset = page && limit ? (page - 1) * limit : undefined
-const receivedFriendRequests = await models.Friendship.findAll({
+    const receivedFriendRequests = await models.Friendship.findAll({
       where: {
         friend_id: user_id,
         status: RELATIONSHIP.PENDING_FRIEND_REQUEST
@@ -519,7 +519,7 @@ const receivedFriendRequests = await models.Friendship.findAll({
     await models.Friendship.create({ user_id, friend_id, status: RELATIONSHIP.FRIEND })
 
     return {
-message: 'Chấp nhận lời mời kết bạn thành công',
+      message: 'Chấp nhận lời mời kết bạn thành công',
       data: {}
     }
   }
@@ -585,7 +585,7 @@ message: 'Chấp nhận lời mời kết bạn thành công',
       message: 'Danh sách bạn bè',
       data: { friends: newFriends, page, pages, limit, total }
     }
-  } 
+  }
 
   // Tìm kiếm người dùng hoặc fanpage
   async searchUserOrFanpages(user_id: string, name: string) {
@@ -621,7 +621,7 @@ message: 'Chấp nhận lời mời kết bạn thành công',
                   [Op.like]: `${searchName}%`
                 }
               }
-]
+            ]
           },
           {
             user_id: { [Op.notIn]: blockedUserIds }
@@ -724,7 +724,7 @@ message: 'Chấp nhận lời mời kết bạn thành công',
         status: RELATIONSHIP.BLOCKED
       }
     })
-if (!blockFromUser) {
+    if (!blockFromUser) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Hiện đang không chặn người dùng này!')
     }
 
@@ -767,6 +767,27 @@ if (!blockFromUser) {
       message: 'Danh sách chặn người dùng',
       data: {
         friends: blockedUsersList
+      }
+    }
+  }
+  // Danh sách bị chặn
+  async fetchAllListBlockedUser(user_id: string) {
+    const blockedUserRecords = await models.Friendship.findAll({
+      where: {
+        [Op.and]: {
+          status: RELATIONSHIP.BLOCKED,
+          friend_id: user_id
+        }
+      },
+      attributes: ['user_id']
+    })
+
+    const arr = blockedUserRecords.map((item) => item.user_id)
+
+    return {
+      message: 'Danh sách chặn người dùng bị chặn',
+      data: {
+        friends: arr
       }
     }
   }
@@ -844,7 +865,7 @@ if (!blockFromUser) {
 
   // Lấy danh sách hình ảnh & video
   async getAllMediaResource(user_id: string) {
-const posts = await models.Post.findAll({
+    const posts = await models.Post.findAll({
       where: { user_id }
     })
 
