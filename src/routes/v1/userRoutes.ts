@@ -7,6 +7,7 @@ import uploadCloud from '../../middleware/uploader'
 const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
+router.get('/profile/:friend_id', Middleware.verifyToken, tryCatch(userController.getProfileByUserId))
 
 router.post(
   '/profile/update',
