@@ -7,7 +7,6 @@ import messageSocketService from './messageSocketService'
 class seenMessageService {
   async createSeenMessage(group_message_id: string, message_id: string, user_id: string) {
     // user_id: user đăng nhập
-    console.log('deleteBy 3', user_id)
     const exitGroup = await models.SeenMessage.findOne({
       where: {
         group_message_id
@@ -30,7 +29,6 @@ class seenMessageService {
           createdBy: user_id,
           status: Object.keys(userSocketMap).includes(member.user_id.toString()) ? 'đã nhận' : 'đã gửi'
         })
-        console.log('Object.keys(userSocketMap)', Object.keys(userSocketMap).includes(member.user_id.toString()))
       })
     }
 
@@ -45,7 +43,6 @@ class seenMessageService {
     } else {
       createSeen()
     }
-    console.log('create seen')
   }
 
   async receivedSeenMessage(user_id: string) {

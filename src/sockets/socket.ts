@@ -4,6 +4,7 @@ import express, { Express, urlencoded } from 'express'
 import messageSocketService from '../services/messageSocketService'
 import seenMessageService from '../services/seenMessageService'
 import { CallMessage } from '../types/socket.type'
+import userService from '../services/userService'
 
 const app: Express = express()
 const httpServer = createServer(app)
@@ -21,10 +22,12 @@ export const getReceiverSocketId = (receiverId: string) => {
   return userSocketMap[receiverId]
 }
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   console.log('a user connected socketID', socket.id)
   const user_id = socket.handshake.query.user_id as string
   if (user_id != 'undefined') userSocketMap[user_id] = socket.id
+  // const listFriend = await userService.fetchFriendOfUser(user_id, 1, 1000)
+
   io.emit('getOnlineUsers', Object.keys(userSocketMap))
 
   if (user_id) {
@@ -71,6 +74,10 @@ io.on('connection', (socket) => {
   socket.on('endCall', async (group_id_query) => {
     console.log('endCall')
     await messageSocketService.emitEndCall(group_id_query)
+  })
+
+  socket.on('blockMsg', async (user_id) => {
+    await messageSocketService.emitBlock(user_id)
   })
 
   socket.on('disconnect', () => {

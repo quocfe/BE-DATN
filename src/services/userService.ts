@@ -9,6 +9,7 @@ import { compareValue } from '../utils/bcrypt'
 import { hashSync } from 'bcryptjs'
 import { UserAttributes } from '../db/models/User'
 import { RELATIONSHIP } from '../constants/relationshipStatus'
+import messageSocketService from './messageSocketService'
 
 class userService {
   private userUtils = {
