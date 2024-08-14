@@ -11,21 +11,12 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 
-import { Server } from 'socket.io'
 import { setupModelRelationships } from './db/models'
-import useSocketEvents from './sockets/useSocketEvents'
-const app: Express = express()
-const server = http.createServer(app)
+//  app, httpServer từ socket, đéo đc xóa của tao
+import { app, httpServer } from './sockets/socket'
+
 const PORT = process.env.PORT || 5000
 const BASE_URL = process.env.BASE_URL || 'http://localhost'
-
-const io = new Server(server, {
-  cors: {
-    origin: 'http://localhost:8080',
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
-})
 
 app.use(morgan('dev'))
 app.use(cookieParser())
@@ -40,18 +31,13 @@ app.use(
 )
 
 app.use(initialRoutes)
-
 app.use(Middleware.errorHandling)
-
-io.on('connection', (socket) => {
-  useSocketEvents(socket)
-})
-
 db.authenticate()
   .then(() => {
     setupModelRelationships()
     console.log('[INFO] Kết nối thành công đến cơ sở dữ liệu.')
-    server.listen(PORT, () => {
+    // httpServer từ socket, đéo đc xóa của tao
+    httpServer.listen(PORT, () => {
       console.log(`[INFO] Server đã bắt đầu lắng nghe yêu cầu từ máy khách tại ${BASE_URL}:${PORT}`)
     })
   })

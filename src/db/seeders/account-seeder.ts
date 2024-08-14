@@ -20,19 +20,7 @@ export default {
           address: 'Quảng Nam',
           date_of_birth: '2002-06-17'
         },
-        {
-          account_id: 'a-message-admin',
-          username: 'Kan Kan',
-          email: 'message.admin@gmail.com',
-          password: hashSync('123456', genSaltSync(10)),
-          status: 'Đang hoạt động',
-          role_id: 'manager-admin',
-          last_login: '2024-05-29 06:38:22',
-          profile_picture: 'https://i.9mobi.vn/cf/images/ba/2018/4/16/anh-avatar-dep-5.jpg',
-          phone_number: '0373405375',
-          address: 'Quảng Nam',
-          date_of_birth: '2002-06-17'
-        },
+
         {
           account_id: 'a-user-admin',
           username: 'Cao Đình Can',
@@ -53,6 +41,19 @@ export default {
           password: hashSync('123456', genSaltSync(10)),
           status: 'Đang hoạt động',
           role_id: 'support-admin',
+          last_login: '2024-05-29 06:38:22',
+          profile_picture: 'https://www.vietnamworks.com/hrinsider/wp-content/uploads/2023/12/anh-den-ngau.jpeg',
+          phone_number: '0373405375',
+          address: 'Quảng Nam',
+          date_of_birth: '2002-06-17'
+        },
+        {
+          account_id: 'a-message-admin',
+          username: 'Nguyễn Phú Quốc',
+          email: 'message.admin@gmail.com',
+          password: hashSync('123456', genSaltSync(10)),
+          status: 'Đang hoạt động',
+          role_id: 'message-admin',
           last_login: '2024-05-29 06:38:22',
           profile_picture: 'https://www.vietnamworks.com/hrinsider/wp-content/uploads/2023/12/anh-den-ngau.jpeg',
           phone_number: '0373405375',

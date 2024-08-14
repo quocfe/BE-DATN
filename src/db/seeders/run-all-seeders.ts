@@ -40,7 +40,7 @@ export default {
     await RoleModulePermissionSeeder.up(queryInterface)
     await AccountModulePermissionSeeder.up(queryInterface)
     await videoSeeder.up(queryInterface)
-    await storySeeder.up(queryInterface)
+    // await storySeeder.up(queryInterface)
   },
 
   async down(queryInterface: QueryInterface) {
@@ -63,6 +63,6 @@ export default {
     await UserSeeder.down(queryInterface)
     await AccountSeeder.down(queryInterface)
     await RoleSeeder.down(queryInterface)
-    await storySeeder.down(queryInterface)
+    // await storySeeder.down(queryInterface)
   }
 }

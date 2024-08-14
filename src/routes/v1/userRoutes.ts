@@ -45,6 +45,8 @@ router.post('/friend/unblocked_user/:friend_id', Middleware.verifyToken, tryCatc
 
 router.get('/friend/list/block', Middleware.verifyToken, tryCatch(userController.fetchAllListBlockUser))
 
+router.get('/friend/list/blocked', Middleware.verifyToken, tryCatch(userController.fetchAllListBlockedUser))
+
 router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFriendOfUser))
 
 router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))

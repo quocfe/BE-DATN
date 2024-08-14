@@ -31,6 +31,12 @@ export default {
           name: 'Editor Admin',
           description:
             'Người chỉnh sửa nội dung với quyền tạo, chỉnh sửa và xóa nội dung trong các module được chỉ định.'
+        },
+        {
+          role_id: 'message-admin',
+          name: 'Message Admin',
+          description:
+            'Người chỉnh sửa nội dung với quyền tạo, chỉnh sửa và xóa nội dung trong các module được chỉ định.'
         }
       ],
       {}
