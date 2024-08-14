@@ -732,7 +732,8 @@ class messageService {
       //
       const dataNotify = {
         type: 1,
-        group_message_id: newGroupMessageId
+        group_message_id: newGroupMessageId,
+        content: 'new message'
       }
       await notifyMessageService.createNotify(dataNotify, sender)
       if (newGroupMessageId) {
