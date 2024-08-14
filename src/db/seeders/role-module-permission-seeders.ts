@@ -18,10 +18,10 @@ export default {
         { id: 8, role_id: 'manager-admin', module_id: 'post-module', permission_id: 'p-delete' },
 
         // Message Management
-        { id: 9, role_id: 'manager-admin', module_id: 'support-module', permission_id: 'p-view' },
-        { id: 10, role_id: 'manager-admin', module_id: 'support-module', permission_id: 'p-add' },
-        { id: 11, role_id: 'manager-admin', module_id: 'support-module', permission_id: 'p-edit' },
-        { id: 12, role_id: 'manager-admin', module_id: 'support-module', permission_id: 'p-delete' },
+        { id: 9, role_id: 'message-admin', module_id: 'message-module', permission_id: 'p-view' },
+        { id: 10, role_id: 'message-admin', module_id: 'message-module', permission_id: 'p-add' },
+        { id: 11, role_id: 'message-admin', module_id: 'message-module', permission_id: 'p-edit' },
+        { id: 12, role_id: 'message-admin', module_id: 'message-module', permission_id: 'p-delete' },
 
         // Content Management
         { id: 13, role_id: 'manager-admin', module_id: 'content-module', permission_id: 'p-view' },

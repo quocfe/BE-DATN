@@ -131,7 +131,7 @@ class messageService {
       groupMessages.rows.map(async (groupMessage) => {
         // const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
         const messages = await this.getMessage(groupMessage.group_message_id, 1, 10, userLoggin)
-        const messageStatusTrue = messages.data.filter((m) => m.status === true)
+        const messageStatusTrue = messages.data.filter((m) => m.status === true && m.is_report === false)
         const message = messageStatusTrue[messageStatusTrue.length - 1]
         const filterMessage = {
           message_id: message?.message_id,
@@ -728,7 +728,7 @@ class messageService {
         createdBy: sender,
         group_message_id: newGroupMessageId
       }
-      await models.Message.create(newMessageData)
+      const message = await models.Message.create(newMessageData)
       //
       const dataNotify = {
         type: 1,
@@ -737,6 +737,7 @@ class messageService {
       }
       await notifyMessageService.createNotify(dataNotify, sender)
       if (newGroupMessageId) {
+        await seenMessageService.createSeenMessage(message.group_message_id, message.message_id, sender)
         await messageSocketService.emitNotifyMessage(newGroupMessageId, dataNotify, sender)
         await messageSocketService.emitNewMessage(newGroupMessageId, sender)
         await messageSocketService.emitNewConversation(newGroupMessageId)
