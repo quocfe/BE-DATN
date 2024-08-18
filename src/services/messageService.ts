@@ -19,7 +19,7 @@ class messageService {
   private async delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
-  // fn get Thubmail
+  // hàm lấy hình ảnh người dùng
   async getThubmail(user_id: string | undefined) {
     const profile = await models.Profile.findOne({
       where: {
@@ -29,7 +29,7 @@ class messageService {
 
     return profile?.profile_picture
   }
-  // fn getFullName
+  // hàm lấy tên người dùng
   async getFullName(user_id: string | undefined) {
     const user = await models.User.findOne({
       where: {
@@ -39,8 +39,7 @@ class messageService {
     return `${user?.last_name} ${user?.first_name}`
   }
 
-  // fn check exist groupMessage
-
+  // hàm lấy đoạn chat
   async getConversation(userLoggin: string, page: number, limit: number, search?: boolean) {
     // danh sách chặn người dùng
     const listBlockUser = await userService.fetchAllListBlockUser(userLoggin)
@@ -53,14 +52,15 @@ class messageService {
 
     // groupMessageIds
     const groupMessageIds = MemberGroupData.map((item) => item.group_message_id)
-    // id group in table delete
 
+    // điều kiện lọc
     let whereConditions
-
+    // tìm kiếm đoạn chat thì lấy tất cả
     if (search) {
       whereConditions = {
         deletedBy: userLoggin
       }
+      // lấy đoạn chat với deletedBy
     } else {
       whereConditions = {
         deletedBy: userLoggin,
@@ -72,11 +72,11 @@ class messageService {
       where: whereConditions
     })
 
-    const filteredGroupMessageIds = groupMessageIds.filter((item1: any) => {
+    const filteredGroupMessageIds = groupMessageIds.filter((item1: string) => {
       return search ? [...item1] : !groupMessageIdsNodelete.some((item2) => item1 === item2.group_message_id)
     })
 
-    // Fetch GroupMessage data
+    // Fetch GroupMessage
     const offset = (page - 1) * limit
 
     const groupMessages = await models.GroupMessage.findAndCountAll({
@@ -93,7 +93,7 @@ class messageService {
       models.Message.findAll({ order: [['createdAt', 'DESC']] })
     ])
 
-    // Helper function to get user name
+    // hàm lấy tên đoạn chat
     const getUserName = async (groupMessageId: string) => {
       const data = AllMemberGroup.filter((member) => member.group_message_id === groupMessageId)
       const userFilter = data.find((item) => item.user_id !== userLoggin)
@@ -116,7 +116,7 @@ class messageService {
       }
       return ''
     }
-    // Hepler function to get thubmail
+    // Hàm lấy thubmail đoạn chat
     const getThubmailConversation = async (groupMessageId: string) => {
       const data = AllMemberGroup.filter((member) => member.group_message_id === groupMessageId)
       const userFilter = data.find((item) => item.user_id !== userLoggin)
@@ -126,11 +126,11 @@ class messageService {
       return user ? user.profile_picture : ''
     }
 
-    // Create group messages with messages
+    // lấy tin nhắn
     const data = await Promise.all(
       groupMessages.rows.map(async (groupMessage) => {
         // const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
-        const messages = await this.getMessage(groupMessage.group_message_id, 1, 10, userLoggin)
+        const messages = await this.getMessage(groupMessage.group_message_id, 1, 1, userLoggin)
         const messageStatusTrue = messages.data.filter((m) => m.status === true && m.is_report === false)
         const message = messageStatusTrue[messageStatusTrue.length - 1]
         const filterMessage = {
@@ -223,14 +223,17 @@ class messageService {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Một hoặc nhiều người dùng không tồn tại')
     }
 
-    // Tạo tên nhóm nếu chưa có ( lấy tên user cọng lại)
+    // Tạo tên nhóm nếu chưa có ( lấy tên user cộng lại)
     if (!group_name) {
       const usersData = await models.User.findAll({
         where: {
           user_id: countUser
         }
       })
-      group_name = usersData.map((user) => `${user.first_name} ${user.last_name}`).join(', ')
+      group_name = usersData
+        .slice(0, 3)
+        .map((user) => `${user.first_name} ${user.last_name}`)
+        .join(', ')
     }
 
     // Tạo dữ liệu nhóm
@@ -297,21 +300,6 @@ class messageService {
     const users: string[] = JSON.parse(memberGroupData.list_user)
     const checkGroup = await models.GroupMessage.findByPk(memberGroupData.group_message_id)
 
-    // cập nhật lại deteleGroup
-    await Promise.all(
-      users.map(async (user: string) => {
-        const checkUser = await models.DeleteGroupMessage.findOne({
-          where: {
-            group_message_id: memberGroupData.group_message_id,
-            deletedBy: user
-          }
-        })
-        if (checkUser) {
-          await deleteConversationService.updateDeleteConversation(checkUser.delete_group_message_id)
-        }
-      })
-    )
-
     if (!checkGroup) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group not found!')
     }
@@ -357,6 +345,21 @@ class messageService {
         }
         createDone && (await this.sendMessage(dataMessageTypeZero, user))
         await messageSocketService.emitCurdMemberGroup(memberGroupData.group_message_id)
+      })
+    )
+
+    // cập nhật lại deteleGroup
+    await Promise.all(
+      users.map(async (user: string) => {
+        const checkUser = await models.DeleteGroupMessage.findOne({
+          where: {
+            group_message_id: memberGroupData.group_message_id,
+            deletedBy: user
+          }
+        })
+        if (checkUser) {
+          await deleteConversationService.updateDeleteConversation(checkUser.delete_group_message_id)
+        }
       })
     )
 
@@ -968,10 +971,16 @@ class messageService {
       createdBy: userLoggin
     }
 
-    await models.Message.create(data)
-
-    await messageSocketService.emitNewMessage(replyMessageInput.group_message_id, userLoggin)
-
+    const message = await models.Message.create(data)
+    const dataNotify = {
+      type: 1,
+      group_message_id: message.group_message_id,
+      content: 'new message'
+    }
+    await messageSocketService.emitNewMessage(message.group_message_id, userLoggin)
+    await seenMessageService.createSeenMessage(message.group_message_id, message.message_id, userLoggin)
+    await notifyMessageService.createNotify(dataNotify, userLoggin)
+    await messageSocketService.emitNotifyMessage(message.group_message_id, dataNotify, userLoggin)
     return {
       message: 'Gửi tin nhán này',
       data: {
