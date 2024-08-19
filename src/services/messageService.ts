@@ -528,9 +528,9 @@ class messageService {
             reply_user: reply_user,
             recallInReply
           }
-        const parentMessage = reversedMessages.find((msg) => msg.message_id === message.parent_id)
+        // const parentMessage = reversedMessages.find((msg) => msg.message_id === message.parent_id)
 
-        message.parent_id = parentMessage ? message.parent_id : ''
+        // message.parent_id = parentMessage ? message.parent_id : ''
         return {
           ...message.get({ plain: true }),
           reactions,
