@@ -683,6 +683,7 @@ class messageService {
       having: Sequelize.literal('COUNT(DISTINCT user_id) = 2') // Chỉ lấy group_message_id có đủ 2 user_id khác nhau
     })
 
+    // kiểm tra group_id từ điều kiện, nếu không có thì nhận group_id từ ngườ dùng nhập
     const group_message_id = groupMessageIds?.dataValues.group_message_id
       ? groupMessageIds?.dataValues.group_message_id
       : messageData.group_message_id
@@ -982,7 +983,7 @@ class messageService {
     await notifyMessageService.createNotify(dataNotify, userLoggin)
     await messageSocketService.emitNotifyMessage(message.group_message_id, dataNotify, userLoggin)
     return {
-      message: 'Gửi tin nhán này',
+      message: 'Gửi tin ok',
       data: {
         data
       }
@@ -1205,13 +1206,15 @@ class messageService {
       models.MemberGroup.findOne({
         where: {
           group_message_id: group_id,
-          user_id
+          user_id,
+          role: false
         }
       }),
       models.MemberGroup.findOne({
         where: {
           group_message_id: group_id,
-          user_id: user_loggin
+          user_id: user_loggin,
+          role: true
         }
       })
     ])
@@ -1223,9 +1226,7 @@ class messageService {
     await checkUser.update({ role: true })
 
     if (!checkUserAdmin) {
-      return {
-        message: 'Không tìm thấy thành viên nhóm '
-      }
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy thành viên nhóm')
     }
 
     await checkUserAdmin.update({ role: false })
