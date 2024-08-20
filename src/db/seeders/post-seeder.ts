@@ -19,7 +19,8 @@ export default {
           privary: 'friends',
           location: 'Quảng Nam',
           post_type: 'user',
-          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002'
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          fanpage_id: ''
         },
         {
           post_id: '397236d5-0097-4ade-845f-24e429ef0e034',
@@ -27,7 +28,8 @@ export default {
           privary: 'private',
           location: 'Hà nội',
           post_type: 'user',
-          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002'
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          fanpage_id: ''
         },
         {
           post_id: '397236d5-0097-4ade-845f-24e429ef0e035',
@@ -35,7 +37,8 @@ export default {
           privary: 'public',
           location: 'Hồ Chí Minh',
           post_type: 'user',
-          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece'
+          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          fanpage_id: ''
         },
         {
           post_id: '397236d5-0097-4ade-845f-24e429ef0e036',
@@ -43,7 +46,8 @@ export default {
           privary: 'private',
           location: 'Hồ Chí Minh',
           post_type: 'user',
-          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece'
+          user_id: 'jinbei-22c73-f703-4b16-847d-f61bae05-onepiece',
+          fanpage_id: ''
         },
         {
           post_id: '397236d5-0097-4ade-845f-24e429ef0e037',
@@ -51,7 +55,8 @@ export default {
           privary: 'friends',
           location: 'Đà nẵng',
           post_type: 'user',
-          user_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece'
+          user_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          fanpage_id: ''
         },
         {
           post_id: '397236d5-0097-4ade-845f-24e429ef0e038',
@@ -59,7 +64,17 @@ export default {
           privary: 'public',
           location: 'Huế',
           post_type: 'user',
-          user_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece'
+          user_id: 'zoro-22c73-f703-4b16-847d-f61bae05-onepiece',
+          fanpage_id: ''
+        },
+        {
+          post_id: '397236d5-0097-4ade-845f-24e429ef01a1',
+          content: 'Thành viên băng hải tặc mũ rơm!',
+          privary: 'public',
+          location: 'Đà Nẵng',
+          post_type: 'fanpage',
+          user_id: 'kanisdev-22c73-f703-4b16-847d-f61bae05-2002',
+          fanpage_id: 'fanpage-1'
         }
       ],
       {}

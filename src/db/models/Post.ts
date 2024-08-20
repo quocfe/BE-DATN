@@ -9,12 +9,13 @@ export interface PostAttributes {
   location: string
   post_type: string
   user_id: string
+  fanpage_id: string
   createdAt: Date
   updatedAt: Date
 }
 
 interface InterestCreationAttribute
-  extends Optional<PostAttributes, 'post_id' | 'user_id' | 'createdAt' | 'updatedAt'> {}
+  extends Optional<PostAttributes, 'post_id' | 'user_id' | 'fanpage_id' | 'createdAt' | 'updatedAt'> {}
 
 class Post extends Model<PostAttributes, InterestCreationAttribute> implements PostAttributes {
   declare post_id: string
@@ -23,6 +24,7 @@ class Post extends Model<PostAttributes, InterestCreationAttribute> implements P
   declare location: string
   declare post_type: 'image' | 'video'
   declare user_id: string
+  declare fanpage_id: string
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -52,6 +54,10 @@ Post.init(
       type: DataTypes.ENUM('image', 'video')
     },
     user_id: {
+      allowNull: true,
+      type: DataTypes.STRING
+    },
+    fanpage_id: {
       allowNull: true,
       type: DataTypes.STRING
     },

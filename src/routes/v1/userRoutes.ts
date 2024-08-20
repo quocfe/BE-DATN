@@ -11,7 +11,6 @@ router.get('/profile/:friend_id', Middleware.verifyToken, tryCatch(userControlle
 
 router.post(
   '/profile/update',
-  uploadCloud.single('file'),
   Middleware.verifyToken,
   uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
   tryCatch(userController.updateProfile)
@@ -44,8 +43,6 @@ router.post('/friend/blocked_user/:friend_id', Middleware.verifyToken, tryCatch(
 router.post('/friend/unblocked_user/:friend_id', Middleware.verifyToken, tryCatch(userController.unblockedUser))
 
 router.get('/friend/list/block', Middleware.verifyToken, tryCatch(userController.fetchAllListBlockUser))
-
-router.get('/friend/list/blocked', Middleware.verifyToken, tryCatch(userController.fetchAllListBlockedUser))
 
 router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFriendOfUser))
 
