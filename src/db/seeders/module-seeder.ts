@@ -24,6 +24,10 @@ export default {
         {
           module_id: 'support-module',
           name: 'Customer Support'
+        },
+        {
+          module_id: 'message-module',
+          name: 'Message Management'
         }
       ],
       {}

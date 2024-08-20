@@ -5,6 +5,7 @@ import messageController from '../../controllers/messageController'
 import uploadCloud from '../../middleware/uploader'
 import deleteConversationController from '../../controllers/deleteConversationController'
 import seenMessageController from '../../controllers/seenMessageController'
+import messageAdminController from '../../controllers/messageAdminController'
 
 const router = Router()
 
@@ -35,6 +36,7 @@ router.post('/recallmessage', Middleware.verifyToken, tryCatch(messageController
 router.post('/changeimagegroup', Middleware.verifyToken, tryCatch(messageController.changeImageGroup))
 router.post('/changegroupname', Middleware.verifyToken, tryCatch(messageController.changeGroupName))
 router.post('/changerolegroup', Middleware.verifyToken, tryCatch(messageController.changeRoleGroup))
+router.post('/reportmessage', Middleware.verifyToken, tryCatch(messageAdminController.reportMesssage))
 //  ------------------- //
 router.delete(
   '/deleteconversation/:id',

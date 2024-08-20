@@ -32,6 +32,10 @@ export default {
           key: 'user_id'
         }
       },
+      fanpage_id: {
+        allowNull: true,
+        type: DataTypes.STRING
+      },
       createdAt: {
         allowNull: false,
         type: DataTypes.DATE,

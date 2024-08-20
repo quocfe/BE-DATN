@@ -22,7 +22,9 @@ class postService {
     page: number | undefined,
     limit: number | undefined,
     target_id: string | null = null,
-    includePending: boolean = false
+    includePending: boolean = false,
+    type: string = 'user',
+    fanpage_id?: string
   ) {
     const offset = page && limit ? (page - 1) * limit : undefined
     const excludeTimestamps = { exclude: ['updatedAt'] }
@@ -56,8 +58,19 @@ class postService {
       include: [includeUserWithProfile('user_reaction')]
     }
 
-    const whereCondition: { user_id: string | { [Op.in]: string[] }; privary?: string | object } = {
-      user_id: target_id ? target_id : user_id
+    const whereCondition: {
+      user_id?: string | { [Op.in]: string[] }
+      fanpage_id?: string | { [Op.in]: string[] }
+      privary?: string | object
+      post_type: string
+    } = {
+      post_type: type
+    }
+
+    if (type === 'user') {
+      whereCondition.user_id = target_id ? target_id : user_id
+    } else if (type === 'fanpage') {
+      whereCondition.fanpage_id = fanpage_id
     }
 
     // Kiểm tra mối quan hệ với người này
@@ -117,7 +130,7 @@ class postService {
       order: [['createdAt', 'DESC']]
     }).then((posts) => posts.map((post) => post.post_id))
 
-    const posts = await models.Post.findAll({
+    let posts = await models.Post.findAll({
       where: {
         post_id: {
           [Op.in]: postIds
@@ -147,6 +160,8 @@ class postService {
       ]
     })
 
+    const fanpage = await models.Fanpage.findByPk(fanpage_id)
+
     // Đếm tổng bài đăng
     const total = await models.Post.count({
       where: {
@@ -170,6 +185,7 @@ class postService {
       message,
       data: {
         posts: sortedPosts,
+        fanpage,
         total,
         pages
       }
@@ -178,9 +194,12 @@ class postService {
 
   // Thêm bài đăng mới
   async addNewPost(data: PostInput, user_id: string, images: Express.Multer.File[], videos: Express.Multer.File[]) {
+    const fanpage_id = data.fanpage_id
+
     const newPost = await models.Post.create({
       ...data,
-      user_id
+      user_id,
+      fanpage_id
     })
 
     const post_id = newPost.post_id

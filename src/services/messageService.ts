@@ -13,10 +13,14 @@ import userService from './userService'
 import deleteConversationService from './deleteConversationService'
 import seenMessageService from './seenMessageService'
 import MemberGroup from '../db/models/MemberGroup'
+import { User } from '../types/user.type'
 
 class messageService {
+  private async delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
   // fn get Thubmail
-  getThubmail = async (user_id: string | undefined) => {
+  async getThubmail(user_id: string | undefined) {
     const profile = await models.Profile.findOne({
       where: {
         user_id: user_id
@@ -26,18 +30,24 @@ class messageService {
     return profile?.profile_picture
   }
   // fn getFullName
-  getFullName = async (user_id: string | undefined) => {
+  async getFullName(user_id: string | undefined) {
     const user = await models.User.findOne({
       where: {
         user_id: user_id
       }
     })
-    return `${user?.first_name} ${user?.last_name}`
+    return `${user?.last_name} ${user?.first_name}`
   }
 
   // fn check exist groupMessage
 
   async getConversation(userLoggin: string, page: number, limit: number, search?: boolean) {
+    // danh sách chặn người dùng
+    const listBlockUser = await userService.fetchAllListBlockUser(userLoggin)
+    const listBlockUserArr = listBlockUser.data.friends as User[]
+    const listBlockUserId = listBlockUserArr.map((user) => user.user_id)
+    // danh sách người dùng bị chặn
+    const listBlockedUser = await userService.fetchAllListBlockedUser(userLoggin)
     // lấy MemberGroup data từ loggin user
     const MemberGroupData = await models.MemberGroup.findAll({ where: { user_id: userLoggin } })
 
@@ -89,10 +99,7 @@ class messageService {
       const userFilter = data.find((item) => item.user_id !== userLoggin)
 
       if (userFilter) {
-        const user = await models.User.findOne({
-          where: { user_id: userFilter.user_id }
-        })
-        return user ? `${user.first_name} ${user.last_name}` : ''
+        return this.getFullName(userFilter.user_id)
       }
       return ''
     }
@@ -124,7 +131,7 @@ class messageService {
       groupMessages.rows.map(async (groupMessage) => {
         // const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
         const messages = await this.getMessage(groupMessage.group_message_id, 1, 10, userLoggin)
-        const messageStatusTrue = messages.data.filter((m) => m.status === true)
+        const messageStatusTrue = messages.data.filter((m) => m.status === true && m.is_report === false)
         const message = messageStatusTrue[messageStatusTrue.length - 1]
         const filterMessage = {
           message_id: message?.message_id,
@@ -147,11 +154,18 @@ class messageService {
             group_name: groupName,
             group_thumbnail: thubmail,
             user_id: user_id,
+            list_block_user: listBlockUserId,
+            list_blocked_user: listBlockedUser.data.friends,
             messages: filterMessage
           }
         }
 
-        return { ...groupMessage.get({ plain: true }), messages: filterMessage }
+        return {
+          ...groupMessage.get({ plain: true }),
+          list_block_user: listBlockUserId,
+          list_blocked_user: listBlockedUser.data.friends,
+          messages: filterMessage
+        }
       })
     )
 
@@ -198,7 +212,11 @@ class messageService {
     }
 
     // Xác thực người dùng trong danh sách
-    const newMembers = await Promise.all(users.map(async (user: string) => await models.User.findByPk(user)))
+    const newMembers = await models.User.findAll({
+      where: {
+        user_id: users
+      }
+    })
     const emptyMembers = newMembers.some((member) => member === null)
 
     if (emptyMembers) {
@@ -207,9 +225,12 @@ class messageService {
 
     // Tạo tên nhóm nếu chưa có ( lấy tên user cọng lại)
     if (!group_name) {
-      const userPromises = countUser.map(async (userId) => await models.User.findByPk(userId))
-      const usersData = await Promise.all(userPromises)
-      group_name = usersData.map((user) => `${user?.first_name} ${user?.last_name}`).join(', ')
+      const usersData = await models.User.findAll({
+        where: {
+          user_id: countUser
+        }
+      })
+      group_name = usersData.map((user) => `${user.first_name} ${user.last_name}`).join(', ')
     }
 
     // Tạo dữ liệu nhóm
@@ -235,27 +256,32 @@ class messageService {
       report_count: 0
     }
     await this.sendMessage(dataMessageTypeZero, userLoggin)
+
+    await this.delay(1000)
+    // Chuẩn bị dữ liệu thêm thành viên
+    const memberData = countUser.map((user_id) => ({
+      user_id,
+      group_message_id: newGroup.group_message_id,
+      role: user_id === userLoggin
+    }))
+
     // Thêm thành viên vào nhóm
-    await Promise.all(
-      countUser.map(async (user_id: string) => {
-        await models.MemberGroup.create({
-          user_id: user_id,
-          group_message_id: newGroup.group_message_id,
-          role: user_id === userLoggin ? true : false
-        })
-        const user_name = await this.getFullName(user_id)
-        const dataMessageTypeZero = {
-          createdBy: userLoggin,
-          type: 0,
-          group_message_id: newGroup.group_message_id,
-          body: `${user_name} đã được thêm vào nhóm.`,
-          receiver: newGroup.group_message_id,
-          is_report: false,
-          report_count: 0
-        }
-        if (user_id != userLoggin) await this.sendMessage(dataMessageTypeZero, user_id)
-      })
-    )
+    await models.MemberGroup.bulkCreate(memberData)
+
+    // Tạo thông báo cho các thành viên mới (ngoại trừ người tạo nhóm)
+    const messages = newMembers
+      .filter((user) => user.user_id !== userLoggin)
+      .map((user) => ({
+        createdBy: userLoggin,
+        type: 0,
+        group_message_id: newGroup.group_message_id,
+        body: `${user.first_name} ${user.last_name} đã được thêm vào nhóm.`,
+        receiver: newGroup.group_message_id,
+        is_report: false,
+        report_count: 0
+      }))
+
+    await Promise.all(messages.map((message) => this.sendMessage(message, message.receiver)))
 
     // ========= //
 
@@ -298,7 +324,7 @@ class messageService {
 
     const newMembers = users.filter((user: string) => !existingMembers.some((member) => member.user_id === user))
     if (newMembers.length === 0) {
-      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'All members already exist!')
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Người dùng đã tồn tại trong đoạn chat!')
     }
 
     await Promise.all(
@@ -312,9 +338,9 @@ class messageService {
           }
         })
         if (checkUser) {
-          throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, `User ${user} already exists!`)
+          throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, `Người dùng đã tồn tại trong đoạn chat!`)
         }
-        await models.MemberGroup.create({
+        const createDone = await models.MemberGroup.create({
           user_id: user,
           group_message_id: memberGroupData.group_message_id,
           role: false
@@ -329,7 +355,7 @@ class messageService {
           is_report: false,
           report_count: 0
         }
-        await this.sendMessage(dataMessageTypeZero, user)
+        createDone && (await this.sendMessage(dataMessageTypeZero, user))
         await messageSocketService.emitCurdMemberGroup(memberGroupData.group_message_id)
       })
     )
@@ -343,6 +369,13 @@ class messageService {
   async getMembersGroup(id: string, userLoggin: string) {
     const checkGroup = await models.GroupMessage.findByPk(id)
 
+    // danh sách chặn người dùng
+    const listBlockUser = await userService.fetchAllListBlockUser(userLoggin)
+    const listBlockUserArr = listBlockUser.data.friends as User[]
+    const listBlockUserId = listBlockUserArr.map((user) => user.user_id)
+    // danh sách người dùng bị chặn
+    const listBlockedUser = await userService.fetchAllListBlockedUser(userLoggin)
+    //
     if (!checkGroup) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group message không tồn tại')
     }
@@ -387,7 +420,9 @@ class messageService {
           role: member.role,
           avatar,
           fullname,
-          group_message_id: group?.group_message_id
+          group_message_id: group?.group_message_id,
+          list_block_user: listBlockUserId,
+          list_blocked_user: listBlockedUser.data.friends
         }
       })
     )
@@ -515,6 +550,12 @@ class messageService {
   }
 
   async getOneToOneMessage(receiver: string, sender: string, page?: number, limit?: number) {
+    // danh sách chặn người dùng
+    const listBlockUser = await userService.fetchAllListBlockUser(sender)
+    const listBlockUserArr = listBlockUser.data.friends as User[]
+    const listBlockUserId = listBlockUserArr.map((user) => user.user_id)
+    // danh sách người dùng bị chặn
+    const listBlockedUser = await userService.fetchAllListBlockedUser(sender)
     // Lấy tất cả groupId mà receiver tham gia
     const groupsWithReceiver = await models.MemberGroup.findAll({
       where: { user_id: receiver },
@@ -547,7 +588,9 @@ class messageService {
       const info = {
         group_id: receiver,
         avatar: await this.getThubmail(receiver),
-        group_name: await this.getFullName(receiver)
+        group_name: await this.getFullName(receiver),
+        list_block_user: listBlockUserId,
+        list_blocked_user: listBlockedUser.data.friends
       }
       return {
         message: 'lấy thông tin messsage ok',
@@ -574,6 +617,13 @@ class messageService {
   }
 
   async getGroupMessage(id: string, sender: string, page?: number, limit?: number) {
+    // danh sách chặn người dùng
+    const listBlockUser = await userService.fetchAllListBlockUser(sender)
+    const listBlockUserArr = listBlockUser.data.friends as User[]
+    const listBlockUserId = listBlockUserArr.map((user) => user.user_id)
+    // danh sách người dùng bị chặn
+    const listBlockedUser = await userService.fetchAllListBlockedUser(sender)
+    //
     const checkGroupExists = await models.GroupMessage.findByPk(id)
     // return checkGroupExists
     if (checkGroupExists) {
@@ -582,7 +632,9 @@ class messageService {
         const info = {
           group_id: checkGroupExists.group_message_id,
           avatar: checkGroupExists.group_thumbnail,
-          group_name: checkGroupExists.group_name
+          group_name: checkGroupExists.group_name,
+          list_block_user: listBlockUserId,
+          list_blocked_user: listBlockedUser.data.friends
         }
         return {
           message: 'lấy thông tin messsage ok',
@@ -614,12 +666,23 @@ class messageService {
       where: {
         [Op.or]: [{ user_id: sender }, { user_id: messageData.receiver }]
       },
+      include: [
+        {
+          model: models.GroupMessage,
+          attributes: [],
+          required: true,
+          where: {
+            type: 1 // Thêm điều kiện lọc type ở đây
+          }
+        }
+      ],
       group: ['group_message_id'], // Nhóm theo group_message_id
       having: Sequelize.literal('COUNT(DISTINCT user_id) = 2') // Chỉ lấy group_message_id có đủ 2 user_id khác nhau
     })
 
-    const group_message_id =
-      messageData.group_message_id != '' ? messageData.group_message_id : (groupMessageIds?.group_message_id as string)
+    const group_message_id = groupMessageIds?.dataValues.group_message_id
+      ? groupMessageIds?.dataValues.group_message_id
+      : messageData.group_message_id
 
     const checkGroup = await models.GroupMessage.findOne({
       where: {
@@ -665,7 +728,7 @@ class messageService {
         createdBy: sender,
         group_message_id: newGroupMessageId
       }
-      await models.Message.create(newMessageData)
+      const message = await models.Message.create(newMessageData)
       //
       const dataNotify = {
         type: 1,
@@ -674,6 +737,7 @@ class messageService {
       }
       await notifyMessageService.createNotify(dataNotify, sender)
       if (newGroupMessageId) {
+        await seenMessageService.createSeenMessage(message.group_message_id, message.message_id, sender)
         await messageSocketService.emitNotifyMessage(newGroupMessageId, dataNotify, sender)
         await messageSocketService.emitNewMessage(newGroupMessageId, sender)
         await messageSocketService.emitNewConversation(newGroupMessageId)
@@ -763,15 +827,42 @@ class messageService {
   }
 
   async sendMessageAttach(messageMediaData: MessageMediaInput, sender: string) {
-    const checkGroup = await models.GroupMessage.findByPk(messageMediaData.group_message_id)
+    const groupMessageIds = await models.MemberGroup.findOne({
+      attributes: ['group_message_id'],
+      where: {
+        [Op.or]: [{ user_id: sender }, { user_id: messageMediaData.receiver }]
+      },
+      include: [
+        {
+          model: models.GroupMessage,
+          attributes: [],
+          required: true,
+          where: {
+            type: 1
+          }
+        }
+      ],
+      group: ['group_message_id'],
+      having: Sequelize.literal('COUNT(DISTINCT user_id) = 2')
+    })
+
+    const group_message_id = groupMessageIds?.dataValues.group_message_id
+      ? groupMessageIds?.dataValues.group_message_id
+      : messageMediaData.group_message_id
+
+    const checkGroup = await models.GroupMessage.findOne({
+      where: {
+        group_message_id: group_message_id ? group_message_id : ''
+      }
+    })
 
     if (checkGroup) {
-      const data = { ...messageMediaData, createdBy: sender }
+      const data = { ...messageMediaData, group_message_id: checkGroup.group_message_id, createdBy: sender }
+
       await models.Message.create(data)
-      await models.GroupMessage.update(
-        { updatedAt: new Date() },
-        { where: { group_message_id: checkGroup?.group_message_id } }
-      )
+      await checkGroup.update({
+        updatedAt: new Date()
+      })
     } else {
       if (!messageMediaData.receiver) {
         throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy người nhận 2')
@@ -1047,9 +1138,14 @@ class messageService {
       }
     })
     const listAllFriend = await userService.fetchFriendOfUser(user_loggin, 1, 1000)
-    const data = listAllFriend.data.friends.filter((item) => {
-      return !listMemberGroup.some((group) => group.user_id === item.user_id)
-    })
+    let data
+    if (group_id) {
+      data = listAllFriend.data.friends.filter((item) => {
+        return !listMemberGroup.some((group) => group.user_id === item.user_id)
+      })
+    } else {
+      data = listAllFriend
+    }
 
     return {
       message: 'lấy list friend suggest ok',
@@ -1088,7 +1184,7 @@ class messageService {
         report_count: 0
       }
       await this.sendMessage(dataMessageTypeZero, userLoggin)
-      await messageSocketService.emitCurdMemberGroup(group_id)
+      await messageSocketService.emitCurdMemberGroup(group_id, user_id)
     }
     return {
       message: 'xóa hoặc rời nhóm ok'
@@ -1131,22 +1227,15 @@ class messageService {
   }
 
   async searchFriendAndConversation(user_id: string, keyword: string) {
-    const listFriend = await userService.fetchFriendOfUser(user_id, 1, 1000)
-    const listConversation = await this.getConversation(user_id, 1, 10000, true)
-
+    const listFriend = await userService.fetchFriendOfUser(user_id, 1, 100)
+    const listConversation = await this.getConversation(user_id, 1, 100, true)
     // group_id, group_name, type
     const listConversationType1 = listConversation.data.data.filter((item: any) => {
       return item.type === 1
     })
-
-    const listConversationType2 = listConversation.data.data.filter((item: any) => {
-      return item.type === 2
-    })
-
     const arr = listFriend.data.friends.filter((friend) => {
-      return listConversationType1.some((item: any) => item.user_id === friend.user_id)
+      return !listConversationType1.some((item: any) => item.user_id === friend.user_id)
     })
-
     let newArr = arr.map((item) => {
       return {
         group_message_id: null,
@@ -1156,24 +1245,20 @@ class messageService {
         type: 1
       }
     })
-
-    let newlistConversation = listConversationType2.map((item) => {
+    let newlistConversation = listConversation.data.data.map((item: any) => {
       return {
-        group_message_id: item.group_message_id,
+        group_message_id: item.group_message_id ? item.group_message_id : null,
+        user_id: item.user_id ? item.user_id : null,
         group_name: item.group_name,
         group_thumbnail: item.group_thumbnail,
-        type: 2
+        type: item.type
       }
     })
-
     const mergeArr = [...newArr, ...newlistConversation]
-
     // Tạo regex không phân biệt hoa thường
     const regex = new RegExp(keyword, 'i')
-
     // Tìm kiếm theo group_name
     const filteredArr = mergeArr.filter((item) => regex.test(item.group_name))
-
     return {
       data: filteredArr
     }

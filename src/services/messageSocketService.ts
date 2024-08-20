@@ -182,7 +182,7 @@ class messageSocketService {
       io.to(sender).emit('deleteNotifyMessage')
     }
   }
-  async emitCurdMemberGroup(group_message_id: string) {
+  async emitCurdMemberGroup(group_message_id: string, user_id?: string) {
     if (group_message_id) {
       const memmbersId = await models.MemberGroup.findAll({
         where: {
@@ -192,7 +192,6 @@ class messageSocketService {
 
       memmbersId.forEach(async (member) => {
         const receiver = getReceiverSocketId(member.user_id)
-
         if (receiver) {
           io.to(receiver).emit('deleteOrLeaveGroup', receiver)
           await models.DeleteGroupMessage.update(
@@ -201,6 +200,12 @@ class messageSocketService {
           )
         }
       })
+      if (user_id) {
+        const memberDeleted = getReceiverSocketId(user_id)
+        if (memberDeleted) {
+          io.to(memberDeleted).emit('deleteOrLeaveGroup', memberDeleted)
+        }
+      }
     } else {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitCurdMemberGroup')
     }
@@ -331,6 +336,18 @@ class messageSocketService {
       })
     } else {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy group_id emitEndCall')
+    }
+  }
+
+  async emitBlock(user_id: string) {
+    if (user_id) {
+      const receiver = getReceiverSocketId(user_id)
+      console.log('blockedMessage')
+      if (receiver) {
+        io.to(receiver).emit('blockedMessage')
+      }
+    } else {
+      throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Không tìm thấy user_id emitBlock')
     }
   }
 }

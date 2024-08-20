@@ -48,6 +48,7 @@ export default {
     await UserInterestsMigration.up(queryInterface)
     await FriendShipMigration.up(queryInterface)
     await SearchHistoryMigration.up(queryInterface)
+    await FanpageMigration.up(queryInterface)
     await PostMigration.up(queryInterface)
     await PostMediaResourceMigration.up(queryInterface)
     await PostCommentMigration.up(queryInterface)
@@ -68,7 +69,6 @@ export default {
     await NotifyGroupMessageMigration.up(queryInterface)
     await DeleteGroupMessageMigration.up(queryInterface)
     await ReportMessageMigration.up(queryInterface)
-    await FanpageMigration.up(queryInterface)
     await FanpageMemberMigration.up(queryInterface)
     await VideoMigration.up(queryInterface)
     await CommnetVideoMigration.up(queryInterface)
@@ -78,16 +78,15 @@ export default {
     await VideoReportMigration.up(queryInterface)
     await HashTagsVideo.up(queryInterface)
     await StoryMigration.up(queryInterface)
-
   },
 
   async down(queryInterface: QueryInterface) {
-     await VideoMigration.down(queryInterface)
-     await CommnetVideoMigration.down(queryInterface)
-     await LikeVideoMigration.down(queryInterface)
-     await FavoriteVideoMigration.down(queryInterface)
-     await VideoReportMigration.down(queryInterface)
-     await HashTagsVideo.down(queryInterface)
+    await VideoMigration.down(queryInterface)
+    await CommnetVideoMigration.down(queryInterface)
+    await LikeVideoMigration.down(queryInterface)
+    await FavoriteVideoMigration.down(queryInterface)
+    await VideoReportMigration.down(queryInterface)
+    await HashTagsVideo.down(queryInterface)
     await ReportMessageMigration.down(queryInterface)
     await DeleteGroupMessageMigration.down(queryInterface)
     await NotifyGroupMessageMigration.down(queryInterface)

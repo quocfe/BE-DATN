@@ -40,6 +40,30 @@ export default {
           account_id: 'a-user-admin',
           module_id: 'post-module',
           permission_id: 'p-add'
+        },
+        {
+          id: 7,
+          account_id: 'a-message-admin',
+          module_id: 'message-module',
+          permission_id: 'p-view'
+        },
+        {
+          id: 8,
+          account_id: 'a-message-admin',
+          module_id: 'message-module',
+          permission_id: 'p-add'
+        },
+        {
+          id: 9,
+          account_id: 'a-message-admin',
+          module_id: 'message-module',
+          permission_id: 'p-edit'
+        },
+        {
+          id: 10,
+          account_id: 'a-message-admin',
+          module_id: 'message-module',
+          permission_id: 'p-delete'
         }
       ],
       {}

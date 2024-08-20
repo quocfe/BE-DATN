@@ -33,7 +33,7 @@ class postController {
     }
   }
 
-  async getAllFriendAndPending(req: Request, res: Response) {
+  async getAllFriendAndPendingPosts(req: Request, res: Response) {
     if (req.user) {
       const { _page, _limit } = req.query
       const page = typeof _page === 'string' ? +_page : undefined
@@ -41,6 +41,19 @@ class postController {
       const user_id = req.user.user_id
 
       const data = await postService.getAllPosts(user_id, page, limit, null, true)
+
+      sendResponseSuccess(res, data)
+    }
+  }
+
+  async getAllFanpagePosts(req: Request, res: Response) {
+    if (req.user) {
+      const { _page, _limit } = req.query
+      const page = typeof _page === 'string' ? +_page : undefined
+      const limit = typeof _limit === 'string' ? +_limit : undefined
+      const { fanpage_id } = req.params
+
+      const data = await postService.getAllPosts('', page, limit, null, false, 'fanpage', fanpage_id)
 
       sendResponseSuccess(res, data)
     }
