@@ -197,7 +197,7 @@ class authService {
       const new_refresh_token = generateToken(
         _.omit(decodeUser, ['iat', 'exp']),
         this.secretKey,
-        this.expiresAccessToken
+        this.expiresRefreshToken
       )
 
       return {

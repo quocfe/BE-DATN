@@ -1,5 +1,7 @@
 import { PostAttributes } from '../db/models/Post'
 
-interface Post extends PostAttributes {}
+export interface Post extends PostAttributes {}
 
-export type PostInput = Omit<Post, 'post_id' | 'user_id' | 'createdAt' | 'updatedAt'>
+export type PostInput = Omit<Post, 'post_id' | 'user_id' | 'fanpage_id' | 'createdAt' | 'updatedAt'> & {
+  fanpage_id?: string
+}

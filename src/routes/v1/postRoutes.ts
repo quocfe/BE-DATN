@@ -10,7 +10,9 @@ router.get('/my_post', Middleware.verifyToken, tryCatch(postController.getAllPos
 
 router.get('/user_post/:target_id', Middleware.verifyToken, tryCatch(postController.getAllUserPosts))
 
-router.get('/post_friend_and_pending', Middleware.verifyToken, tryCatch(postController.getAllFriendAndPending))
+router.get('/post_friend_and_pending', Middleware.verifyToken, tryCatch(postController.getAllFriendAndPendingPosts))
+
+router.get('/post_fanpage/:fanpage_id', Middleware.verifyToken, tryCatch(postController.getAllFanpagePosts))
 
 router.post(
   '/add',

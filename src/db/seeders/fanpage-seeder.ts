@@ -1,7 +1,6 @@
 import { QueryInterface } from 'sequelize'
 import { hashSync, genSaltSync } from 'bcryptjs'
-import { v4 }  from'uuid'
-
+import { v4 } from 'uuid'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -20,12 +19,12 @@ export default {
           is_public: true,
           role_id: 'role-id-1',
           user_id: 'luffy-22c73-f703-4b16-847d-f61bae05-onepiece',
-          image_url: 'https://media.fmplus.com.vn/uploads/sliders/3db10944-7817-4c48-9565-dcf816a840ee.jpg', 
+          image_url: 'https://media.fmplus.com.vn/uploads/sliders/3db10944-7817-4c48-9565-dcf816a840ee.jpg',
           createdAt: new Date(),
           updatedAt: new Date()
         },
         {
-          fanpage_id: v4(),
+          fanpage_id: 'fanpage-1',
           group_name: 'Kanisdev Tech Community',
           description: 'Fanpage của cộng đồng công nghệ Kanisdev, nơi chia sẻ kiến thức và tin tức công nghệ.',
           followers_count: 3000,
@@ -42,12 +41,10 @@ export default {
         }
       ],
       {}
-    );
+    )
   },
 
   async down(queryInterface: QueryInterface) {
-    await queryInterface.bulkDelete('Fanpages', {}, {});
+    await queryInterface.bulkDelete('Fanpages', {}, {})
   }
-};
-
-
+}
