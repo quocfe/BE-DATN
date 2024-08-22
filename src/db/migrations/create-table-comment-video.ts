@@ -1,5 +1,4 @@
-
-import { DataTypes, QueryInterface, Sequelize } from "sequelize"
+import { DataTypes, QueryInterface, Sequelize } from 'sequelize'
 
 /** @type {import('sequelize-cli').Migration} */
 export default {
@@ -12,11 +11,19 @@ export default {
       },
       video_id: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'Videos',
+          key: 'id'
+        }
       },
       user_id: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'Users',
+          key: 'user_id'
+        }
       },
       mentioned_user_id: {
         type: DataTypes.STRING,
