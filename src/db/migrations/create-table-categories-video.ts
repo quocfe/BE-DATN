@@ -29,3 +29,5 @@ export default {
     await queryInterface.dropTable('Categories_videos')
   }
 }
+
+// Checking 

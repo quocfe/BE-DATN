@@ -17,32 +17,7 @@ const upload_preset = process.env.CLOUDINAR_UPLOAD_PREST as string
 
 const cloudinaryUploadVideo = async (file: Express.Multer.File): Promise<UploadApiResponse> => {
   const filePath = file.path
-
-  // return new Promise<UploadApiResponse>((resolve, reject) => {
-  //   cloudinary.uploader.upload_large(
-  //     file.path,
-  //     {
-  //       resource_type: 'video',
-  //       chunk_size: 6000000
-  //     },
-  //     (error: any, result: any) => {
-  //       if (error) {
-  //         reject(error)
-  //       }
-
-  //       // Xóa tệp tạm thời sau khi tải lên Cloudinary thành công
-  //       fs.unlink(filePath, (err) => {
-  //         if (err) {
-  //           console.error('Không thể xóa tệp tạm thời:', err)
-  //         }
-  //       })
-
-  //       resolve(result)
-  //     }
-  //   )
-  // })
-
-  // Hàm tải lên video theo phần
+  // Hàm tải lên video theo phần lên cloudinary
   async function uploadVideoChunk(startByte: number, endByte: number): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const readStream = fs.createReadStream(filePath, { start: startByte, end: endByte })
@@ -72,6 +47,7 @@ const cloudinaryUploadVideo = async (file: Express.Multer.File): Promise<UploadA
     })
   }
 
+  // tính toán để chia nhỏ video
   const stats = fs.statSync(filePath)
   const fileSize = stats.size
   const chunkSize = 10 * 1024 * 1024 // 10MB

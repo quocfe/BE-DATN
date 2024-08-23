@@ -11,11 +11,19 @@ export default {
       },
       user_id: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'Users',
+          key: 'user_id'
+        },
       },
       video_id: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'Videos',
+          key: 'id'
+        },
       },
       reason: {
         type: DataTypes.STRING,

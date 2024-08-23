@@ -30,3 +30,5 @@ export default  {
     await queryInterface.dropTable('hash-tag-video')
   }
 }
+
+// Checking 
