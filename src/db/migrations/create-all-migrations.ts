@@ -35,7 +35,6 @@ import CommnetVideoMigration from './create-table-comment-video'
 import LikeVideoMigration from './create-table-like-video'
 import FavoriteVideoMigration from './create-table-favorite-video'
 import VideoReportMigration from './create-table-video-report'
-import HashTagsVideo from './create-table-hash-tag-video'
 import StoryMigration from './create-table-story'
 
 export default {
@@ -76,7 +75,6 @@ export default {
     await FriendShipMigration.up(queryInterface)
     await FavoriteVideoMigration.up(queryInterface)
     await VideoReportMigration.up(queryInterface)
-    await HashTagsVideo.up(queryInterface)
     await StoryMigration.up(queryInterface)
   },
 
@@ -86,7 +84,6 @@ export default {
     await LikeVideoMigration.down(queryInterface)
     await FavoriteVideoMigration.down(queryInterface)
     await VideoReportMigration.down(queryInterface)
-    await HashTagsVideo.down(queryInterface)
     await ReportMessageMigration.down(queryInterface)
     await DeleteGroupMessageMigration.down(queryInterface)
     await NotifyGroupMessageMigration.down(queryInterface)
