@@ -7,13 +7,12 @@ import uploadCloud from '../../middleware/uploader'
 const router = Router()
 
 router.get('/profile', Middleware.verifyToken, tryCatch(userController.getProfile))
-
 router.get('/profile/:friend_id', Middleware.verifyToken, tryCatch(userController.getProfileByUserId))
 
 router.post(
   '/profile/update',
-  uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
   Middleware.verifyToken,
+  uploadCloud.fields([{ name: 'profile_picture' }, { name: 'cover_photo' }]),
   tryCatch(userController.updateProfile)
 )
 
@@ -49,10 +48,20 @@ router.get('/friends', Middleware.verifyToken, tryCatch(userController.fetchFrie
 
 router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
 
+router.get('/friend/search/:name', Middleware.verifyToken, tryCatch(userController.searchFriends))
 router.get('/list', Middleware.verifyToken, tryCatch(userController.fetchAllUsers))
-
 router.post('/change_password', Middleware.verifyToken, tryCatch(userController.changePassword))
 
 router.get('/friends_of_friends/:friend_id', Middleware.verifyToken, tryCatch(userController.fetchAllFriendsOfFriends))
+
+router.get('/search/histories', Middleware.verifyToken, tryCatch(userController.fetchAllSearchHistory))
+
+router.post('/search/history/add', Middleware.verifyToken, tryCatch(userController.addNewSearchHistory))
+
+router.delete('/search/history/delete/:target_id', Middleware.verifyToken, tryCatch(userController.deleteSearchHistory))
+
+router.delete('/search/history/clear', Middleware.verifyToken, tryCatch(userController.clearSearchHistory))
+
+router.get('/list/media_resource', Middleware.verifyToken, tryCatch(userController.getAllMediaResource))
 
 export default router
