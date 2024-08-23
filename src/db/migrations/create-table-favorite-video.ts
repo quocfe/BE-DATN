@@ -1,7 +1,6 @@
+import { DataTypes, QueryInterface, Sequelize } from 'sequelize'
 
-import { DataTypes, QueryInterface, Sequelize } from "sequelize"
-
-export default  {
+export default {
   async up(queryInterface: QueryInterface) {
     await queryInterface.createTable('favorite-videos', {
       id: {
@@ -11,11 +10,19 @@ export default  {
       },
       video_id: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'Videos',
+          key: 'id'
+        }
       },
       user_id: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'Users',
+          key: 'user_id'
+        }
       },
       createdAt: {
         allowNull: false,

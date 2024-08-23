@@ -1,4 +1,4 @@
-import { DataTypes, QueryInterface, Sequelize } from "sequelize"
+import { DataTypes, QueryInterface, Sequelize } from 'sequelize'
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -50,7 +50,11 @@ export default {
       },
       user_id: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'Users',
+          key: 'user_id'
+        }
       },
       // list_like_user_id: {
       //   type: DataTypes.STRING,

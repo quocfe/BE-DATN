@@ -162,8 +162,8 @@ const getVideos = async (req: Request, res: Response) => {
           attributes: ['user_id', 'first_name', 'last_name'],
           include: [
             {
-              model: models.Profile,
-              attributes: ['cover_photo']
+              model: models.Profile
+              // attributes: ['cover_photo']
             }
           ]
         }
@@ -174,7 +174,7 @@ const getVideos = async (req: Request, res: Response) => {
         'user.first_name',
         'user.last_name',
         'user->Profile.profile_id',
-        'user->Profile.cover_photo'
+        'user->Profile.cover_photo',
       ],
 
       order: [['createdAt', 'DESC']], // Sắp xếp theo createdAt theo thứ tự giảm dần
@@ -306,7 +306,7 @@ const findOneVideo = async (req: Request, res: Response) => {
           include: [
             {
               model: models.Profile,
-              attributes: ['cover_photo']
+              // attributes: ['cover_photo']
             }
           ]
         }
