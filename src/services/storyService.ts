@@ -17,7 +17,7 @@ class storyService {
   // Lấy danh sách
   async fetchAllStory(user_id: string) {
     // Lấy danh sách bạn bè của người dùng
-    const resFriendOfUser = await userService.fetchFriendOfUser(user_id, 1,1000)
+    const resFriendOfUser = await userService.fetchFriendOfUser(user_id, 1, 1000)
     const friends = resFriendOfUser.data.friends as any
     const friendIds = friends.map((friend: any) => friend.user_id)
     // Thêm user_id của người tạo vào danh sách friendIds
@@ -37,7 +37,13 @@ class storyService {
           attributes: ['first_name', 'last_name'],
           where: {
             user_id: friendIds
-          }
+          },
+          include: [
+            {
+              model: models.Profile, // Giả sử tên model của bạn là Profile
+              attributes: ['profile_picture']
+            }
+          ]
         }
       ]
     })
@@ -85,9 +91,9 @@ class storyService {
 
     // Cập nhật trạng thái lưu trữ
     await story.update({
-       is_archived: false,
-       story_time: new Date()
-       })
+      is_archived: false,
+      story_time: new Date()
+    })
     return {
       message: 'Khôi phục tin thành công',
       data: {
@@ -97,7 +103,7 @@ class storyService {
   }
   // Lấy tin đã lưu trữ
   async fetchArchivedStories(user_id: string) {
-    const resFriendOfUser = await userService.fetchFriendOfUser(user_id, 1,1000)
+    const resFriendOfUser = await userService.fetchFriendOfUser(user_id, 1, 1000)
     const friends = resFriendOfUser.data.friends as any
     const friendIds = friends.map((friend: any) => friend.user_id)
 
@@ -117,7 +123,13 @@ class storyService {
           attributes: ['first_name', 'last_name'],
           where: {
             user_id: user_id
-          }
+          },
+          include: [
+            {
+              model: models.Profile,
+              attributes: ['profile_picture']
+            }
+          ]
         }
       ]
     })
