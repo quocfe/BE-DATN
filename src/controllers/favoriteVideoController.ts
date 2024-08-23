@@ -30,7 +30,7 @@ const getFavoriteVideo = async (req: Request, res: Response) => {
               include: [
                 {
                   model: models.Profile,
-                  attributes: ['cover_photo']
+                  // attributes: ['cover_photo']
                 }
               ]
             }
