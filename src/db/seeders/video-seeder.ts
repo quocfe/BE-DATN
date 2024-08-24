@@ -4,7 +4,7 @@ const { hashSync, genSaltSync } = require('bcryptjs')
 export default {
   async up(queryInterface: QueryInterface) {
     await queryInterface.bulkInsert(
-      'Videos',
+      'VideosTainment',
       [
         {
           id: 'eb7f8e8d-639a-4601-b9cd-976fa336f81d',
@@ -26,6 +26,6 @@ export default {
   },
 
   async down(queryInterface: QueryInterface) {
-    await queryInterface.bulkDelete('Videos', {}, {})
+    await queryInterface.bulkDelete('VideosTainment', {}, {})
   }
 }

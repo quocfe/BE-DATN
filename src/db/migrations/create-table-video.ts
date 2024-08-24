@@ -2,7 +2,7 @@ import { DataTypes, QueryInterface, Sequelize } from 'sequelize'
 
 export default {
   async up(queryInterface: QueryInterface) {
-    await queryInterface.createTable('Videos', {
+    await queryInterface.createTable('VideosTainment', {
       id: {
         allowNull: false,
         primaryKey: true,
@@ -74,6 +74,6 @@ export default {
   },
 
   async down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('Videos')
+    await queryInterface.dropTable('VideosTainment')
   }
 }
