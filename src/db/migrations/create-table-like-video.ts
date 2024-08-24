@@ -20,7 +20,7 @@ export default {
         type: DataTypes.STRING,
         allowNull: false,
         references: {
-          model: 'Videos',
+          model: 'VideosTainment',
           key: 'id'
         }
       },

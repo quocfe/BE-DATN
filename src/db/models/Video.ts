@@ -125,8 +125,8 @@ Video.init(
   },
   {
     sequelize: db, // Kết nối Sequelize instance
-    tableName: 'videos', // Tên bảng trong cơ sở dữ liệu
-    modelName: 'videos', // Tên mô hình
+    tableName: 'VideosTainment', // Tên bảng trong cơ sở dữ liệu
+    modelName: 'VideosTainment', // Tên mô hình
     timestamps: true // Tự động thêm createdAt và updatedAt
   }
 )

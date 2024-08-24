@@ -146,11 +146,13 @@ const getVideos = async (req: Request, res: Response) => {
         exclude: ['updatedAt', 'category_video_id'],
         include: [
           [
-            literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
+            literal(
+              '(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `VideosTainment`.`id`)'
+            ),
             'total_comments'
           ],
           [
-            literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `videos`.`id`)'),
+            literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `VideosTainment`.`id`)'),
             'total_likes'
           ]
         ]
@@ -169,12 +171,12 @@ const getVideos = async (req: Request, res: Response) => {
         }
       ],
       group: [
-        'videos.id',
+        'VideosTainment.id',
         'user.user_id',
         'user.first_name',
         'user.last_name',
         'user->Profile.profile_id',
-        'user->Profile.cover_photo',
+        'user->Profile.cover_photo'
       ],
 
       order: [['createdAt', 'DESC']], // Sắp xếp theo createdAt theo thứ tự giảm dần
@@ -289,11 +291,13 @@ const findOneVideo = async (req: Request, res: Response) => {
         include: [
           // Include total_comments as a literal SQL query
           [
-            literal('(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `videos`.`id`)'),
+            literal(
+              '(SELECT COUNT(*) FROM `comment-videos` WHERE `comment-videos`.`video_id` = `VideosTainment`.`id`)'
+            ),
             'total_comments'
           ],
           [
-            literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `videos`.`id`)'),
+            literal('(SELECT COUNT(*) FROM `like-videos` WHERE `like-videos`.`video_id` = `VideosTainment`.`id`)'),
             'total_likes'
           ]
         ]
@@ -305,7 +309,7 @@ const findOneVideo = async (req: Request, res: Response) => {
           attributes: ['user_id', 'first_name', 'last_name'], // Specify which user attributes to include
           include: [
             {
-              model: models.Profile,
+              model: models.Profile
               // attributes: ['cover_photo']
             }
           ]
