@@ -64,4 +64,10 @@ router.delete('/search/history/clear', Middleware.verifyToken, tryCatch(userCont
 
 router.get('/list/media_resource', Middleware.verifyToken, tryCatch(userController.getAllMediaResource))
 
+router.get(
+  '/list/user_media_resource/:user_id',
+  Middleware.verifyToken,
+  tryCatch(userController.getAllUserMediaResource)
+)
+
 export default router

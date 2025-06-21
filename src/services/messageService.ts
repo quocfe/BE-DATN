@@ -19,7 +19,7 @@ class messageService {
   private async delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
-  // fn get Thubmail
+  // hàm lấy hình ảnh người dùng
   async getThubmail(user_id: string | undefined) {
     const profile = await models.Profile.findOne({
       where: {
@@ -29,7 +29,7 @@ class messageService {
 
     return profile?.profile_picture
   }
-  // fn getFullName
+  // hàm lấy tên người dùng
   async getFullName(user_id: string | undefined) {
     const user = await models.User.findOne({
       where: {
@@ -39,8 +39,7 @@ class messageService {
     return `${user?.last_name} ${user?.first_name}`
   }
 
-  // fn check exist groupMessage
-
+  // hàm lấy đoạn chat
   async getConversation(userLoggin: string, page: number, limit: number, search?: boolean) {
     // danh sách chặn người dùng
     const listBlockUser = await userService.fetchAllListBlockUser(userLoggin)
@@ -49,18 +48,21 @@ class messageService {
     // danh sách người dùng bị chặn
     const listBlockedUser = await userService.fetchAllListBlockedUser(userLoggin)
     // lấy MemberGroup data từ loggin user
-    const MemberGroupData = await models.MemberGroup.findAll({ where: { user_id: userLoggin } })
+    const MemberGroupData = await models.MemberGroup.findAll({
+      where: { user_id: userLoggin }
+    })
 
     // groupMessageIds
     const groupMessageIds = MemberGroupData.map((item) => item.group_message_id)
-    // id group in table delete
 
+    // điều kiện lọc
     let whereConditions
-
+    // tìm kiếm đoạn chat thì lấy tất cả
     if (search) {
       whereConditions = {
         deletedBy: userLoggin
       }
+      // lấy đoạn chat với deletedBy
     } else {
       whereConditions = {
         deletedBy: userLoggin,
@@ -68,15 +70,15 @@ class messageService {
       }
     }
 
-    const groupMessageIdsNodelete = await models.DeleteGroupMessage.findAll({
+    const groupMessageIdDelete = await models.DeleteGroupMessage.findAll({
       where: whereConditions
     })
 
-    const filteredGroupMessageIds = groupMessageIds.filter((item1: any) => {
-      return search ? [...item1] : !groupMessageIdsNodelete.some((item2) => item1 === item2.group_message_id)
+    const filteredGroupMessageIds = groupMessageIds.filter((item1: string) => {
+      return search ? [...item1] : !groupMessageIdDelete.some((item2) => item1 === item2.group_message_id)
     })
 
-    // Fetch GroupMessage data
+    // Fetch GroupMessage
     const offset = (page - 1) * limit
 
     const groupMessages = await models.GroupMessage.findAndCountAll({
@@ -87,13 +89,10 @@ class messageService {
     })
 
     const totalPage = Math.ceil(groupMessages.count / limit)
-    // Fetch all MemberGroup and Message data
-    const [AllMemberGroup, MessageData] = await Promise.all([
-      models.MemberGroup.findAll(),
-      models.Message.findAll({ order: [['createdAt', 'DESC']] })
-    ])
+    // lấy MemberGroup vs Message data
+    const AllMemberGroup = await models.MemberGroup.findAll()
 
-    // Helper function to get user name
+    // hàm lấy tên đoạn chat
     const getUserName = async (groupMessageId: string) => {
       const data = AllMemberGroup.filter((member) => member.group_message_id === groupMessageId)
       const userFilter = data.find((item) => item.user_id !== userLoggin)
@@ -116,7 +115,7 @@ class messageService {
       }
       return ''
     }
-    // Hepler function to get thubmail
+    // Hàm lấy thubmail đoạn chat
     const getThubmailConversation = async (groupMessageId: string) => {
       const data = AllMemberGroup.filter((member) => member.group_message_id === groupMessageId)
       const userFilter = data.find((item) => item.user_id !== userLoggin)
@@ -126,11 +125,11 @@ class messageService {
       return user ? user.profile_picture : ''
     }
 
-    // Create group messages with messages
+    // lấy tin nhắn
     const data = await Promise.all(
       groupMessages.rows.map(async (groupMessage) => {
         // const messages = MessageData.filter((message) => message.group_message_id === groupMessage.group_message_id)
-        const messages = await this.getMessage(groupMessage.group_message_id, 1, 10, userLoggin)
+        const messages = await this.getMessage(groupMessage.group_message_id, 1, 1, userLoggin)
         const messageStatusTrue = messages.data.filter((m) => m.status === true && m.is_report === false)
         const message = messageStatusTrue[messageStatusTrue.length - 1]
         const filterMessage = {
@@ -182,6 +181,7 @@ class messageService {
     }
   }
 
+  // đoạn này ko hoạt động, deleteConversation bên deleService
   async deteleConversation(id: string) {
     const checkGroup = await models.GroupMessage.findByPk(id)
     if (!checkGroup) {
@@ -223,14 +223,17 @@ class messageService {
       throw new CustomErrorHandler(StatusCodes.BAD_REQUEST, 'Một hoặc nhiều người dùng không tồn tại')
     }
 
-    // Tạo tên nhóm nếu chưa có ( lấy tên user cọng lại)
+    // Tạo tên nhóm nếu chưa có ( lấy tên user cộng lại)
     if (!group_name) {
       const usersData = await models.User.findAll({
         where: {
           user_id: countUser
         }
       })
-      group_name = usersData.map((user) => `${user.first_name} ${user.last_name}`).join(', ')
+      group_name = usersData
+        .slice(0, 3)
+        .map((user) => `${user.first_name} ${user.last_name}`)
+        .join(', ')
     }
 
     // Tạo dữ liệu nhóm
@@ -297,21 +300,6 @@ class messageService {
     const users: string[] = JSON.parse(memberGroupData.list_user)
     const checkGroup = await models.GroupMessage.findByPk(memberGroupData.group_message_id)
 
-    // cập nhật lại deteleGroup
-    await Promise.all(
-      users.map(async (user: string) => {
-        const checkUser = await models.DeleteGroupMessage.findOne({
-          where: {
-            group_message_id: memberGroupData.group_message_id,
-            deletedBy: user
-          }
-        })
-        if (checkUser) {
-          await deleteConversationService.updateDeleteConversation(checkUser.delete_group_message_id)
-        }
-      })
-    )
-
     if (!checkGroup) {
       throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Group not found!')
     }
@@ -357,6 +345,21 @@ class messageService {
         }
         createDone && (await this.sendMessage(dataMessageTypeZero, user))
         await messageSocketService.emitCurdMemberGroup(memberGroupData.group_message_id)
+      })
+    )
+
+    // cập nhật lại deteleGroup
+    await Promise.all(
+      users.map(async (user: string) => {
+        const checkUser = await models.DeleteGroupMessage.findOne({
+          where: {
+            group_message_id: memberGroupData.group_message_id,
+            deletedBy: user
+          }
+        })
+        if (checkUser) {
+          await deleteConversationService.updateDeleteConversation(checkUser.delete_group_message_id)
+        }
       })
     )
 
@@ -525,9 +528,9 @@ class messageService {
             reply_user: reply_user,
             recallInReply
           }
-        const parentMessage = reversedMessages.find((msg) => msg.message_id === message.parent_id)
+        // const parentMessage = reversedMessages.find((msg) => msg.message_id === message.parent_id)
 
-        message.parent_id = parentMessage ? message.parent_id : ''
+        // message.parent_id = parentMessage ? message.parent_id : ''
         return {
           ...message.get({ plain: true }),
           reactions,
@@ -557,34 +560,31 @@ class messageService {
     // danh sách người dùng bị chặn
     const listBlockedUser = await userService.fetchAllListBlockedUser(sender)
     // Lấy tất cả groupId mà receiver tham gia
-    const groupsWithReceiver = await models.MemberGroup.findAll({
-      where: { user_id: receiver },
-      attributes: ['group_message_id']
-    })
-    // Lấy danh sách groupId từ kết quả của receiver
-    const groupIds = groupsWithReceiver.map((group) => group.group_message_id)
 
-    // Tìm các group mà receiver tham gia và nằm trong danh sách groupId của sender
-    const commonGroups = await models.MemberGroup.findAll({
+    const groupMessageIds = await models.MemberGroup.findOne({
+      attributes: ['group_message_id'], // Chỉ lấy trường group_message_id
       where: {
-        user_id: sender,
-        group_message_id: groupIds
+        [Op.or]: [{ user_id: sender }, { user_id: receiver }]
       },
-      attributes: ['group_message_id']
+      include: [
+        {
+          model: models.GroupMessage,
+          attributes: [],
+          required: true,
+          where: {
+            type: 1 // Thêm điều kiện lọc type ở đây
+          }
+        }
+      ],
+      group: ['group_message_id'], // Nhóm theo group_message_id
+      having: Sequelize.literal('COUNT(DISTINCT user_id) = 2') // Chỉ lấy group_message_id có đủ 2 user_id khác nhau
     })
 
-    const filteredGroupIds = await models.GroupMessage.findAll({
-      where: {
-        group_message_id: commonGroups.map((group) => group.group_message_id),
-        type: 1
-      },
-      attributes: ['group_message_id']
-    })
+    console.log('groupMessageIds', groupMessageIds?.dataValues.group_message_id)
+    // console.log('groupIdCheck', groupIdCheck)
 
-    const groupIdCheck = filteredGroupIds.map((filter) => filter.group_message_id)
-
-    if (groupIdCheck[0]) {
-      const messages = await this.getMessage(groupIdCheck[0], page, limit, sender)
+    if (groupMessageIds?.dataValues.group_message_id) {
+      const messages = await this.getMessage(groupMessageIds?.dataValues.group_message_id, page, limit, sender)
       const info = {
         group_id: receiver,
         avatar: await this.getThubmail(receiver),
@@ -680,6 +680,7 @@ class messageService {
       having: Sequelize.literal('COUNT(DISTINCT user_id) = 2') // Chỉ lấy group_message_id có đủ 2 user_id khác nhau
     })
 
+    // kiểm tra group_id từ điều kiện, nếu không có thì nhận group_id từ ngườ dùng nhập
     const group_message_id = groupMessageIds?.dataValues.group_message_id
       ? groupMessageIds?.dataValues.group_message_id
       : messageData.group_message_id
@@ -968,12 +969,18 @@ class messageService {
       createdBy: userLoggin
     }
 
-    await models.Message.create(data)
-
-    await messageSocketService.emitNewMessage(replyMessageInput.group_message_id, userLoggin)
-
+    const message = await models.Message.create(data)
+    const dataNotify = {
+      type: 1,
+      group_message_id: message.group_message_id,
+      content: 'new message'
+    }
+    await messageSocketService.emitNewMessage(message.group_message_id, userLoggin)
+    await seenMessageService.createSeenMessage(message.group_message_id, message.message_id, userLoggin)
+    await notifyMessageService.createNotify(dataNotify, userLoggin)
+    await messageSocketService.emitNotifyMessage(message.group_message_id, dataNotify, userLoggin)
     return {
-      message: 'Gửi tin nhán này',
+      message: 'Gửi tin ok',
       data: {
         data
       }
@@ -1196,13 +1203,15 @@ class messageService {
       models.MemberGroup.findOne({
         where: {
           group_message_id: group_id,
-          user_id
+          user_id,
+          role: false
         }
       }),
       models.MemberGroup.findOne({
         where: {
           group_message_id: group_id,
-          user_id: user_loggin
+          user_id: user_loggin,
+          role: true
         }
       })
     ])
@@ -1214,9 +1223,7 @@ class messageService {
     await checkUser.update({ role: true })
 
     if (!checkUserAdmin) {
-      return {
-        message: 'Không tìm thấy thành viên nhóm '
-      }
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tìm thấy thành viên nhóm')
     }
 
     await checkUserAdmin.update({ role: false })
@@ -1236,6 +1243,9 @@ class messageService {
     const arr = listFriend.data.friends.filter((friend) => {
       return !listConversationType1.some((item: any) => item.user_id === friend.user_id)
     })
+
+    // return { arr }
+    // ds type = 1 chưa có coverstaion
     let newArr = arr.map((item) => {
       return {
         group_message_id: null,
@@ -1258,7 +1268,7 @@ class messageService {
     // Tạo regex không phân biệt hoa thường
     const regex = new RegExp(keyword, 'i')
     // Tìm kiếm theo group_name
-    const filteredArr = mergeArr.filter((item) => regex.test(item.group_name))
+    const filteredArr = mergeArr.filter((item) => regex.test(item?.group_name))
     return {
       data: filteredArr
     }
@@ -1266,3 +1276,34 @@ class messageService {
 }
 
 export default new messageService()
+
+/*
+const groupsWithReceiver = await models.MemberGroup.findAll({
+      where: { user_id: receiver },
+      attributes: ['group_message_id']
+    })
+    Lấy danh sách groupId từ kết quả của receiver
+    const groupIds = groupsWithReceiver.map((group) => group.group_message_id)
+
+    Tìm các group mà receiver tham gia và nằm trong danh sách groupId của sender
+    const commonGroups = await models.MemberGroup.findAll({
+      where: {
+        user_id: sender,
+        group_message_id: groupIds
+      },
+      attributes: ['group_message_id']
+    })
+
+    const filteredGroupIds = await models.GroupMessage.findAll({
+      where: {
+        group_message_id: commonGroups.map((group) => group.group_message_id),
+        type: 1
+      },
+      attributes: ['group_message_id']
+    })
+
+    const groupIdCheck = filteredGroupIds.map((filter) => filter.group_message_id)
+
+    test
+
+*/

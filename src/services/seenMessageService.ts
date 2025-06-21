@@ -72,7 +72,6 @@ class seenMessageService {
         attributes: ['group_message_id']
       })
 
-      // Use map to create an array of promises
       const emitPromises = updatedMessages.map(async (message) => {
         await messageSocketService.emitSeenedMessage(message.group_message_id)
       })

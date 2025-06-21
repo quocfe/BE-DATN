@@ -306,6 +306,16 @@ class userController {
       sendResponseSuccess(res, data)
     }
   }
+
+  async getAllUserMediaResource(req: Request, res: Response) {
+    if (req.user) {
+      const { user_id } = req.params
+
+      const data = await userService.getAllMediaResource(user_id)
+
+      sendResponseSuccess(res, data)
+    }
+  }
 }
 
 export default new userController()

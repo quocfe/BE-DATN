@@ -26,4 +26,6 @@ router.post(
 
 router.delete('/delete/:post_id', Middleware.verifyToken, tryCatch(postController.deletePost))
 
+router.post('/update/:post_id', Middleware.verifyToken, tryCatch(postController.updatePost))
+
 export default router

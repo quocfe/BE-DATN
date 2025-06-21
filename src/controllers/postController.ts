@@ -84,6 +84,18 @@ class postController {
       sendResponseSuccess(res, data)
     }
   }
+
+  // Cập nhật bài đăng
+  async updatePost(req: CustomRequest, res: Response) {
+    if (req.user) {
+      const { post_id } = req.params
+      const postData = req.body
+
+      const data = await postService.updatePost(post_id, postData)
+
+      sendResponseSuccess(res, data)
+    }
+  }
 }
 
 export default new postController()

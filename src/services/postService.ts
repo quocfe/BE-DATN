@@ -1,6 +1,6 @@
 import { Op } from 'sequelize'
 import models from '../db/models'
-import { PostInput } from '../types/post.type'
+import { PostInput, PostUpdate } from '../types/post.type'
 import postMediaResourceService from './postMediaResourceService'
 import { CustomErrorHandler } from '../utils/ErrorHandling'
 import { StatusCodes } from 'http-status-codes'
@@ -229,6 +229,21 @@ class postService {
       data: {
         post
       }
+    }
+  }
+
+  async updatePost(post_id: string, postData: PostUpdate) {
+    const post = await models.Post.findByPk(post_id)
+
+    if (!post) {
+      throw new CustomErrorHandler(StatusCodes.NOT_FOUND, 'Không tồn tại bài đăng')
+    }
+
+    await post.update(postData)
+
+    return {
+      message: 'Cập nhật bài đăng thành công',
+      data: {}
     }
   }
 }
